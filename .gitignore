@@ -5,3 +5,7 @@ __pycache__/
 instance/
 .env
 *.db
+    
+# Whitelist test scripts
+!tests/
+!tests/*.py
