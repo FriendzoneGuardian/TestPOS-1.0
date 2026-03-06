@@ -7,6 +7,16 @@ from datetime import datetime, timezone
 pos_bp = Blueprint('pos', __name__, url_prefix='/pos')
 
 
+@pos_bp.before_request
+def restrict_accounting():
+    """Globally block the accounting role from accessing POS features."""
+    if current_user.is_authenticated and current_user.role == 'accounting':
+        if request.endpoint == 'pos.terminal':
+            flash('Auditors cannot access the POS terminal.', 'error')
+            return redirect(url_for('dashboard.index'))
+        return jsonify(success=False, message='Auditors cannot perform POS transactions.'), 403
+
+
 @pos_bp.route('/')
 @login_required
 def terminal():

@@ -59,6 +59,30 @@
             /* cyan-600 */
         }
     </style>
+    {% elif current_user.role == 'accounting' %}
+    <!-- Accounting: Amber / Orange -->
+    <style>
+        :root {
+            --chart-color: #d97706;
+            /* amber-600 */
+            --color-primary-50: 255 251 235;
+            --color-primary-100: 254 243 199;
+            --color-primary-200: 253 230 138;
+            --color-primary-300: 252 211 77;
+            --color-primary-400: 251 191 36;
+            --color-primary-500: 245 158 11;
+            --color-primary-600: 217 119 6;
+            --color-primary-700: 180 83 9;
+            --color-primary-800: 146 64 14;
+            --color-primary-900: 120 53 15;
+            --color-primary-950: 69 26 3;
+
+            --color-accent-500: 249 115 22;
+            /* orange-500 */
+            --color-accent-600: 234 88 12;
+            /* orange-600 */
+        }
+    </style>
     {% else %}
     <!-- Manager: Violet / Indigo -->
     <style>
