@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}POS System{% endblock %}</title>
     <meta name="description" content="Modern Point of Sale System with multi-branch support">
 
@@ -376,6 +377,8 @@
                         </svg>
                         Dashboard
                     </a>
+
+                    {% if current_user.role == 'cashier' %}
                     <a href="{{ url_for('pos.terminal') }}"
                         class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('pos') }}">
                         <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,6 +388,8 @@
                         </svg>
                         POS Terminal
                     </a>
+                    {% endif %}
+
                     {% if current_user.is_manager %}
                     <a href="{{ url_for('branches.index') }}"
                         class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('branches') }}">
@@ -414,6 +419,18 @@
                         </svg>
                         Loans
                     </a>
+
+                    {% if current_user.role in ['admin', 'manager', 'accounting'] %}
+                    <a href="{{ url_for('users.index') }}"
+                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('users') }}">
+                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        Staff & Users
+                    </a>
+                    {% endif %}
                 </nav>
 
                 <!-- User info at bottom -->

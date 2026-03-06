@@ -1,180 +1,221 @@
+"""
+=======================================================================
+  POS Security Audit — 10 Automated Edge-Case Tests
+  Alpha 1.6.1 "The Velvet Rope"
+=======================================================================
+  All tests use pure HTTP requests.Session for maximum reliability.
+  No Selenium flakiness — tests hammer the backend API directly.
+=======================================================================
+"""
 import unittest
-import time
-import requests
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import re
+import requests as http_requests
 
 BASE_URL = "http://127.0.0.1:5000"
 
-class TestPOSTerminalEdgeCases(unittest.TestCase):
+
+# ─── Helpers ─────────────────────────────────────────────────────────
+def _api_session(username, password):
+    """Return a requests.Session logged in via the Flask login form."""
+    s = http_requests.Session()
+    r = s.get(f"{BASE_URL}/auth/login")
+    match = re.search(r'name="csrf_token" value="([^"]+)"', r.text)
+    csrf = match.group(1) if match else ""
+    s.post(f"{BASE_URL}/auth/login",
+           data={"username": username, "password": password,
+                 "csrf_token": csrf})
+    return s
+
+
+def _extract_csrf(session):
+    """Grab the CSRF token from the meta tag on any authenticated page."""
+    r = session.get(f"{BASE_URL}/")
+    match = re.search(r'name="csrf-token" content="([^"]+)"', r.text)
+    return match.group(1) if match else ""
+
+
+# =====================================================================
+#  Cashier Endpoint Tests  (01-05)
+# =====================================================================
+class TestPOSCashierExploits(unittest.TestCase):
+    """Tests 01-05: Validate server-side input sanitisation on
+    the checkout and POS endpoints when called by a Cashier."""
+
     @classmethod
     def setUpClass(cls):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        
-        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
-        cls.driver.implicitly_wait(5)
-        cls.wait = WebDriverWait(cls.driver, 5)
-        print("\n====== Starting POS Edge Case Tests ======")
+        cls.s = _api_session("cashier1", "cashier123")
+        cls.csrf = _extract_csrf(cls.s)
+        print("\n====== PART A: Cashier Exploit Tests (01-05) ======")
 
     @classmethod
     def tearDownClass(cls):
-        print("====== Finished POS Edge Case Tests ======\n")
-        cls.driver.quit()
+        cls.s.close()
+        print("====== PART A Complete ======\n")
 
-    def setUp(self):
-        self.driver.get(f"{BASE_URL}/auth/logout")
-        self.driver.get(f"{BASE_URL}/auth/login")
-        self.driver.find_element(By.ID, "username").send_keys("admin")
-        self.driver.find_element(By.ID, "password").send_keys("admin123")
-        self.driver.find_element(By.ID, "login-btn").click()
-        self.wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'TheMoneyShot')]")))
+    def _checkout(self, items, payment="cash", customer_id=None):
+        """Fire a checkout POST and return (status_code, json)."""
+        payload = {"items": items, "payment_method": payment}
+        if customer_id:
+            payload["customer_id"] = customer_id
+        r = self.s.post(f"{BASE_URL}/pos/checkout",
+                        json=payload,
+                        headers={"X-CSRFToken": self.csrf})
+        return r.status_code, r.json()
 
-    def tearDown(self):
-        self.driver.get(f"{BASE_URL}/pos")
-        try:
-            self.driver.execute_script("cart = []; renderCart();")
-        except Exception:
-            pass
+    # ── Test 01 ──────────────────────────────────────────────────────
+    def test_case_01_phantom_stock(self):
+        """Over-sell: 9999 units of product 1. Server must reject."""
+        print("\n[01] The Phantom Stock (Over-selling)")
+        code, body = self._checkout(
+            [{"product_id": 1, "name": "Espresso",
+              "price": 3.50, "quantity": 9999}])
+        self.assertEqual(code, 400,
+                         f"VULNERABILITY: 9999-unit checkout was accepted! "
+                         f"Got {code}: {body}")
+        self.assertFalse(body.get("success"),
+                         "VULNERABILITY: success=True on over-sell!")
 
-    def test_case_1_phantom_stock(self):
-        print("\nRunning Case 1: The Phantom Stock (Over-selling)")
-        self.driver.get(f"{BASE_URL}/pos")
-        
-        # Inject 9999 units of product 1 into the cart via JS
-        self.driver.execute_script("""
-            cart.push({product_id: 1, name: 'Espresso', price: 3.50, quantity: 9999});
-            paymentMethod = 'cash';
-            checkout();
-        """)
-        time.sleep(1)
-        
-        # Check if alert popped up
-        try:
-            alert = self.driver.switch_to.alert
-            text = alert.text
-            alert.accept()
-            # If the alert says "completed", the exploit worked!
-            self.assertNotIn("completed", text.lower(), "VULNERABILITY: System allowed over-selling 9999 units!")
-        except:
-            self.fail("No alert found during checkout.")
+    # ── Test 02 ──────────────────────────────────────────────────────
+    def test_case_02_minus_money_exploit(self):
+        """Negative quantity: -50 units. Server must reject."""
+        print("\n[02] The Minus Money Exploit (Input Tampering)")
+        code, body = self._checkout(
+            [{"product_id": 1, "name": "Espresso",
+              "price": 3.50, "quantity": -50}])
+        self.assertEqual(code, 400,
+                         f"VULNERABILITY: Negative qty accepted! "
+                         f"Got {code}: {body}")
+        self.assertFalse(body.get("success"),
+                         "VULNERABILITY: success=True on negative qty!")
 
-    def test_case_2_minus_money_exploit(self):
-        print("\nRunning Case 2: The Minus Money Exploit (Input Tampering)")
-        self.driver.get(f"{BASE_URL}/pos")
-        
-        # Inject -50 units of product 1
-        self.driver.execute_script("""
-            cart.push({product_id: 1, name: 'Espresso', price: 3.50, quantity: -50});
-            paymentMethod = 'cash';
-            checkout();
-        """)
-        time.sleep(1)
-        
-        try:
-            alert = self.driver.switch_to.alert
-            text = alert.text
-            alert.accept()
-            self.assertNotIn("completed", text.lower(), "VULNERABILITY: System allowed a negative quantity checkout!")
-        except:
-            self.fail("No alert found during checkout.")
+    # ── Test 03 ──────────────────────────────────────────────────────
+    def test_case_03_cross_branch_heist(self):
+        """Non-existent product_id=999. Server must return 400."""
+        print("\n[03] The Cross-Branch Heist (Validation Bypass)")
+        code, body = self._checkout(
+            [{"product_id": 999, "name": "Ghost Item",
+              "price": 100.00, "quantity": 1}])
+        self.assertEqual(code, 400,
+                         f"VULNERABILITY: Non-existent product accepted! "
+                         f"Got {code}: {body}")
 
-    def test_case_3_cross_branch_heist(self):
-        print("\nRunning Case 3: The Cross-Branch Heist (Validation Bypass)")
-        # Product 999 probably doesn't exist, let's see how the system handles it
-        self.driver.get(f"{BASE_URL}/pos")
-        self.driver.execute_script("""
-            cart.push({product_id: 999, name: 'Ghost Item', price: 100.00, quantity: 1});
-            paymentMethod = 'cash';
-            checkout();
-        """)
-        time.sleep(1)
-        
-        try:
-            alert = self.driver.switch_to.alert
-            text = alert.text
-            alert.accept()
-            # It should say 'Product not found.'
-            self.assertIn("not found", text.lower(), "VULNERABILITY: System allowed checkout of non-existent cross-branch item!")
-        except:
-            self.fail("No alert found during checkout.")
+    # ── Test 04 ──────────────────────────────────────────────────────
+    def test_case_04_double_tap_void(self):
+        """Void the same order item twice. Second void must be blocked."""
+        print("\n[04] The Double Tap (Void Duplication)")
+        # First, create a small valid order so we have an item to void
+        code, body = self._checkout(
+            [{"product_id": 1, "name": "Espresso",
+              "price": 3.50, "quantity": 1}])
+        # This may or may not succeed depending on stock,
+        # but we need a real item_id to test voiding.
+        # Use item_id 1 regardless (it exists from seeded data).
+        r1 = self.s.post(f"{BASE_URL}/pos/void-item",
+                         json={"item_id": 1, "reason": "double tap #1"},
+                         headers={"X-CSRFToken": self.csrf})
+        r2 = self.s.post(f"{BASE_URL}/pos/void-item",
+                         json={"item_id": 1, "reason": "double tap #2"},
+                         headers={"X-CSRFToken": self.csrf})
+        # At most one should succeed: the second should get 400 "already voided"
+        results = [r1.status_code, r2.status_code]
+        success_count = results.count(200)
+        self.assertLessEqual(success_count, 1,
+                             f"VULNERABILITY: Double void accepted! "
+                             f"Statuses: {results}")
 
-    def test_case_4_double_tap_void(self):
-        print("\nRunning Case 4: The Double Tap (Void Duplication)")
-        # First create an order to void
-        self.driver.get(f"{BASE_URL}/pos")
-        self.driver.execute_script("""
-            cart.push({product_id: 1, name: 'Espresso', price: 3.50, quantity: 1});
-            paymentMethod = 'cash';
-            checkout();
-        """)
-        time.sleep(1)
-        try:
-            alert = self.driver.switch_to.alert
-            alert.accept()
-        except:
-            pass
-        
-        import re
-        source = self.driver.page_source
-        match = re.search(r"'X-CSRFToken': '([^']+)'", source)
-        csrf_token = match.group(1) if match else ''
+    # ── Test 05 ──────────────────────────────────────────────────────
+    def test_case_05_infinite_credit_loop(self):
+        """Astronomical price × qty. Server must cap at $50K."""
+        print("\n[05] The Infinite Credit Loop (Extreme Values)")
+        code, body = self._checkout(
+            [{"product_id": 1, "name": "Espresso",
+              "price": 9999999999999.99, "quantity": 99999}],
+            payment="loan", customer_id="1")
+        self.assertEqual(code, 400,
+                         f"VULNERABILITY: Unlimited loan accepted! "
+                         f"Got {code}: {body}")
 
-        self.driver.execute_script(f"""
-            window.promises = [];
-            for(let i=0; i<2; i++) {{
-                window.promises.push(
-                    fetch('/pos/void-item', {{
-                        method: 'POST',
-                        headers: {{'Content-Type': 'application/json', 'X-CSRFToken': '{csrf_token}'}},
-                        body: JSON.stringify({{item_id: 1, reason: 'Double tap test'}})
-                    }}).then(r => r.json())
-                );
-            }}
-        """)
-        time.sleep(2)
-        results = self.driver.execute_script("return Promise.all(window.promises);")
-        # If both succeeded, we have a double void issue!
-        success_count = sum(1 for r in results if r and r.get('success'))
-        self.assertLess(success_count, 2, "VULNERABILITY: System allowed double-voiding the identical item!")
 
-    def test_case_5_infinite_credit_loop(self):
-        print("\nRunning Case 5: The Infinite Credit Loop (Stress/Extreme Values)")
-        self.driver.get(f"{BASE_URL}/pos")
-        
-        # Astronomically high loan
-        self.driver.execute_script("""
-            cart.push({product_id: 1, name: 'Espresso', price: 9999999999999.99, quantity: 99999});
-            paymentMethod = 'loan';
-            // Assuming customer_id 1 is valid
-            document.getElementById('customer-select-wrap').classList.remove('hidden');
-            let sel = document.getElementById('customer-select');
-            if (sel.options.length > 1) {
-                sel.value = sel.options[1].value; // pick first customer
-            }
-            checkout();
-        """)
-        time.sleep(1)
-        
-        try:
-            alert = self.driver.switch_to.alert
-            text = alert.text
-            alert.accept()
-            # If it succeeds without error, we check if the DB handled it or crashed.
-            # But really, standard limits should block this.
-            self.assertNotIn("completed", text.lower(), "VULNERABILITY: System allowed astronomically high loan (Overflow risk)!")
-        except:
-            self.fail("No alert found during checkout.")
+# =====================================================================
+#  Role & Payload Security Tests  (06-10)
+# =====================================================================
+class TestPOSRoleSecurity(unittest.TestCase):
+    """Tests 06-10: Validate role-based access control and payload
+    sanity across Admin / Cashier boundaries."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cashier = _api_session("cashier1", "cashier123")
+        cls.admin   = _api_session("admin",    "admin123")
+        cls.cashier_csrf = _extract_csrf(cls.cashier)
+        cls.admin_csrf   = _extract_csrf(cls.admin)
+        print("\n====== PART B: Role & Payload Security (06-10) ======")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cashier.close()
+        cls.admin.close()
+        print("====== PART B Complete ======\n")
+
+    # ── Test 06 ──────────────────────────────────────────────────────
+    def test_case_06_role_spoof_privilege_escalation(self):
+        """Admin tries /pos/checkout → must get 403."""
+        print("\n[06] The Role Spoof (Privilege Escalation)")
+        r = self.admin.post(f"{BASE_URL}/pos/checkout",
+                            json={"items": [{"product_id": 1,
+                                             "quantity": 1}],
+                                  "payment_method": "cash"},
+                            headers={"X-CSRFToken": self.admin_csrf})
+        self.assertEqual(r.status_code, 403,
+                         f"VULNERABILITY: Admin reached /pos/checkout! "
+                         f"Got {r.status_code}")
+
+    # ── Test 07 ──────────────────────────────────────────────────────
+    def test_case_07_ghost_void_invalid_id(self):
+        """Void item_id=999999 → must get 404."""
+        print("\n[07] The Ghost Void (Invalid Object ID)")
+        r = self.cashier.post(f"{BASE_URL}/pos/void-item",
+                              json={"item_id": 999999,
+                                    "reason": "non-existent item"},
+                              headers={"X-CSRFToken": self.cashier_csrf})
+        self.assertEqual(r.status_code, 404,
+                         f"VULNERABILITY: System didn't 404 on fake item! "
+                         f"Got {r.status_code}")
+
+    # ── Test 08 ──────────────────────────────────────────────────────
+    def test_case_08_broken_cart_malformed_json(self):
+        """Send payload with no 'items' key. Must get 400."""
+        print("\n[08] The Broken Cart (Malformed Payload)")
+        r = self.cashier.post(f"{BASE_URL}/pos/checkout",
+                              json={"garbage": []},
+                              headers={"X-CSRFToken": self.cashier_csrf})
+        self.assertEqual(r.status_code, 400,
+                         f"VULNERABILITY: Malformed cart accepted! "
+                         f"Got {r.status_code}")
+
+    # ── Test 09 ──────────────────────────────────────────────────────
+    def test_case_09_unauthorized_cashier_void(self):
+        """Cashier tries /pos/void-order → must get 403."""
+        print("\n[09] The Unauthorized Cashier Void")
+        r = self.cashier.post(f"{BASE_URL}/pos/void-order",
+                              json={"order_id": 1,
+                                    "reason": "bypassing manager lock"},
+                              headers={"X-CSRFToken": self.cashier_csrf})
+        self.assertEqual(r.status_code, 403,
+                         f"VULNERABILITY: Cashier void-order succeeded! "
+                         f"Got {r.status_code}")
+
+    # ── Test 10 ──────────────────────────────────────────────────────
+    def test_case_10_missing_csrf_token(self):
+        """POST without X-CSRFToken → must get 400."""
+        print("\n[10] Missing CSRF Token (State Tampering)")
+        r = self.cashier.post(f"{BASE_URL}/pos/void-item",
+                              json={"item_id": 1, "reason": "no csrf"},
+                              headers={"Content-Type": "application/json"})
+        self.assertEqual(r.status_code, 400,
+                         f"VULNERABILITY: POST accepted without CSRF! "
+                         f"Got {r.status_code}")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

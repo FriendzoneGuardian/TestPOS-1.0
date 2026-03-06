@@ -31,6 +31,7 @@ def create_app(config_class=Config):
     from app.routes.branches import branches_bp
     from app.routes.reports import reports_bp
     from app.routes.loans import loans_bp
+    from app.routes.users import users_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -38,6 +39,7 @@ def create_app(config_class=Config):
     app.register_blueprint(branches_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(loans_bp)
+    app.register_blueprint(users_bp)
 
     # Create tables on first request context
     with app.app_context():

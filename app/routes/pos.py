@@ -21,6 +21,10 @@ def restrict_accounting():
 @login_required
 def terminal():
     """The POS terminal page."""
+    if current_user.role != 'cashier':
+        flash('Only Cashiers are authorized to punch the POS terminal.', 'error')
+        return redirect(url_for('dashboard.index'))
+        
     products = Product.query.filter_by(is_active=True).order_by(Product.category, Product.name).all()
     customers = Customer.query.order_by(Customer.name).all()
     return render_template('pos/terminal.html', products=products, customers=customers)
@@ -30,6 +34,9 @@ def terminal():
 @login_required
 def checkout():
     """Process a sale."""
+    if current_user.role != 'cashier':
+        return jsonify(success=False, message='Only Cashiers can process a checkout.'), 403
+        
     data = request.get_json()
     if not data or not data.get('items'):
         return jsonify(success=False, message='Cart is empty.'), 400

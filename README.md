@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
 
-**Version:** Alpha 1.5 — *She's learned a few new tricks.*
+**Version:** Alpha 1.6.1 — *The Velvet Rope (Backdoor Secured)*
 
 ---
 
