@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
 
-**Version:** Alpha 1.0 — *Our first time. Be gentle.*
+**Version:** Alpha 1.1 — *She's learned a few new tricks.*
 
 ---
 
@@ -28,7 +28,7 @@ A dangerously attractive, multi-branch Point of Sale system built with **Flask**
 No need to undress the architecture yourself — here's the full reveal:
 
 - **Backend:** Python 3 · Flask · SQLAlchemy · Flask-Login · Flask-Migrate
-- **Frontend:** Jinja2 · Tailwind CSS (CDN) · Flowbite · ApexCharts
+- **Frontend:** Jinja2 · Tailwind CSS (local build) · Flowbite · ApexCharts
 - **Database:** SQLite (dev) — PostgreSQL-ready (prod)
 
 > Built tight, runs smooth, and handles heavy loads with grace.
@@ -47,13 +47,17 @@ python -m venv venv
 .\venv\Scripts\activate
 # or macOS/Linux: source venv/bin/activate
 
-# 4. Install dependencies (foreplay)
+# 4. Install Python dependencies (foreplay)
 pip install -r requirements.txt
 
-# 5. Seed the database (plant the seed)
+# 5. Install frontend dependencies & build CSS (dress her up)
+npm install
+npm run build:css
+
+# 6. Seed the database (plant the seed)
 python seed.py
 
-# 6. Run the dev server (let her rip)
+# 7. Run the dev server (let her rip)
 python run.py
 ```
 
