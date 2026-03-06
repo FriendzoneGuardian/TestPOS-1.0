@@ -32,6 +32,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='cashier')  # admin | manager | cashier | accounting
+    theme_preference = db.Column(db.String(20), nullable=False, default='dusk')  # dawn | dusk | midnight
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

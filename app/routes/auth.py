@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
 from app import db
@@ -33,3 +33,21 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/settings/theme', methods=['POST'])
+@login_required
+def settings_theme():
+    """Save the user's theme preference."""
+    data = request.get_json()
+    if not data or 'theme' not in data:
+        return jsonify(success=False, message='No theme provided'), 400
+        
+    theme = data.get('theme')
+    if theme not in ['dawn', 'dusk', 'midnight']:
+        return jsonify(success=False, message='Invalid theme preference'), 400
+        
+    current_user.theme_preference = theme
+    db.session.commit()
+    
+    return jsonify(success=True)
