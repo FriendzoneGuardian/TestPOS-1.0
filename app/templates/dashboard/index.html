@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SwiftPOS{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+        <p class="text-sm text-gray-400 mt-1">Welcome back, <span class="text-indigo-400">{{ current_user.username
+                }}</span></p>
+    </div>
+    <div class="mt-3 md:mt-0 flex items-center gap-2">
+        <span class="pulse-dot inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="text-xs text-gray-400">Live</span>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="stat-card glass-card rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Today's Sales</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(daily_sales) }}</p>
+    </div>
+    <div class="stat-card glass-card rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Orders Today</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-white">{{ total_orders }}</p>
+    </div>
+    <div class="stat-card glass-card rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Voids Today</span>
+            <div class="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center">
+                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-white">{{ void_count }}</p>
+    </div>
+    <div class="stat-card glass-card rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Active Loans</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(active_loans) }}</p>
+    </div>
+</div>
+
+<!-- Charts + Top Products -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+    <!-- Sales Chart -->
+    <div class="xl:col-span-2 glass-card rounded-xl p-5">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Sales — Last 7 Days</h2>
+        <div id="salesChart"></div>
+    </div>
+    <!-- Top Products -->
+    <div class="glass-card rounded-xl p-5">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Top Products (Week)</h2>
+        {% if top_products %}
+        <ul class="space-y-3">
+            {% for name, qty in top_products %}
+            <li class="flex items-center justify-between">
+                <span class="text-sm text-gray-300">{{ name }}</span>
+                <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400">{{ qty }}
+                    sold</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-500">No sales data yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="glass-card rounded-xl p-5">
+    <h2 class="text-sm font-semibold text-gray-300 mb-4">Recent Orders</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-gray-400 border-b border-gray-700">
+                <tr>
+                    <th class="px-4 py-3">#</th>
+                    <th class="px-4 py-3">Date</th>
+                    <th class="px-4 py-3">Branch</th>
+                    <th class="px-4 py-3">Cashier</th>
+                    <th class="px-4 py-3">Payment</th>
+                    <th class="px-4 py-3">Total</th>
+                    <th class="px-4 py-3">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                {% for order in recent_orders %}
+                <tr class="hover:bg-white/[0.02]">
+                    <td class="px-4 py-3 font-mono text-gray-400">{{ order.id }}</td>
+                    <td class="px-4 py-3 text-gray-300">{{ order.order_date.strftime('%b %d, %H:%M') }}</td>
+                    <td class="px-4 py-3 text-gray-300">{{ order.branch.name if order.branch else '-' }}</td>
+                    <td class="px-4 py-3 text-gray-300">{{ order.cashier.username if order.cashier else '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span
+                            class="text-xs px-2 py-0.5 rounded-full {% if order.payment_method == 'loan' %}bg-amber-500/15 text-amber-400{% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
+                            {{ order.payment_method }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 font-semibold text-white">${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td class="px-4 py-3">
+                        <span
+                            class="text-xs px-2 py-0.5 rounded-full {% if order.status == 'voided' %}bg-red-500/15 text-red-400{% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-6 text-center text-gray-500">No orders yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    fetch('{{ url_for("dashboard.chart_data") }}')
+        .then(r => r.json())
+        .then(data => {
+            new ApexCharts(document.getElementById('salesChart'), {
+                chart: {
+                    type: 'area', height: 280, toolbar: { show: false },
+                    background: 'transparent', foreColor: '#94a3b8'
+                },
+                series: [{ name: 'Sales', data: data.values }],
+                xaxis: { categories: data.labels },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: {
+                    type: 'gradient',
+                    gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] }
+                },
+                colors: ['#6366f1'],
+                grid: { borderColor: '#1e293b', strokeDashArray: 4 },
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: false },
+            }).render();
+        });
+</script>
+{% endblock %}
