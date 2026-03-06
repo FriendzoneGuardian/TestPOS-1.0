@@ -40,12 +40,31 @@ def checkout():
     db.session.add(order)
 
     total = 0.0
+    total_qty = 0
     for item in data['items']:
         product = db.session.get(Product, int(item['product_id']))
         if not product:
             db.session.rollback()
             return jsonify(success=False, message=f'Product not found.'), 400
+        
         qty = int(item['quantity'])
+        if qty <= 0:
+            db.session.rollback()
+            return jsonify(success=False, message=f'Invalid quantity for {product.name}.'), 400
+            
+        total_qty += qty
+        if total_qty > 1000:
+            db.session.rollback()
+            return jsonify(success=False, message='Order exceeds maximum item limit (1000).'), 400
+
+        stock = BranchStock.query.filter_by(
+            branch_id=current_user.branch_id, product_id=product.id
+        ).first()
+        
+        if not stock or stock.quantity < qty:
+            db.session.rollback()
+            return jsonify(success=False, message=f'Insufficient stock for {product.name}.'), 400
+
         oi = OrderItem(
             order=order,
             product_id=product.id,
@@ -56,11 +75,11 @@ def checkout():
         total += product.price * qty
 
         # Decrease branch stock
-        stock = BranchStock.query.filter_by(
-            branch_id=current_user.branch_id, product_id=product.id
-        ).first()
-        if stock:
-            stock.quantity = max(stock.quantity - qty, 0)
+        stock.quantity -= qty
+
+    if total > 50000.00:
+        db.session.rollback()
+        return jsonify(success=False, message='Order exceeds maximum transaction total ($50,000.00).'), 400
 
     order.total_amount = total
 
@@ -85,6 +104,9 @@ def void_item():
     oi = db.session.get(OrderItem, int(item_id))
     if not oi:
         return jsonify(success=False, message='Item not found.'), 404
+
+    if oi.status == 'voided':
+        return jsonify(success=False, message='Item is already voided.'), 400
 
     oi.status = 'voided'
     oi.void_reason = reason
