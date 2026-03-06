@@ -9,7 +9,7 @@
     </div>
     {% if current_user.is_admin %}
     <a href="{{ url_for('branches.create') }}"
-        class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-500/25">
+        class="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 text-white text-sm font-semibold transition-all shadow-lg shadow-primary-500/25">
         + New Branch
     </a>
     {% endif %}
@@ -20,8 +20,8 @@
     <div class="glass-card rounded-xl p-5 stat-card">
         <div class="flex items-center justify-between mb-3">
             <div
-                class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                     </path>
@@ -40,7 +40,7 @@
                 class="flex-1 text-center py-2 rounded-lg bg-surface-800 text-gray-300 text-xs hover:bg-gray-700 transition-all">Edit</a>
             {% endif %}
             <a href="{{ url_for('branches.products', branch_id=branch.id) }}"
-                class="flex-1 text-center py-2 rounded-lg bg-indigo-500/15 text-indigo-400 text-xs hover:bg-indigo-500/25 transition-all">Stock</a>
+                class="flex-1 text-center py-2 rounded-lg bg-primary-500/15 text-primary-400 text-xs hover:bg-primary-500/25 transition-all">Stock</a>
         </div>
     </div>
     {% endfor %}

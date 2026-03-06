@@ -33,7 +33,10 @@ with app.app_context():
     cashier2 = User(username='cashier2', role='cashier', branch_id=b2.id)
     cashier2.set_password('cashier123')
 
-    db.session.add_all([admin, mgr, cashier1, cashier2])
+    auditor = User(username='auditor1', role='accounting', branch_id=None)
+    auditor.set_password('audit123')
+
+    db.session.add_all([admin, mgr, cashier1, cashier2, auditor])
 
     # --- Products ---
     products_data = [
@@ -72,6 +75,6 @@ with app.app_context():
     db.session.commit()
     print("✅ Database seeded successfully!")
     print("   Branches: Main Branch, Uptown Branch")
-    print("   Users: admin/admin123, manager/manager123, cashier1/cashier123, cashier2/cashier123")
+    print("   Users: admin/admin123, manager/manager123, cashier1/cashier123, cashier2/cashier123, auditor1/audit123")
     print("   Products: 12 items")
     print("   Customers: 2 (for loans)")

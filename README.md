@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
 
-**Version:** Alpha 1.1 — *She's learned a few new tricks.*
+**Version:** Alpha 1.5 — *She's learned a few new tricks.*
 
 ---
 
@@ -16,7 +16,8 @@ A dangerously attractive, multi-branch Point of Sale system built with **Flask**
 
 | Module | Description |
 |--------|-------------|
-| **POS Terminal** | Smooth product grid, real-time cart action — she handles multiple items at once without breaking a sweat |
+| **Theme Engine (Live)** | Instantly flip between Dawn (Light), Dusk (Dark), and Midnight (AMOLED) states. No reload needed. Smooth. |
+| **Role Aesthetic System** | The environment dynamically shifts colors based on your vibe: Admin/Rose, Cashier/Turquoise, Auditor/Amber. |
 | **Branch Management** | Multi-branch support with per-branch stock tracking. She gets around — professionally |
 | **Void System** | Void individual items or entire orders. Full audit logging, because we don't do anything without consent |
 | **Loan / Credit** | Customer credit tracking with payment processing. We keep tabs on who owes us one |
@@ -69,6 +70,7 @@ Then open **http://127.0.0.1:5000** — she'll be waiting for you.
 |----------|----------|------|--------|
 | `admin` | `admin123` | Admin | Main Branch |
 | `manager` | `manager123` | Manager | Main Branch |
+| `auditor` | `audit123` | Accounting | Main Branch |
 | `cashier1` | `cashier123` | Cashier | Main Branch |
 | `cashier2` | `cashier123` | Cashier | Uptown Branch |
 

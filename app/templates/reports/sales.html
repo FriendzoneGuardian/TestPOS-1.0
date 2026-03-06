@@ -7,7 +7,7 @@
     <div class="flex gap-2 mt-3 md:mt-0">
         {% for p in ['daily', 'weekly', 'monthly'] %}
         <a href="{{ url_for('reports.sales', period=p, branch_id=selected_branch) }}"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold {{ 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' if period == p else 'bg-surface-800 text-gray-400 border border-gray-700' }}">
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold {{ 'bg-primary-500/20 text-primary-400 border border-primary-500/30' if period == p else 'bg-surface-800 text-gray-400 border border-gray-700' }}">
             {{ p|capitalize }}
         </a>
         {% endfor %}
