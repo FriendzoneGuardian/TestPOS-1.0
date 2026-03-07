@@ -31,7 +31,7 @@
                 <td class="px-5 py-3">
                     <span
                         class="{{ 'text-red-400 font-semibold' if c.outstanding_balance > 0 else 'text-emerald-400' }}">
-                        ${{ "%.2f"|format(c.outstanding_balance) }}
+                        {{ c.outstanding_balance|currency }}
                     </span>
                 </td>
                 <td class="px-5 py-3">

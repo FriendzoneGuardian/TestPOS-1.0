@@ -27,7 +27,11 @@ def terminal():
         
     products = Product.query.filter_by(is_active=True).order_by(Product.category, Product.name).all()
     customers = Customer.query.order_by(Customer.name).all()
-    return render_template('pos/terminal.html', products=products, customers=customers)
+    
+    stocks = BranchStock.query.filter_by(branch_id=current_user.branch_id).all()
+    stock_dict = {s.product_id: s.quantity for s in stocks}
+
+    return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict)
 
 
 @pos_bp.route('/checkout', methods=['POST'])

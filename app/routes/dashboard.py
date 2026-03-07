@@ -53,6 +53,18 @@ def index():
 
     branches = Branch.query.filter_by(is_active=True).all()
 
+    # Low stock alerts query
+    from app.models import BranchStock
+    low_stock_alerts = (
+        db.session.query(Product, BranchStock, Branch)
+        .join(BranchStock, Product.id == BranchStock.product_id)
+        .join(Branch, BranchStock.branch_id == Branch.id)
+        .filter(BranchStock.quantity <= Product.low_stock_threshold)
+    )
+    if not current_user.is_admin and current_user.role != 'accounting':
+        low_stock_alerts = low_stock_alerts.filter(BranchStock.branch_id == branch_id)
+    low_stock_alerts = low_stock_alerts.order_by(BranchStock.quantity.asc()).all()
+
     return render_template('dashboard/index.html',
                            daily_sales=daily_sales,
                            total_orders=total_orders,
@@ -60,7 +72,8 @@ def index():
                            active_loans=active_loans,
                            top_products=top_products,
                            recent_orders=recent_orders,
-                           branches=branches)
+                           branches=branches,
+                           low_stock_alerts=low_stock_alerts)
 
 
 @dashboard_bp.route('/api/chart-data')

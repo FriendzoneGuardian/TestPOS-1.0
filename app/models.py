@@ -73,6 +73,7 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False, default=0.0)
     category = db.Column(db.String(80), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    low_stock_threshold = db.Column(db.Integer, default=10, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)

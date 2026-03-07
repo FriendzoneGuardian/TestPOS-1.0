@@ -32,6 +32,7 @@ def create_app(config_class=Config):
     from app.routes.reports import reports_bp
     from app.routes.loans import loans_bp
     from app.routes.users import users_bp
+    from app.routes.inventory import inventory_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -40,6 +41,19 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp)
     app.register_blueprint(loans_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(inventory_bp)
+
+    @app.context_processor
+    def inject_global_vars():
+        return dict(currency_symbol=app.config.get('CURRENCY_SYMBOL', '₱'))
+
+    @app.template_filter('currency')
+    def format_currency(value):
+        symbol = app.config.get('CURRENCY_SYMBOL', '₱')
+        try:
+            return f"{symbol}{float(value):,.2f}"
+        except (ValueError, TypeError):
+            return f"{symbol}0.00"
 
     # Create tables on first request context
     with app.app_context():

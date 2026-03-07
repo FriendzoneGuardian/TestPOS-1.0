@@ -22,8 +22,7 @@
 </div>
 
 <div class="glass-card rounded-xl p-4 mb-4">
-    <p class="text-sm text-gray-400">Total: <span class="text-xl font-bold text-emerald-400">${{ "%.2f"|format(total)
-            }}</span> from <span class="font-semibold text-white">{{ orders|length }}</span> orders</p>
+    <p class="text-sm text-gray-400">Total: <span class="text-xl font-bold text-emerald-400">{{ total|currency }}</span> from <span class="font-semibold text-white">{{ orders|length }}</span> orders</p>
 </div>
 
 <div class="glass-card rounded-xl overflow-hidden">
@@ -48,7 +47,7 @@
                 <td class="px-4 py-3"><span
                         class="text-xs px-2 py-0.5 rounded-full {{ 'bg-amber-500/15 text-amber-400' if o.payment_method == 'loan' else 'bg-emerald-500/15 text-emerald-400' }}">{{
                         o.payment_method }}</span></td>
-                <td class="px-4 py-3 font-semibold text-white">${{ "%.2f"|format(o.total_amount) }}</td>
+                <td class="px-4 py-3 font-semibold text-white">{{ o.total_amount|currency }}</td>
             </tr>
             {% else %}
             <tr>

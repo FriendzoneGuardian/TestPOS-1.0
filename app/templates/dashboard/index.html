@@ -15,6 +15,38 @@
     </div>
 </div>
 
+{% if low_stock_alerts %}
+<!-- Low Stock Warning Banner -->
+<div
+    class="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex items-start shadow-sm shadow-orange-500/10 backdrop-blur-sm relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent pointer-events-none"></div>
+    <div
+        class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center mr-4 border border-orange-500/30 shrink-0">
+        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+            </path>
+        </svg>
+    </div>
+    <div class="flex-1 relative z-10">
+        <h3 class="text-sm font-bold text-orange-400 mb-1">Low Stock Alert: We're running a little dry in the back, time
+            to restock...</h3>
+        <div class="flex flex-wrap gap-2 mt-2">
+            {% for prod, stock, b in low_stock_alerts %}
+            <span
+                class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-900 border border-orange-500/30 text-gray-300 shadow-sm">
+                <span class="text-white font-semibold mr-1">{{ prod.name }}</span>
+                {% if branches|length > 1 and current_user.role in ['admin', 'accounting'] %}
+                <span class="text-gray-500 mr-1">({{ b.name }})</span>
+                {% endif %}
+                <span class="text-orange-400 ml-1 font-mono font-bold">{{ stock.quantity }} left</span>
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Stat Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
     <div class="stat-card glass-card rounded-xl p-5">
@@ -28,7 +60,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(daily_sales) }}</p>
+        <p class="text-2xl font-bold text-white">{{ daily_sales|currency }}</p>
     </div>
     <div class="stat-card glass-card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
@@ -66,7 +98,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(active_loans) }}</p>
+        <p class="text-2xl font-bold text-white">{{ active_loans|currency }}</p>
     </div>
 </div>
 
@@ -125,7 +157,7 @@
                             {{ order.payment_method }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 font-semibold text-white">${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td class="px-4 py-3 font-semibold text-white">{{ order.total_amount|currency }}</td>
                     <td class="px-4 py-3">
                         <span
                             class="text-xs px-2 py-0.5 rounded-full {% if order.status == 'voided' %}bg-red-500/15 text-red-400{% else %}bg-emerald-500/15 text-emerald-400{% endif %}">

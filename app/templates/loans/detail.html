@@ -19,7 +19,7 @@
             <p class="text-xs text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
             <p
                 class="text-3xl font-bold {{ 'text-red-400' if customer.outstanding_balance > 0 else 'text-emerald-400' }} mt-1">
-                ${{ "%.2f"|format(customer.outstanding_balance) }}</p>
+                {{ customer.outstanding_balance|currency }}</p>
         </div>
         {% if customer.outstanding_balance > 0 %}
         <form method="POST" action="{{ url_for('loans.make_payment', customer_id=customer.id) }}"
@@ -55,7 +55,7 @@
                     <p class="text-sm text-gray-200">Order #{{ o.id }}</p>
                     <p class="text-xs text-gray-400">{{ o.order_date.strftime('%b %d, %Y %H:%M') }}</p>
                 </div>
-                <span class="text-sm font-semibold text-amber-400">${{ "%.2f"|format(o.total_amount) }}</span>
+                <span class="text-sm font-semibold text-amber-400">{{ o.total_amount|currency }}</span>
             </div>
             {% else %}
             <p class="text-sm text-gray-500 text-center py-4">No loan orders.</p>
@@ -70,7 +70,7 @@
             {% for p in payments %}
             <div class="flex items-center justify-between bg-surface-800/50 rounded-lg p-3">
                 <div>
-                    <p class="text-sm text-emerald-400">+ ${{ "%.2f"|format(p.amount) }}</p>
+                    <p class="text-sm text-emerald-400">+ {{ p.amount|currency }}</p>
                     <p class="text-xs text-gray-400">{{ p.payment_date.strftime('%b %d, %Y %H:%M') }}{% if p.notes %} ·
                         {{ p.notes }}{% endif %}</p>
                 </div>
