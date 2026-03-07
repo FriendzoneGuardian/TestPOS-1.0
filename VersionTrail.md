@@ -1,3 +1,16 @@
+# Alpha 1.1 — "Laying the Pipe" (Project Scaffolding & Core Architecture)
+- [x] Define project scope, select tech stack (Flask + Flowbite + Tailwind CSS).
+- [x] Scaffold the project (app factory, `config.py`, basic blueprints).
+- [x] Configure SQLite database and basic Flask-SQLAlchemy integration.
+- [x] Construct core Database Models (`User`, `Product`, `Branch`, `BranchStock`, `Customer`, `Order`, `OrderItem`).
+- [x] Implement initial authentication skeleton and base HTML layout.
+
+# Alpha 1.2 — "The First Thrust" (Data Seeding & Initial POS Wiring)
+- [x] Create comprehensive `seed.py` to populate DB with dummy users (Admin, Manager, Cashier), branches, and 50+ products.
+- [x] Build the initial POS Terminal layout (`pos/terminal.html`).
+- [x] Wire the POS backend routes to handle dummy checkouts and stock deductions.
+- [x] **Verification**: Offline testing and simulated walkthrough to ensure DB integrity.
+
 # Alpha 1.3 — "Fifty Shades of Roles" (Color Palette Revamp)
 - [x] Update `tailwind.config.js` to map `primary` theme colors to CSS variables mapping
 - [x] Update `app/templates/base.html` to inject CSS variables based on `current_user.role`
