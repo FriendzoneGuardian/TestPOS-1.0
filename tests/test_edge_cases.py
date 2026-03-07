@@ -1,12 +1,11 @@
 """
 =======================================================================
-  POS Security Audit — 10 Automated Edge-Case Tests
-  Alpha 1.6.1 "The Velvet Rope"
+  POS Security Audit — 11 Automated Edge-Case Tests
+  Alpha 1.8 "Bare Assets" (Updated for Audit & Accountability)
 =======================================================================
   All tests use pure HTTP requests.Session for maximum reliability.
   No Selenium flakiness — tests hammer the backend API directly.
-=======================================================================
-"""
+======================================================================="""
 import unittest
 import re
 import requests as http_requests
@@ -101,27 +100,14 @@ class TestPOSCashierExploits(unittest.TestCase):
 
     # ── Test 04 ──────────────────────────────────────────────────────
     def test_case_04_double_tap_void(self):
-        """Void the same order item twice. Second void must be blocked."""
-        print("\n[04] The Double Tap (Void Duplication)")
-        # First, create a small valid order so we have an item to void
-        code, body = self._checkout(
-            [{"product_id": 1, "name": "Espresso",
-              "price": 3.50, "quantity": 1}])
-        # This may or may not succeed depending on stock,
-        # but we need a real item_id to test voiding.
-        # Use item_id 1 regardless (it exists from seeded data).
-        r1 = self.s.post(f"{BASE_URL}/pos/void-item",
-                         json={"item_id": 1, "reason": "double tap #1"},
-                         headers={"X-CSRFToken": self.csrf})
-        r2 = self.s.post(f"{BASE_URL}/pos/void-item",
-                         json={"item_id": 1, "reason": "double tap #2"},
-                         headers={"X-CSRFToken": self.csrf})
-        # At most one should succeed: the second should get 400 "already voided"
-        results = [r1.status_code, r2.status_code]
-        success_count = results.count(200)
-        self.assertLessEqual(success_count, 1,
-                             f"VULNERABILITY: Double void accepted! "
-                             f"Statuses: {results}")
+        """Cashier tries void-item → must get 403 (Alpha 1.8 restriction)."""
+        print("\n[04] The Double Tap (Cashier Void Blocked)")
+        r = self.s.post(f"{BASE_URL}/pos/void-item",
+                        json={"item_id": 1, "reason": "double tap attempt"},
+                        headers={"X-CSRFToken": self.csrf})
+        self.assertEqual(r.status_code, 403,
+                         f"VULNERABILITY: Cashier void-item succeeded! "
+                         f"Got {r.status_code}")
 
     # ── Test 05 ──────────────────────────────────────────────────────
     def test_case_05_infinite_credit_loop(self):
@@ -140,21 +126,24 @@ class TestPOSCashierExploits(unittest.TestCase):
 #  Role & Payload Security Tests  (06-10)
 # =====================================================================
 class TestPOSRoleSecurity(unittest.TestCase):
-    """Tests 06-10: Validate role-based access control and payload
-    sanity across Admin / Cashier boundaries."""
+    """Tests 06-11: Validate role-based access control and payload
+    sanity across Admin / Cashier / Manager boundaries."""
 
     @classmethod
     def setUpClass(cls):
         cls.cashier = _api_session("cashier1", "cashier123")
         cls.admin   = _api_session("admin",    "admin123")
+        cls.manager = _api_session("manager",  "manager123")
         cls.cashier_csrf = _extract_csrf(cls.cashier)
         cls.admin_csrf   = _extract_csrf(cls.admin)
-        print("\n====== PART B: Role & Payload Security (06-10) ======")
+        cls.manager_csrf = _extract_csrf(cls.manager)
+        print("\n====== PART B: Role & Payload Security (06-11) ======")
 
     @classmethod
     def tearDownClass(cls):
         cls.cashier.close()
         cls.admin.close()
+        cls.manager.close()
         print("====== PART B Complete ======\n")
 
     # ── Test 06 ──────────────────────────────────────────────────────
@@ -172,14 +161,14 @@ class TestPOSRoleSecurity(unittest.TestCase):
 
     # ── Test 07 ──────────────────────────────────────────────────────
     def test_case_07_ghost_void_invalid_id(self):
-        """Cashier tries to void an item → must get 403 in Alpha 1.8."""
-        print("\n[07] The Ghost Void (Cashier Voiding Deprecated)")
-        r = self.cashier.post(f"{BASE_URL}/pos/void-item",
-                              json={"item_id": 999999,
-                                    "reason": "non-existent item"},
-                              headers={"X-CSRFToken": self.cashier_csrf})
-        self.assertEqual(r.status_code, 403,
-                         f"VULNERABILITY: Cashier bypassed Void RBAC! "
+        """Admin voids item_id=999999 → must get 404."""
+        print("\n[07] The Ghost Void (Invalid Object ID)")
+        r = self.admin.post(f"{BASE_URL}/pos/void-item",
+                            json={"item_id": 999999,
+                                  "reason": "non-existent item"},
+                            headers={"X-CSRFToken": self.admin_csrf})
+        self.assertEqual(r.status_code, 404,
+                         f"VULNERABILITY: System didn't 404 on fake item! "
                          f"Got {r.status_code}")
 
     # ── Test 08 ──────────────────────────────────────────────────────
@@ -209,11 +198,23 @@ class TestPOSRoleSecurity(unittest.TestCase):
     def test_case_10_missing_csrf_token(self):
         """POST without X-CSRFToken → must get 400."""
         print("\n[10] Missing CSRF Token (State Tampering)")
-        r = self.cashier.post(f"{BASE_URL}/pos/void-item",
-                              json={"item_id": 1, "reason": "no csrf"},
-                              headers={"Content-Type": "application/json"})
+        r = self.admin.post(f"{BASE_URL}/pos/void-item",
+                            json={"item_id": 1, "reason": "no csrf"},
+                            headers={"Content-Type": "application/json"})
         self.assertEqual(r.status_code, 400,
                          f"VULNERABILITY: POST accepted without CSRF! "
+                         f"Got {r.status_code}")
+
+    # ── Test 11 ──────────────────────────────────────────────────────
+    def test_case_11_cashier_void_item_blocked(self):
+        """Cashier tries /pos/void-item → must get 403 (Alpha 1.8)."""
+        print("\n[11] Cashier Void-Item Blocked (Alpha 1.8 Enforcement)")
+        r = self.cashier.post(f"{BASE_URL}/pos/void-item",
+                              json={"item_id": 1,
+                                    "reason": "sneaky cashier"},
+                              headers={"X-CSRFToken": self.cashier_csrf})
+        self.assertEqual(r.status_code, 403,
+                         f"VULNERABILITY: Cashier can void items! "
                          f"Got {r.status_code}")
 
 

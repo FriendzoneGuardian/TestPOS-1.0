@@ -86,13 +86,12 @@
   - [x] **Verification**: Verified via browser testing with `cashier1` (Selenium/Subagent).
 
 # Alpha 1.8 — "Bare Assets" (Audit & Accountability Overhaul)
-- [ ] Backend: Create `StockAuditLog`, `Shift`, and `VoidLog` models in `models.py`.
-- [ ] Backend: Generate and apply SQLite migrations for the new models.
-- [ ] Backend: Update `inventory.py` to write to `StockAuditLog` on `receive_stock` and `adjust_stock`.
-- [ ] Frontend: Build a secure "Audit Logs" datatable view for Admins and Auditors.
-- [ ] POS UI: Refactor `/pos/` to enforce a "Starting Cash" modal before allowing checkout.
-- [ ] POS UI: Add a "Close Shift" feature where cashiers declare "Ending Cash".
-- [ ] Backend: Strip `void-item` out of POS Terminal. Move Void authorization to Admin/Manager dashboard.
-- [ ] Dashboard UI: Build the Auditor Dashboard showing Shift Discrepancies, Void Volume, and Logs.
-- [ ] Verification: Test the entire shift lifecycle and verify the logs trap manager adjustments and voids correctly.
-
+- [x] Backend: Create `StockAuditLog`, `Shift`, and `VoidLog` models in `models.py`.
+- [x] Backend: Generate and apply SQLite migrations for the new models.
+- [x] Backend: Update `inventory.py` to write to `StockAuditLog` on `receive_stock` and `adjust_stock`.
+- [x] Frontend: Build a secure "Audit Logs" datatable view for Admins and Auditors.
+- [x] POS UI: Refactor `/pos/` to enforce a "Starting Cash" modal before allowing checkout.
+- [x] POS UI: Add a "Close Shift" feature where cashiers declare "Ending Cash".
+- [x] Backend: Strip `void-item` out of POS Terminal. Move Void authorization to Admin/Manager dashboard.
+- [x] Dashboard UI: Build the Auditor Dashboard showing Shift Discrepancies, Void Volume, and Logs.
+- [x] Verification: Test the entire shift lifecycle and verify the logs trap manager adjustments and voids correctly.
