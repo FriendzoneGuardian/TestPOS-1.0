@@ -30,8 +30,10 @@ def terminal():
     
     stocks = BranchStock.query.filter_by(branch_id=current_user.branch_id).all()
     stock_dict = {s.product_id: s.quantity for s in stocks}
+    
+    categories = sorted(list(set(p.category for p in products if p.category)))
 
-    return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict)
+    return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict, categories=categories)
 
 
 @pos_bp.route('/checkout', methods=['POST'])

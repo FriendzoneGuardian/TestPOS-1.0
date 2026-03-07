@@ -11,35 +11,62 @@
             <input type="text" id="product-search" placeholder="Search products..."
                 class="w-64 px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
         </div>
+
+        <!-- Category Filters -->
+        <div class="flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-hide">
+            <button onclick="filterCategory('all')" id="cat-btn-all"
+                class="cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold bg-primary-500/20 text-primary-400 border border-primary-500/30 transition-all">All</button>
+            {% for cat in categories %}
+            <button onclick="filterCategory('{{ cat|lower|replace('\'', '\\\'') }}')"
+                id="cat-btn-{{ cat|lower|replace(' ', '-')|replace('\'', '') }}"
+                class="cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700 transition-all">{{
+                cat }}</button>
+            {% endfor %}
+        </div>
+
         <div id="product-grid"
             class="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
             {% for product in products %}
-            <button onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }})"
-                class="product-card glass-card rounded-xl p-4 text-left hover:border-primary-500/40 transition-all group"
-                data-name="{{ product.name|lower }}">
+            {% set qty = stock_dict.get(product.id, 0) %}
+            {% set out_of_stock = qty <= 0 %} <button {% if not out_of_stock
+                %}onclick="addToCart({{ product.id }}, '{{ product.name|replace('\'', '\\\'') }}', {{ product.price }})"
+                {% endif %}
+                class="product-card glass-card rounded-xl p-4 text-left transition-all group {{ 'opacity-50 grayscale cursor-not-allowed border border-red-500/20' if out_of_stock else 'hover:border-primary-500/40' }}"
+                data-name="{{ product.name|lower }}" data-category="{{ (product.category or '')|lower }}" {{ 'disabled'
+                if out_of_stock else '' }}>
+
                 <div
-                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center mb-3 group-hover:from-primary-500/30 group-hover:to-accent-500/30 transition-all">
-                    <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-10 h-10 rounded-lg {{ 'bg-gray-800' if out_of_stock else 'bg-gradient-to-br from-primary-500/20 to-accent-500/20 group-hover:from-primary-500/30 group-hover:to-accent-500/30' }} flex items-center justify-center mb-3 transition-all text-primary-400">
+                    <svg class="w-5 h-5 {{ 'text-gray-500' if out_of_stock else 'text-primary-400' }}" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                 </div>
+
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-200 truncate pr-2">{{ product.name }}</p>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ product.category or 'General' }}</p>
+                        <p
+                            class="text-sm font-medium {{ 'text-gray-400' if out_of_stock else 'text-gray-200' }} truncate pr-2">
+                            {{ product.name }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ product.category or 'General' }}</p>
                     </div>
-                    {% set qty = stock_dict.get(product.id, 0) %}
-                    {% if qty <= product.low_stock_threshold %} <span
+                    {% if out_of_stock %}
+                    <span
+                        class="inline-flex items-center justify-center shrink-0 px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-bold rounded-md border border-red-500/20"
+                        title="Out of Stock">OOS</span>
+                    {% elif qty <= product.low_stock_threshold %} <span
                         class="inline-flex items-center justify-center shrink-0 w-5 h-5 bg-orange-500/20 text-orange-400 text-[10px] font-bold rounded-full border border-orange-500/30"
                         title="Low Stock: {{ qty }} left">!</span>
                         {% endif %}
                 </div>
+
                 <div class="flex items-center justify-between mt-2">
-                    <p class="text-sm font-bold text-primary-400">{{ product.price|currency }}</p>
+                    <p class="text-sm font-bold {{ 'text-gray-500' if out_of_stock else 'text-primary-400' }}">{{
+                        product.price|currency }}</p>
                 </div>
-            </button>
-            {% endfor %}
+                </button>
+                {% endfor %}
         </div>
     </div>
 
@@ -120,13 +147,35 @@
     let cart = [];
     let paymentMethod = 'cash';
 
-    // Product search filter
-    document.getElementById('product-search').addEventListener('input', function () {
-        const q = this.value.toLowerCase();
+    let activeCategory = 'all';
+
+    function runFilters() {
+        const q = document.getElementById('product-search').value.toLowerCase();
         document.querySelectorAll('.product-card').forEach(card => {
-            card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+            const matchesSearch = card.dataset.name.includes(q);
+            const matchesCat = activeCategory === 'all' || card.dataset.category === activeCategory;
+            card.style.display = (matchesSearch && matchesCat) ? '' : 'none';
         });
-    });
+    }
+
+    // Product search filter
+    document.getElementById('product-search').addEventListener('input', runFilters);
+
+    function filterCategory(cat) {
+        activeCategory = cat;
+        // Update button styles
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.className = 'cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700 transition-all';
+        });
+
+        let targetId = cat === 'all' ? 'cat-btn-all' : `cat-btn-${cat.replace(/ /g, '-').replace(/'/g, '')}`;
+        const activeBtn = document.getElementById(targetId);
+        if (activeBtn) {
+            activeBtn.className = 'cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold bg-primary-500/20 text-primary-400 border border-primary-500/30 transition-all';
+        }
+
+        runFilters();
+    }
 
     function addToCart(id, name, price) {
         const existing = cart.find(i => i.product_id === id);
