@@ -23,7 +23,7 @@ def _api_session(username, password):
     csrf = match.group(1) if match else ""
     s.post(f"{BASE_URL}/auth/login",
            data={"username": username, "password": password,
-                 "csrf_token": csrf})
+                 "branch_id": "1", "csrf_token": csrf})
     return s
 
 
@@ -172,14 +172,14 @@ class TestPOSRoleSecurity(unittest.TestCase):
 
     # ── Test 07 ──────────────────────────────────────────────────────
     def test_case_07_ghost_void_invalid_id(self):
-        """Void item_id=999999 → must get 404."""
-        print("\n[07] The Ghost Void (Invalid Object ID)")
+        """Cashier tries to void an item → must get 403 in Alpha 1.8."""
+        print("\n[07] The Ghost Void (Cashier Voiding Deprecated)")
         r = self.cashier.post(f"{BASE_URL}/pos/void-item",
                               json={"item_id": 999999,
                                     "reason": "non-existent item"},
                               headers={"X-CSRFToken": self.cashier_csrf})
-        self.assertEqual(r.status_code, 404,
-                         f"VULNERABILITY: System didn't 404 on fake item! "
+        self.assertEqual(r.status_code, 403,
+                         f"VULNERABILITY: Cashier bypassed Void RBAC! "
                          f"Got {r.status_code}")
 
     # ── Test 08 ──────────────────────────────────────────────────────

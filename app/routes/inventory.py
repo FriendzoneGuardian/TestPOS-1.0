@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
-from app.models import Product, BranchStock, Branch
+from app.models import Product, BranchStock, Branch, StockAuditLog
 from app.routes.users import roles_required
 from app import db
 import logging
@@ -145,7 +145,22 @@ def receive_stock(product_id):
         stock = BranchStock(product_id=product.id, branch_id=branch_id, quantity=0)
         db.session.add(stock)
 
+    old_qty = stock.quantity
     stock.quantity += quantity
+    
+    # Paper trail: log the receipt
+    reason = request.form.get('reason', '') or f"Received {quantity} units."
+    audit_log = StockAuditLog(
+        user_id=current_user.id,
+        product_id=product.id,
+        branch_id=branch_id,
+        old_qty=old_qty,
+        new_qty=stock.quantity,
+        reason=reason,
+        action_type='receive'
+    )
+    db.session.add(audit_log)
+
     db.session.commit()
     
     branch = Branch.query.get(branch_id)
@@ -178,9 +193,36 @@ def adjust_stock(product_id):
         stock = BranchStock(product_id=product.id, branch_id=branch_id, quantity=0)
         db.session.add(stock)
 
+    old_qty = stock.quantity
     stock.quantity = quantity
+    
+    # Paper trail: log the manual adjustment
+    reason = request.form.get('reason', '') or f"Manual adjustment from {old_qty} to {quantity}."
+    audit_log = StockAuditLog(
+        user_id=current_user.id,
+        product_id=product.id,
+        branch_id=branch_id,
+        old_qty=old_qty,
+        new_qty=stock.quantity,
+        reason=reason,
+        action_type='adjust'
+    )
+    db.session.add(audit_log)
+
     db.session.commit()
     
     branch = Branch.query.get(branch_id)
     flash(f'Adjusted {branch.name} stock of "{product.name}" to {quantity}x.', 'success')
     return redirect(url_for('inventory.index'))
+
+# ---------------------------------------------------------------------------
+# View: Stock Audit Logs
+# ---------------------------------------------------------------------------
+@inventory_bp.route('/audit-logs')
+@login_required
+@roles_required('admin', 'accounting')
+def audit_logs():
+    # Only show the latest 200 to prevent massive page load initially
+    logs = StockAuditLog.query.order_by(StockAuditLog.timestamp.desc()).limit(200).all()
+    return render_template('inventory/audit_logs.html', logs=logs)
+

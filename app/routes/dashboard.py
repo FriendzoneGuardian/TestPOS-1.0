@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify
 from flask_login import login_required, current_user
-from app.models import Order, OrderItem, Customer, Product, Branch
+from app.models import Order, OrderItem, Customer, Product, Branch, Shift, VoidLog, StockAuditLog
 from app import db
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
@@ -15,6 +15,35 @@ def index():
     today = datetime.now(timezone.utc).date()
     start_of_day = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
 
+    # -------------------------------------------------------------
+    # 0. AUDITOR DASHBOARD (Role: 'accounting')
+    # -------------------------------------------------------------
+    if current_user.role == 'accounting':
+        active_loans = db.session.query(func.coalesce(func.sum(Customer.outstanding_balance), 0)).scalar()
+        
+        thirty_days_ago = start_of_day - timedelta(days=30)
+        void_volume = db.session.query(func.coalesce(func.sum(VoidLog.amount_refunded), 0)).filter(
+            VoidLog.timestamp >= thirty_days_ago
+        ).scalar()
+        
+        recent_shifts = Shift.query.filter(
+            Shift.status == 'closed'
+        ).order_by(Shift.end_time.desc()).limit(10).all()
+        
+        suspicious_adjustments = StockAuditLog.query.filter(
+            StockAuditLog.action_type == 'adjust',
+            StockAuditLog.new_qty < StockAuditLog.old_qty
+        ).order_by(StockAuditLog.timestamp.desc()).limit(10).all()
+        
+        return render_template('dashboard/auditor.html',
+                               active_loans=active_loans,
+                               void_volume=void_volume,
+                               recent_shifts=recent_shifts,
+                               suspicious_adjustments=suspicious_adjustments)
+
+    # -------------------------------------------------------------
+    # 1. ADMIN / MANAGER / CASHIER DASHBOARD
+    # -------------------------------------------------------------
     # Summary stats
     if current_user.is_admin:
         daily_sales = db.session.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
