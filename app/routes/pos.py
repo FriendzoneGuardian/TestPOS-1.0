@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from app.models import Product, Order, OrderItem, BranchStock, Customer, Shift, VoidLog
+from app.models import Product, Order, OrderItem, BranchStock, Customer, Shift, VoidLog, BranchVault, VaultTransaction
 from app import db
 from datetime import datetime, timezone
+from sqlalchemy import func
 
 pos_bp = Blueprint('pos', __name__, url_prefix='/pos')
 
@@ -35,7 +36,12 @@ def terminal():
 
     active_shift = Shift.query.filter_by(user_id=current_user.id, status='open').first()
 
-    return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict, categories=categories, active_shift=active_shift)
+    # Check if a shift was just closed (for lockout overlay)
+    shift_just_closed = not active_shift and Shift.query.filter_by(
+        user_id=current_user.id, status='closed'
+    ).order_by(Shift.end_time.desc()).first() is not None
+
+    return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict, categories=categories, active_shift=active_shift, shift_just_closed=shift_just_closed)
 
 
 @pos_bp.route('/checkout', methods=['POST'])
@@ -130,7 +136,24 @@ def open_shift():
     if existing:
         flash('You already have an open shift.', 'error')
         return redirect(url_for('pos.terminal'))
-        
+
+    # --- Vault Withdrawal ---
+    vault = BranchVault.query.filter_by(branch_id=current_user.branch_id).first()
+    if vault:
+        if vault.balance < starting_cash:
+            flash(f'Insufficient vault funds. Vault balance: ₱{vault.balance:,.2f}', 'error')
+            return redirect(url_for('pos.terminal'))
+        vault.balance -= starting_cash
+        vault.last_updated = datetime.now(timezone.utc)
+        vt = VaultTransaction(
+            vault_id=vault.id,
+            user_id=current_user.id,
+            amount=starting_cash,
+            transaction_type='Withdrawal',
+            reason=f'Shift opening float for {current_user.username}'
+        )
+        db.session.add(vt)
+
     shift = Shift(
         user_id=current_user.id,
         branch_id=current_user.branch_id,
@@ -169,6 +192,20 @@ def close_shift():
     shift.ending_cash = ending_cash
     shift.end_time = datetime.now(timezone.utc)
     shift.status = 'closed'
+
+    # --- Vault Deposit (Safe Drop) ---
+    vault = BranchVault.query.filter_by(branch_id=current_user.branch_id).first()
+    if vault:
+        vault.balance += ending_cash
+        vault.last_updated = datetime.now(timezone.utc)
+        vt = VaultTransaction(
+            vault_id=vault.id,
+            user_id=current_user.id,
+            amount=ending_cash,
+            transaction_type='Deposit',
+            reason=f'Shift closing safe drop by {current_user.username}'
+        )
+        db.session.add(vt)
     
     db.session.commit()
     
@@ -180,8 +217,56 @@ def close_shift():
     else:
         flash(f'Shift closed. You are SHORT by ₱{abs(diff):.2f}.', 'error')
         
-    # Send them back to dashboard to fully end the shift visually
-    return redirect(url_for('dashboard.index'))
+    return redirect(url_for('pos.terminal'))
+
+
+@pos_bp.route('/shift/x-report', methods=['GET'])
+@login_required
+def x_report():
+    """Return partial X-Report data for the current cashier's active shift."""
+    if current_user.role != 'cashier':
+        return jsonify(success=False), 403
+
+    shift = Shift.query.filter_by(user_id=current_user.id, status='open').first()
+    if not shift:
+        return jsonify(success=False, message='No active shift.'), 404
+
+    # Cash sales during this shift
+    cash_orders = Order.query.filter_by(
+        user_id=current_user.id, payment_method='cash', status='completed'
+    ).filter(Order.order_date >= shift.start_time).all()
+    cash_sales = sum(o.total_amount for o in cash_orders)
+
+    # All completed orders (cash + loan)
+    all_orders = Order.query.filter_by(
+        user_id=current_user.id, status='completed'
+    ).filter(Order.order_date >= shift.start_time).all()
+    total_sales = sum(o.total_amount for o in all_orders)
+    order_count = len(all_orders)
+
+    # Voided items during shift
+    void_count = VoidLog.query.join(Order).filter(
+        Order.user_id == current_user.id,
+        VoidLog.timestamp >= shift.start_time
+    ).count()
+    void_amount = db.session.query(func.coalesce(func.sum(VoidLog.amount_refunded), 0)).join(Order).filter(
+        Order.user_id == current_user.id,
+        VoidLog.timestamp >= shift.start_time
+    ).scalar()
+
+    expected_cash = shift.starting_cash + cash_sales
+
+    return jsonify(
+        success=True,
+        starting_cash=shift.starting_cash,
+        cash_sales=cash_sales,
+        total_sales=total_sales,
+        order_count=order_count,
+        void_count=void_count,
+        void_amount=float(void_amount),
+        expected_cash=expected_cash,
+        shift_start=shift.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    )
 
 
 @pos_bp.route('/void-item', methods=['POST'])

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Branch Vault · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                    </path>
+                </svg>
+            </div>
+            The Vault — Cash Safe Management
+        </h1>
+    </div>
+
+    <!-- Vault Balance Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-{{ vaults|length }} gap-4">
+        {% for vault in vaults %}
+        <div class="glass-card rounded-xl p-6 border border-amber-500/10">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-400">{{ vault.branch.name }}</h3>
+                <span class="text-[10px] uppercase tracking-wider text-gray-600">Vault #{{ vault.id }}</span>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Starting Balance (Baseline)</p>
+                    <p class="text-lg font-mono font-bold text-gray-300">{{ vault.starting_balance|currency }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Current Balance</p>
+                    <p class="text-2xl font-mono font-black text-amber-400">{{ vault.balance|currency }}</p>
+                </div>
+                {% set diff = vault.balance - vault.starting_balance %}
+                <div class="flex items-center gap-2">
+                    {% if diff >= 0 %}
+                    <span class="text-xs font-bold text-emerald-400">▲ {{ diff|currency }}</span>
+                    <span class="text-[10px] text-gray-500">above baseline</span>
+                    {% else %}
+                    <span class="text-xs font-bold text-red-400">▼ {{ (diff * -1)|currency }}</span>
+                    <span class="text-[10px] text-gray-500">below baseline</span>
+                    {% endif %}
+                </div>
+                <p class="text-[10px] text-gray-600">Last updated: {{ vault.last_updated.strftime('%Y-%m-%d %H:%M') if
+                    vault.last_updated else 'N/A' }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Transaction Ledger -->
+    <div class="glass-card rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                </path>
+            </svg>
+            Vault Transaction Ledger
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700/50">
+                        <th class="px-4 py-3">Timestamp</th>
+                        <th class="px-4 py-3">Branch</th>
+                        <th class="px-4 py-3">User</th>
+                        <th class="px-4 py-3">Type</th>
+                        <th class="px-4 py-3 text-right">Amount</th>
+                        <th class="px-4 py-3">Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr class="border-b border-gray-800/50 hover:bg-surface-800/30 transition-colors">
+                        <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ tx.timestamp.strftime('%Y-%m-%d
+                            %H:%M:%S') }}</td>
+                        <td class="px-4 py-3 text-gray-300">{{ tx.vault.branch.name }}</td>
+                        <td class="px-4 py-3 text-gray-300">{{ tx.user.username }}</td>
+                        <td class="px-4 py-3">
+                            {% if tx.transaction_type == 'Deposit' %}
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">DEPOSIT</span>
+                            {% else %}
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">WITHDRAWAL</span>
+                            {% endif %}
+                        </td>
+                        <td
+                            class="px-4 py-3 text-right font-mono font-bold {{ 'text-emerald-400' if tx.transaction_type == 'Deposit' else 'text-red-400' }}">
+                            {{ '+' if tx.transaction_type == 'Deposit' else '-' }}{{ tx.amount|currency }}
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs max-w-xs truncate">{{ tx.reason or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-600">No vault transactions recorded yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

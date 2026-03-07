@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
 
-**Version:** Alpha 1.8 — *Bare Assets (Audit & Accountability Overhaul)*
+**Version:** Alpha 1.9 — *Safe Words & The Climax (Cash Vaulting & Periodic Audit Reports)*
 
 ---
 
@@ -18,12 +18,14 @@ A dangerously attractive, multi-branch Point of Sale system built with **Flask**
 |--------|-------------|
 | **Theme Engine (Live)** | Instantly flip between Dawn (Light), Dusk (Dark), and Midnight (AMOLED) states. No reload needed. Smooth. |
 | **Role Aesthetic System** | The environment dynamically shifts colors based on your vibe: Admin/Rose, Cashier/Turquoise, Auditor/Amber. |
-| **Shift Management** | Strict Starting/Ending Cash declarations. We count every penny before letting you out the door. |
+| **Shift Management** | Strict Starting/Ending Cash declarations. 10-second countdowns on open, X-Report partials on close. |
+| **Cash Vaulting (Safe Word)** | Real physical cash tracking. Withdrawals on shift open, Safe Drops on shift close, hard POS lockouts. |
+| **Periodic Audits (The Climax)**| Aggregate Sales, Voids, Loans, and Low-Stock warnings over Daily, Weekly, Monthly, or Annual horizons. |
 | **Audit Logs** | Rigorous tracking of stock adjustments and void transactions. Zero blindspots, zero trust. |
 | **Branch Management** | Multi-branch support with per-branch stock tracking. She gets around — professionally |
 | **Void System** | Void individual items or entire orders securely from the admin/manager dashboard. Fully logged. |
 | **Loan / Credit** | Customer credit tracking with payment processing. We keep tabs on who owes us one |
-| **Reports & Dashboards** | Live stats, Apex charts, and the dedicated Auditor Command Center for cross-referencing discrepancies. |
+| **Reports & Dashboards** | Live stats, Vault balances, active ledgers, and the dedicated Auditor Command Center. |
 
 ## 🛠️ Tech Stack — What's Under the Hood
 

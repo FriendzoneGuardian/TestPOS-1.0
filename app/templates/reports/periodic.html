@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Periodic Reports · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary-500/20 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                    </path>
+                </svg>
+            </div>
+            The Climax — Periodic Audit Report
+        </h1>
+
+        <!-- Period Selector -->
+        <form method="GET" class="flex items-center gap-2 flex-wrap">
+            <select name="period"
+                class="px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-primary-500">
+                {% for key, label in periods.items() %}
+                <option value="{{ key }}" {{ 'selected' if selected_period==key else '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="branch_id"
+                class="px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-primary-500">
+                <option value="">All Branches</option>
+                {% for b in branches %}
+                <option value="{{ b.id }}" {{ 'selected' if selected_branch==b.id else '' }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 text-white text-sm font-bold hover:from-primary-500 hover:to-accent-500 transition-all shadow-lg shadow-primary-500/20">Generate</button>
+        </form>
+    </div>
+
+    <p class="text-sm text-gray-500">Reporting Period: <strong class="text-gray-300">{{ period_label }}</strong> · {{
+        start_date.strftime('%b %d, %Y') }} — {{ end_date.strftime('%b %d, %Y') }}</p>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- Financials -->
+        <div class="glass-card rounded-xl p-5 border border-emerald-500/10">
+            <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-2">💰 Total Sales</p>
+            <p class="text-2xl font-black text-emerald-400">{{ total_sales|currency }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ order_count }} completed orders</p>
+        </div>
+
+        <!-- The Naughty List -->
+        <div class="glass-card rounded-xl p-5 border border-red-500/10">
+            <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-2">🚫 Voided (Naughty List)</p>
+            <p class="text-2xl font-black text-red-400">{{ void_total|currency }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ void_count }} voided orders/items</p>
+        </div>
+
+        <!-- Vault Drops -->
+        <div class="glass-card rounded-xl p-5 border border-amber-500/10">
+            <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-2">🔐 Cash to Vault</p>
+            <p class="text-2xl font-black text-amber-400">{{ vault_deposits|currency }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ vault_deposit_count }} safe drops</p>
+        </div>
+
+        <!-- Credit / Loans -->
+        <div class="glass-card rounded-xl p-5 border border-violet-500/10">
+            <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-2">📋 Credit Issued</p>
+            <p class="text-2xl font-black text-violet-400">{{ loan_total|currency }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ loan_count }} loan transactions</p>
+        </div>
+    </div>
+
+    <!-- The Stash: Inventory Sold -->
+    <div class="glass-card rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span class="text-xl">📦</span> The Stash — Inventory Movement
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700/50">
+                        <th class="px-4 py-3">Product</th>
+                        <th class="px-4 py-3 text-right">Units Sold</th>
+                        <th class="px-4 py-3 text-right">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_products %}
+                    <tr class="border-b border-gray-800/50 hover:bg-surface-800/30 transition-colors">
+                        <td class="px-4 py-3 text-gray-200 font-medium">{{ item.name }}</td>
+                        <td class="px-4 py-3 text-right text-gray-300 font-mono">{{ item.qty_sold }}</td>
+                        <td class="px-4 py-3 text-right text-emerald-400 font-mono font-bold">{{ item.revenue|currency
+                            }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-8 text-center text-gray-600">No sales data for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Warning Signs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Low Stock Alerts -->
+        <div class="glass-card rounded-xl p-6 border border-orange-500/10">
+            <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <span class="text-xl">⚠️</span> Low Stock Warnings
+            </h2>
+            {% if low_stock_items %}
+            <div class="space-y-2">
+                {% for ls in low_stock_items %}
+                <div class="flex items-center justify-between bg-surface-800/40 rounded-lg p-3">
+                    <span class="text-sm text-gray-300">{{ ls.product.name }}</span>
+                    <span class="text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">{{
+                        ls.quantity }} left</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-600">All stock levels are healthy.</p>
+            {% endif %}
+        </div>
+
+        <!-- Manual Stock Adjustments -->
+        <div class="glass-card rounded-xl p-6 border border-purple-500/10">
+            <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <span class="text-xl">🔍</span> Stock Adjustments
+            </h2>
+            {% if stock_adjustments %}
+            <div class="space-y-2">
+                {% for adj in stock_adjustments %}
+                <div class="bg-surface-800/40 rounded-lg p-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-300">{{ adj.product.name }}</span>
+                        <span class="text-xs text-gray-500">{{ adj.timestamp.strftime('%m/%d %H:%M') }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        By <span class="text-gray-400">{{ adj.user.username }}</span> ·
+                        {{ adj.old_qty }} → {{ adj.new_qty }}
+                        <span class="text-gray-600">({{ adj.action_type }})</span>
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-600">No manual adjustments in this period.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

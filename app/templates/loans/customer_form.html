@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if customer else 'New' }} Customer · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <a href="{{ url_for('loans.index') }}" class="text-gray-400 hover:text-white text-sm">← Back to Loans</a>
+
+    <div class="glass-card rounded-xl p-6">
+        <h1 class="text-xl font-bold text-white mb-6">{{ 'Edit' if customer else 'New' }} Customer</h1>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="space-y-4">
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-300">Customer Name</label>
+                    <input type="text" name="name" value="{{ customer.name if customer else '' }}" required
+                        class="w-full bg-surface-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Full name">
+                </div>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-300">Contact</label>
+                    <input type="text" name="contact" value="{{ customer.contact if customer else '' }}"
+                        class="w-full bg-surface-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Phone or email">
+                </div>
+                <button type="submit"
+                    class="w-full py-3 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold text-sm hover:from-primary-500 hover:to-accent-500 transition-all shadow-lg shadow-primary-500/25">
+                    {{ 'Update' if customer else 'Create' }} Customer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

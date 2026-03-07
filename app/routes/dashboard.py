@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from app.models import Order, OrderItem, Customer, Product, Branch, Shift, VoidLog, StockAuditLog
 from app import db
@@ -125,3 +125,17 @@ def chart_data():
         labels.append(day.strftime('%b %d'))
         values.append(float(q.scalar()))
     return jsonify(labels=labels, values=values)
+
+
+@dashboard_bp.route('/vault')
+@login_required
+def vault():
+    """Branch Vault dashboard — Admins and Auditors only."""
+    if current_user.role not in ['admin', 'accounting']:
+        return redirect(url_for('dashboard.index'))
+
+    from app.models import BranchVault, VaultTransaction
+    vaults = BranchVault.query.join(Branch).all()
+    transactions = VaultTransaction.query.order_by(VaultTransaction.timestamp.desc()).limit(50).all()
+
+    return render_template('dashboard/vault.html', vaults=vaults, transactions=transactions)
