@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/reports.py
+PURPOSE: Generates sales reports, void reports, CSV exports, and the periodic multi-horizon audit report.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, Response, redirect, url_for
 from flask_login import login_required, current_user
 from app.models import Order, OrderItem, Product, Branch
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
@@ -149,7 +156,7 @@ def periodic():
     sales_q = Order.query.filter(Order.order_date >= start_dt, Order.order_date <= end_dt, Order.status == 'completed')
     if selected_branch:
         sales_q = sales_q.filter(Order.branch_id == selected_branch)
-    elif not current_user.is_admin and current_user.role != 'accounting':
+    elif not current_user.is_admin and current_user.role != Roles.ACCOUNTING:
         sales_q = sales_q.filter(Order.branch_id == current_user.branch_id)
     completed_orders = sales_q.all()
     total_sales = sum(o.total_amount for o in completed_orders)

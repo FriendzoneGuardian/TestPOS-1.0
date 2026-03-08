@@ -84,8 +84,10 @@ function createMainWindow() {
         height: 900,
         minWidth: 1024,
         minHeight: 700,
-        frame: false,           // Custom title bar via preload
+        frame: true,           // Enable native OS Title Bar
+        autoHideMenuBar: true,
         show: false,
+        title: 'TheMoneyShot',
         backgroundColor: '#020617',   // surface-950 — avoids white flash
         icon: path.join(__dirname, '..', 'app', 'static', 'img', 'icon.png'),
         webPreferences: {

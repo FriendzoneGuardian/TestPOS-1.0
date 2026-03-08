@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/pos.py
+PURPOSE: Core POS Terminal logic: checkout, voiding items, and opening/closing shifts (with vault tracking).
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app.models import Product, Order, OrderItem, BranchStock, Customer, Shift, VoidLog, BranchVault, VaultTransaction
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 from datetime import datetime, timezone
 from sqlalchemy import func
@@ -11,7 +18,7 @@ pos_bp = Blueprint('pos', __name__, url_prefix='/pos')
 @pos_bp.before_request
 def restrict_accounting():
     """Globally block the accounting role from accessing POS features."""
-    if current_user.is_authenticated and current_user.role == 'accounting':
+    if current_user.is_authenticated and current_user.role == Roles.ACCOUNTING:
         if request.endpoint == 'pos.terminal':
             flash('Auditors cannot access the POS terminal.', 'error')
             return redirect(url_for('dashboard.index'))
@@ -22,7 +29,7 @@ def restrict_accounting():
 @login_required
 def terminal():
     """The POS terminal page."""
-    if current_user.role != 'cashier':
+    if current_user.role != Roles.CASHIER:
         flash('Only Cashiers are authorized to punch the POS terminal.', 'error')
         return redirect(url_for('dashboard.index'))
         
@@ -34,11 +41,11 @@ def terminal():
     
     categories = sorted(list(set(p.category for p in products if p.category)))
 
-    active_shift = Shift.query.filter_by(user_id=current_user.id, status='open').first()
+    active_shift = Shift.query.filter_by(user_id=current_user.id, status=ShiftStatus.OPEN).first()
 
     # Check if a shift was just closed (for lockout overlay)
     shift_just_closed = not active_shift and Shift.query.filter_by(
-        user_id=current_user.id, status='closed'
+        user_id=current_user.id, status=ShiftStatus.CLOSED
     ).order_by(Shift.end_time.desc()).first() is not None
 
     return render_template('pos/terminal.html', products=products, customers=customers, stock_dict=stock_dict, categories=categories, active_shift=active_shift, shift_just_closed=shift_just_closed)
@@ -48,7 +55,7 @@ def terminal():
 @login_required
 def checkout():
     """Process a sale."""
-    if current_user.role != 'cashier':
+    if current_user.role != Roles.CASHIER:
         return jsonify(success=False, message='Only Cashiers can process a checkout.'), 403
         
     data = request.get_json()
@@ -128,11 +135,11 @@ def checkout():
 @login_required
 def open_shift():
     """Declare starting cash and open a shift."""
-    if current_user.role != 'cashier':
+    if current_user.role != Roles.CASHIER:
         return redirect(url_for('dashboard.index'))
     starting_cash = request.form.get('starting_cash', 0.0, type=float)
     
-    existing = Shift.query.filter_by(user_id=current_user.id, status='open').first()
+    existing = Shift.query.filter_by(user_id=current_user.id, status=ShiftStatus.OPEN).first()
     if existing:
         flash('You already have an open shift.', 'error')
         return redirect(url_for('pos.terminal'))
@@ -149,7 +156,7 @@ def open_shift():
             vault_id=vault.id,
             user_id=current_user.id,
             amount=starting_cash,
-            transaction_type='Withdrawal',
+            transaction_type=TransactionType.WITHDRAWAL,
             reason=f'Shift opening float for {current_user.username}'
         )
         db.session.add(vt)
@@ -158,7 +165,7 @@ def open_shift():
         user_id=current_user.id,
         branch_id=current_user.branch_id,
         starting_cash=starting_cash,
-        status='open'
+        status=ShiftStatus.OPEN
     )
     db.session.add(shift)
     db.session.commit()
@@ -169,10 +176,10 @@ def open_shift():
 @login_required
 def close_shift():
     """Declare ending cash and close a shift."""
-    if current_user.role != 'cashier':
+    if current_user.role != Roles.CASHIER:
         return redirect(url_for('dashboard.index'))
         
-    shift = Shift.query.filter_by(user_id=current_user.id, status='open').first()
+    shift = Shift.query.filter_by(user_id=current_user.id, status=ShiftStatus.OPEN).first()
     if not shift:
         flash('No active shift found.', 'error')
         return redirect(url_for('pos.terminal'))
@@ -202,7 +209,7 @@ def close_shift():
             vault_id=vault.id,
             user_id=current_user.id,
             amount=ending_cash,
-            transaction_type='Deposit',
+            transaction_type=TransactionType.DEPOSIT,
             reason=f'Shift closing safe drop by {current_user.username}'
         )
         db.session.add(vt)
@@ -224,10 +231,10 @@ def close_shift():
 @login_required
 def x_report():
     """Return partial X-Report data for the current cashier's active shift."""
-    if current_user.role != 'cashier':
+    if current_user.role != Roles.CASHIER:
         return jsonify(success=False), 403
 
-    shift = Shift.query.filter_by(user_id=current_user.id, status='open').first()
+    shift = Shift.query.filter_by(user_id=current_user.id, status=ShiftStatus.OPEN).first()
     if not shift:
         return jsonify(success=False, message='No active shift.'), 404
 
