@@ -5,7 +5,11 @@ __pycache__/
 instance/
 .env
 *.db
-    
+
+# Electron build output
+dist/
+out/
+
 # Whitelist test scripts
 !tests/
 !tests/*.py
