@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/inventory.py
+PURPOSE: Manages Product catalog, BranchStock levels, stock audits, and adjustments.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 from app.models import Product, BranchStock, Branch, StockAuditLog
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app.routes.users import roles_required
 from app import db
 import logging
@@ -16,7 +23,7 @@ inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 def index():
     products = Product.query.order_by(Product.name).all()
     
-    if current_user.role in ['admin', 'accounting']:
+    if current_user.role in [Roles.ADMIN, 'accounting']:
         branches = Branch.query.filter_by(is_active=True).all()
     else:
         # manager only sees their own branch
@@ -135,7 +142,7 @@ def receive_stock(product_id):
         return redirect(url_for('inventory.index'))
 
     # Security: Managers can only receive stock for their own branch
-    if current_user.role == 'manager':
+    if current_user.role == Roles.MANAGER:
         if branch_id != current_user.branch_id:
             abort(403)
             
@@ -183,7 +190,7 @@ def adjust_stock(product_id):
         return redirect(url_for('inventory.index'))
 
     # Security: Managers can only adjust stock for their own branch
-    if current_user.role == 'manager':
+    if current_user.role == Roles.MANAGER:
         if branch_id != current_user.branch_id:
             abort(403)
             

@@ -2,7 +2,7 @@
 {% block title %}Login · TheMoneyShot{% endblock %}
 
 {% block content_unauth %}
-<div class="min-h-screen flex items-center justify-center px-4">
+<div class="min-h-screen relative flex items-center justify-center px-4">
     <div class="w-full max-w-md">
         <!-- Logo -->
         <div class="text-center mb-8">
@@ -44,4 +44,82 @@
         <p class="text-center text-xs text-gray-500 mt-6">Default: admin / admin123</p>
     </div>
 </div>
+
+<!-- Floating Settings Button (Anchored within body bounds) -->
+<button onclick="document.getElementById('loginSettingsModal').classList.remove('hidden')" 
+        class="absolute p-3 rounded-full bg-surface-800 border border-gray-700/50 text-gray-400 hover:text-white hover:bg-surface-700 hover:border-gray-500 transition-all shadow-lg hover:rotate-45 z-[100] group"
+        style="bottom: 5%; right: 5%;">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+    </svg>
+    <!-- Tooltip -->
+    <div class="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-2 py-1 bg-surface-900 border border-gray-700 text-gray-300 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+        Display Settings
+    </div>
+</button>
+
+<!-- Login Settings Modal -->
+<div id="loginSettingsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/60 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-md p-6 mx-4 rounded-xl shadow-2xl">
+        <h3 class="text-xl font-bold gradient-text mb-4">Display Settings</h3>
+
+        <div class="space-y-4 mb-6">
+            <p class="text-sm text-gray-400">Select your preferred interface theme for the login screen. It will be remembered on this device.</p>
+
+            <div class="space-y-2">
+                <label class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="login_theme_pref" value="dawn" class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Dawn (Light Mode)</span>
+                        <span class="block text-xs text-gray-400">High-visibility white backgrounds for bright environments.</span>
+                    </div>
+                </label>
+
+                <label class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="login_theme_pref" value="dusk" class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Dusk (Dark Mode)</span>
+                        <span class="block text-xs text-gray-400">Deep slate blues and frosted glass. Premium default.</span>
+                    </div>
+                </label>
+
+                <label class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="login_theme_pref" value="midnight" class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Midnight (AMOLED)</span>
+                        <span class="block text-xs text-gray-400">Pitch black high-contrast. Battery saving and glare reduction.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button type="button" onclick="document.getElementById('loginSettingsModal').classList.add('hidden')" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-500/50 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Read theme from cookie, default to dusk
+        const themeCookieMatch = document.cookie.match(/(?:^|; )theme_preference=([^;]*)/);
+        const currentPref = themeCookieMatch ? themeCookieMatch[1] : 'dusk';
+        
+        // Check the matching radio button
+        const radio = document.querySelector(`input[name="login_theme_pref"][value="${currentPref}"]`);
+        if (radio) radio.checked = true;
+
+        // Listen for changes
+        document.querySelectorAll('input[name="login_theme_pref"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const newTheme = e.target.value;
+                document.documentElement.setAttribute('data-theme', newTheme);
+                document.cookie = "theme_preference=" + newTheme + "; path=/; max-age=31536000";
+            });
+        });
+    });
+</script>
 {% endblock %}

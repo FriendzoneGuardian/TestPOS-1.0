@@ -1,30 +1,83 @@
 {
-  "name": "testpos-1.0",
-  "version": "1.0.0",
-  "description": "> *From the makers of **SwiftGrade** — the Flutter-powered Capstone beast that scans answer sheets like a Zipgrade on steroids (OMR), reads handwritten short answers with OCR + NLP, and turns classrooms into game shows with Kahoot/Quizizz/Mentimeter-style interactivity.*\r >\r > *We present to you... a system that handles transactions so smooth, so satisfying, so precise — you'll want to do it again. And again. And maybe one more time just to be sure.*\r >\r > ***TheMoneyShot.** Every sale. Right on target. Every. Single. Time.*",
-  "main": "index.js",
+  "name": "themoneyshot",
+  "version": "2.1.6",
+  "description": "TheMoneyShot — A dangerously attractive multi-branch POS system.",
+  "main": "electron/main.js",
   "scripts": {
     "build:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --minify",
     "watch:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "electron:dev": "electron .",
+    "electron:build": "electron-builder --win --x64"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FriendzoneGuardian/TestPOS-1.0.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "pos",
+    "flask",
+    "electron",
+    "point-of-sale"
+  ],
+  "author": "FriendzoneGuardian",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/FriendzoneGuardian/TestPOS-1.0/issues"
   },
   "homepage": "https://github.com/FriendzoneGuardian/TestPOS-1.0#readme",
   "devDependencies": {
+    "electron": "^34.5.8",
+    "electron-builder": "^25.1.8",
     "flowbite": "^2.5.2",
     "tailwindcss": "^3.4.19"
   },
   "dependencies": {
     "apexcharts": "^5.10.1"
+  },
+  "build": {
+    "appId": "com.friendzoneguardian.themoneyshot",
+    "productName": "TheMoneyShot",
+    "copyright": "Copyright © 2026 FriendzoneGuardian",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "app/**/*",
+      "config.py",
+      "run.py",
+      "!app/static/src/**",
+      "!**/__pycache__/**",
+      "!**/venv/**",
+      "!**/node_modules/**",
+      "!**/.git/**"
+    ],
+    "extraFiles": [
+      {
+        "from": "venv",
+        "to": "venv",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "app/static/img/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/dashboard.py
+PURPOSE: Renders the main dashboard, charts, Vault UI, and handles API endpoints for ApexCharts.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from app.models import Order, OrderItem, Customer, Product, Branch, Shift, VoidLog, StockAuditLog
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
@@ -18,7 +25,7 @@ def index():
     # -------------------------------------------------------------
     # 0. AUDITOR DASHBOARD (Role: 'accounting')
     # -------------------------------------------------------------
-    if current_user.role == 'accounting':
+    if current_user.role == Roles.ACCOUNTING:
         active_loans = db.session.query(func.coalesce(func.sum(Customer.outstanding_balance), 0)).scalar()
         
         thirty_days_ago = start_of_day - timedelta(days=30)
@@ -27,7 +34,7 @@ def index():
         ).scalar()
         
         recent_shifts = Shift.query.filter(
-            Shift.status == 'closed'
+            Shift.status == ShiftStatus.CLOSED
         ).order_by(Shift.end_time.desc()).limit(10).all()
         
         suspicious_adjustments = StockAuditLog.query.filter(
@@ -84,13 +91,14 @@ def index():
 
     # Low stock alerts query
     from app.models import BranchStock
+
     low_stock_alerts = (
         db.session.query(Product, BranchStock, Branch)
         .join(BranchStock, Product.id == BranchStock.product_id)
         .join(Branch, BranchStock.branch_id == Branch.id)
         .filter(BranchStock.quantity <= Product.low_stock_threshold)
     )
-    if not current_user.is_admin and current_user.role != 'accounting':
+    if not current_user.is_admin and current_user.role != Roles.ACCOUNTING:
         low_stock_alerts = low_stock_alerts.filter(BranchStock.branch_id == branch_id)
     low_stock_alerts = low_stock_alerts.order_by(BranchStock.quantity.asc()).all()
 

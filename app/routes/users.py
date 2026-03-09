@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/users.py
+PURPOSE: Admin-only user management panel (create, edit, reset passwords).
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 from app.models import User, Branch
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 from functools import wraps
 
@@ -27,7 +34,7 @@ def roles_required(*roles):
 @roles_required('admin', 'manager', 'accounting')
 def index():
     # Admin and Accounting see all users. Managers see only users in their branch
-    if current_user.role in ['admin', 'accounting']:
+    if current_user.role in [Roles.ADMIN, 'accounting']:
         users = User.query.all()
     else:
         users = User.query.filter_by(branch_id=current_user.branch_id).all()
@@ -52,8 +59,8 @@ def create():
         return redirect(url_for('users.index'))
 
     # Security: Managers can only create Cashiers for their own branch
-    if current_user.role == 'manager':
-        if role != 'cashier':
+    if current_user.role == Roles.MANAGER:
+        if role != Roles.CASHIER:
             flash('Managers can only create cashier accounts.', 'error')
             return redirect(url_for('users.index'))
         branch_id = current_user.branch_id
@@ -92,8 +99,8 @@ def update(id):
     user = User.query.get_or_404(id)
     
     # Security: Managers can only update cashiers in their own branch
-    if current_user.role == 'manager':
-        if user.role != 'cashier' or user.branch_id != current_user.branch_id:
+    if current_user.role == Roles.MANAGER:
+        if user.role != Roles.CASHIER or user.branch_id != current_user.branch_id:
             abort(403)
             
     username = request.form.get('username')
@@ -109,7 +116,7 @@ def update(id):
         user.username = username
         
     # Only Admin can alter role and branch_id
-    if current_user.role == 'admin':
+    if current_user.role == Roles.ADMIN:
         if role:
             user.role = role
         if branch_id and str(branch_id).isdigit():
@@ -138,8 +145,8 @@ def toggle_status(id):
         return redirect(url_for('users.index'))
         
     # Security: Managers can only disable cashiers in their own branch
-    if current_user.role == 'manager':
-        if user.role != 'cashier' or user.branch_id != current_user.branch_id:
+    if current_user.role == Roles.MANAGER:
+        if user.role != Roles.CASHIER or user.branch_id != current_user.branch_id:
             abort(403)
             
     user.is_active = not user.is_active
