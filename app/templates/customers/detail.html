@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.name }} · Loans · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white">{{ customer.name }}</h1>
+        <p class="text-sm text-gray-400 mt-1">{{ customer.contact or 'No contact info' }}</p>
+    </div>
+    <a href="{{ url_for('loans.index') }}"
+        class="px-4 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700">←
+        Back</a>
+</div>
+
+<!-- Balance Card -->
+<div class="glass-card rounded-xl p-5 mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
+            <p
+                class="text-3xl font-bold {{ 'text-red-400' if customer.outstanding_balance > 0 else 'text-emerald-400' }} mt-1">
+                {{ customer.outstanding_balance|currency }}</p>
+        </div>
+        {% if customer.outstanding_balance > 0 %}
+        <form method="POST" action="{{ url_for('loans.make_payment', customer_id=customer.id) }}"
+            class="flex items-end gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Amount</label>
+                <input type="number" name="amount" step="0.01" min="0.01" max="{{ customer.outstanding_balance }}"
+                    required
+                    class="w-32 px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Notes</label>
+                <input type="text" name="notes" placeholder="Optional"
+                    class="w-40 px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <button type="submit"
+                class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500">Record
+                Payment</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <!-- Loan Orders -->
+    <div class="glass-card rounded-xl p-5">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Loan Orders</h2>
+        <div class="space-y-2">
+            {% for o in loan_orders %}
+            <div class="flex items-center justify-between bg-surface-800/50 rounded-lg p-3">
+                <div>
+                    <p class="text-sm text-gray-200">Order #{{ o.id }}</p>
+                    <p class="text-xs text-gray-400">{{ o.order_date.strftime('%b %d, %Y %H:%M') }}</p>
+                </div>
+                <span class="text-sm font-semibold text-amber-400">{{ o.total_amount|currency }}</span>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">No loan orders.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="glass-card rounded-xl p-5">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Payment History</h2>
+        <div class="space-y-2">
+            {% for p in payments %}
+            <div class="flex items-center justify-between bg-surface-800/50 rounded-lg p-3">
+                <div>
+                    <p class="text-sm text-emerald-400">+ {{ p.amount|currency }}</p>
+                    <p class="text-xs text-gray-400">{{ p.payment_date.strftime('%b %d, %Y %H:%M') }}{% if p.notes %} ·
+                        {{ p.notes }}{% endif %}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">No payments recorded.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

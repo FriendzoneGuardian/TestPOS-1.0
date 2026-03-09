@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/loans.py
+PURPOSE: Manages Customer accounts, loan/credit tracking, and loan payment logging.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import Customer, LoanPayment, Order
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 
 loans_bp = Blueprint('loans', __name__, url_prefix='/loans')

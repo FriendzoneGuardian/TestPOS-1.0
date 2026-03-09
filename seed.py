@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app import create_app, db
-from app.models import Branch, User, Product, BranchStock, Customer
+from app.models import Branch, User, Product, BranchStock, Customer, BranchVault
 
 app = create_app()
 
@@ -71,6 +71,11 @@ with app.app_context():
     c1 = Customer(name='Juan dela Cruz', contact='09171234567')
     c2 = Customer(name='Maria Santos', contact='09189876543')
     db.session.add_all([c1, c2])
+
+    # --- Branch Vaults (Safe / Cash Pool) ---
+    vault1 = BranchVault(branch_id=b1.id, starting_balance=10000.00, balance=10000.00)
+    vault2 = BranchVault(branch_id=b2.id, starting_balance=10000.00, balance=10000.00)
+    db.session.add_all([vault1, vault2])
 
     db.session.commit()
     print("✅ Database seeded successfully!")

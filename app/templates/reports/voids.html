@@ -23,7 +23,7 @@
                 <tr class="hover:bg-white/[0.02]">
                     <td class="px-4 py-3 font-mono text-gray-400">{{ o.id }}</td>
                     <td class="px-4 py-3 text-gray-300">{{ o.order_date.strftime('%b %d, %H:%M') }}</td>
-                    <td class="px-4 py-3 text-red-400">${{ "%.2f"|format(o.total_amount) }}</td>
+                    <td class="px-4 py-3 text-red-400">{{ o.total_amount|currency }}</td>
                     <td class="px-4 py-3 text-gray-300">{{ o.voided_at.strftime('%b %d, %H:%M') if o.voided_at else '-'
                         }}</td>
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ o.void_reason or '—' }}</td>

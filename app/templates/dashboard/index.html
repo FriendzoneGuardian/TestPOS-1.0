@@ -1,3 +1,7 @@
+<!--
+  FILE: app/templates/dashboard/index.html
+  PURPOSE: The main hub for all non-POS operations. Renders ApexCharts via API hooks and displays user branch info.
+-->
 {% extends "base.html" %}
 {% block title %}Dashboard · TheMoneyShot{% endblock %}
 
@@ -15,6 +19,38 @@
     </div>
 </div>
 
+{% if low_stock_alerts %}
+<!-- Low Stock Warning Banner -->
+<div
+    class="mb-6 bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex items-start shadow-sm shadow-orange-500/10 backdrop-blur-sm relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent pointer-events-none"></div>
+    <div
+        class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center mr-4 border border-orange-500/30 shrink-0">
+        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+            </path>
+        </svg>
+    </div>
+    <div class="flex-1 relative z-10">
+        <h3 class="text-sm font-bold text-orange-400 mb-1">Low Stock Alert: We're running a little dry in the back, time
+            to restock...</h3>
+        <div class="flex flex-wrap gap-2 mt-2">
+            {% for prod, stock, b in low_stock_alerts %}
+            <span
+                class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-900 border border-orange-500/30 text-gray-300 shadow-sm">
+                <span class="text-white font-semibold mr-1">{{ prod.name }}</span>
+                {% if branches|length > 1 and current_user.role in ['admin', 'accounting'] %}
+                <span class="text-gray-500 mr-1">({{ b.name }})</span>
+                {% endif %}
+                <span class="text-orange-400 ml-1 font-mono font-bold">{{ stock.quantity }} left</span>
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Stat Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
     <div class="stat-card glass-card rounded-xl p-5">
@@ -28,7 +64,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(daily_sales) }}</p>
+        <p class="text-2xl font-bold text-white">{{ daily_sales|currency }}</p>
     </div>
     <div class="stat-card glass-card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
@@ -66,7 +102,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">${{ "%.2f"|format(active_loans) }}</p>
+        <p class="text-2xl font-bold text-white">{{ active_loans|currency }}</p>
     </div>
 </div>
 
@@ -110,6 +146,9 @@
                     <th class="px-4 py-3">Payment</th>
                     <th class="px-4 py-3">Total</th>
                     <th class="px-4 py-3">Status</th>
+                    {% if current_user.role in ['admin', 'manager'] %}
+                    <th class="px-4 py-3 text-right">Action</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-800">
@@ -125,13 +164,21 @@
                             {{ order.payment_method }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 font-semibold text-white">${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td class="px-4 py-3 font-semibold text-white">{{ order.total_amount|currency }}</td>
                     <td class="px-4 py-3">
                         <span
                             class="text-xs px-2 py-0.5 rounded-full {% if order.status == 'voided' %}bg-red-500/15 text-red-400{% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
                             {{ order.status }}
                         </span>
                     </td>
+                    {% if current_user.role in ['admin', 'manager'] %}
+                    <td class="px-4 py-3 text-right">
+                        {% if order.status != 'voided' %}
+                        <button onclick="openDashboardVoidModal({{ order.id }})"
+                            class="text-xs font-bold text-red-500 hover:text-red-400 transition-colors bg-red-500/10 px-2 py-1 rounded">Void</button>
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>
@@ -142,6 +189,36 @@
         </table>
     </div>
 </div>
+
+<!-- Dashboard Void Modal -->
+{% if current_user.role in ['admin', 'manager'] %}
+<div id="dashboard-void-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="glass-card rounded-2xl p-6 w-full max-w-sm border border-red-500/20 shadow-2xl">
+        <h3 class="text-lg font-bold text-white mb-2 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                </path>
+            </svg>
+            Authorize Void
+        </h3>
+        <p class="text-xs text-red-400 mb-4 font-semibold">WARNING: This will void the entire order and reverse the
+            payment ledger.</p>
+        <input type="hidden" id="dashboard-void-order-id">
+        <textarea id="dashboard-void-reason" rows="3" placeholder="State reason for authorization..."
+            class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm placeholder-gray-500 focus:ring-2 focus:ring-red-500 mb-4"
+            required></textarea>
+        <div class="flex gap-2">
+            <button onclick="closeDashboardVoidModal()"
+                class="flex-1 py-2 rounded-lg bg-surface-800 border border-gray-700 text-gray-300 text-sm hover:bg-surface-700 font-medium">Cancel</button>
+            <button onclick="confirmDashboardVoid()"
+                class="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-500 font-bold shadow-lg shadow-red-500/20">Authorize
+                Void</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
@@ -160,10 +237,40 @@
                 fill: {
                     type: 'gradient',
                     gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] }
+                },
                 colors: [getComputedStyle(document.documentElement).getPropertyValue('--chart-color').trim() || '#6366f1'],
-                    tooltip: { theme: 'dark' },
-                    dataLabels: { enabled: false },
-                }).render();
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: false }
+            }).render();
         });
+
+    function openDashboardVoidModal(orderId) {
+        document.getElementById('dashboard-void-order-id').value = orderId;
+        document.getElementById('dashboard-void-modal').classList.remove('hidden');
+    }
+    function closeDashboardVoidModal() {
+        document.getElementById('dashboard-void-modal').classList.add('hidden');
+    }
+    function confirmDashboardVoid() {
+        const orderId = document.getElementById('dashboard-void-order-id').value;
+        const reason = document.getElementById('dashboard-void-reason').value;
+        if (!reason) return alert('Authorization reason is required.');
+
+        fetch('{{ url_for("pos.void_order") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+            body: JSON.stringify({ order_id: orderId, reason: reason })
+        })
+            .then(r => r.json())
+            .then(data => {
+                closeDashboardVoidModal();
+                if (data.success) {
+                    alert('Order successfully voided.');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+    }
 </script>
 {% endblock %}

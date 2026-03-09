@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/branches.py
+PURPOSE: CRUD operations for managing store branches.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import Branch, User, Product, BranchStock
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 
 branches_bp = Blueprint('branches', __name__, url_prefix='/branches')

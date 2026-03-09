@@ -1,6 +1,13 @@
+"""
+FILE: app/routes/auth.py
+PURPOSE: Handles user authentication, login, logout, password hashing, and theme preferences.
+DEPENDENCIES: models.py, constants.py
+"""
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
+
+from app.constants import Roles, ShiftStatus, TransactionType
 from app import db
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -20,7 +27,9 @@ def login():
             login_user(user)
             next_page = request.args.get('next')
             flash('Logged in successfully.', 'success')
-            return redirect(next_page or url_for('dashboard.index'))
+            response = redirect(next_page or url_for('dashboard.index'))
+            response.set_cookie('theme_preference', user.theme_preference, max_age=31536000)
+            return response
         else:
             flash('Invalid username or password.', 'danger')
 

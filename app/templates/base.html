@@ -1,9 +1,15 @@
+<!--
+  FILE: app/templates/base.html
+  PURPOSE: Master layout wrapper containing Tailwind imports, the side navigation (via component), and the Topbar.
+  CONTEXT: Inherited by every other page view in the app.
+-->
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ current_user.theme_preference if current_user.is_authenticated else 'dusk' }}">
+<html lang="en" data-theme="{{ current_user.theme_preference if current_user.is_authenticated else request.cookies.get('theme_preference', 'dusk') }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}POS System{% endblock %}</title>
     <meta name="description" content="Modern Point of Sale System with multi-branch support">
 
@@ -343,118 +349,30 @@
 
 <body class="text-gray-200 min-h-screen">
 
+    <!-- Electron Interior Framing -->
+    <script>
+        if (window.electronAPI) {
+            // User request: 10px sides/bottom, top is 10px MORE than sides/bottom.
+            document.body.style.padding = '20px 10px 10px 10px';
+            document.documentElement.style.backgroundColor = '#020617'; // Native dark frame color
+
+            // Round the main content window slightly inside the frame
+            document.body.style.borderRadius = '0.5rem';
+            document.body.style.overflow = 'hidden';
+
+            // Adjust body positioning if it causes issues on some viewports
+            document.body.style.minHeight = '100vh';
+        }
+    </script>
+
+
     {% if current_user.is_authenticated %}
     <!-- App Shell -->
     <div class="flex min-h-screen relative z-10">
         <div class="aurora-bg"></div>
 
-        <!-- Sidebar -->
-        <aside id="sidebar"
-            class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
-            <div class="h-full px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
-                <!-- Logo -->
-                <a href="{{ url_for('dashboard.index') }}" class="flex items-center mb-8 px-2">
-                    <div
-                        class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center mr-3">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                    </div>
-                    <span class="text-xl font-bold gradient-text">TheMoneyShot</span>
-                </a>
-
-                <!-- Nav -->
-                <nav class="space-y-1">
-                    <a href="{{ url_for('dashboard.index') }}"
-                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('dashboard') }}">
-                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                            </path>
-                        </svg>
-                        Dashboard
-                    </a>
-                    <a href="{{ url_for('pos.terminal') }}"
-                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('pos') }}">
-                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z">
-                            </path>
-                        </svg>
-                        POS Terminal
-                    </a>
-                    {% if current_user.is_manager %}
-                    <a href="{{ url_for('branches.index') }}"
-                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('branches') }}">
-                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
-                            </path>
-                        </svg>
-                        Branches
-                    </a>
-                    <a href="{{ url_for('reports.index') }}"
-                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('reports') }}">
-                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        Reports
-                    </a>
-                    {% endif %}
-                    <a href="{{ url_for('loans.index') }}"
-                        class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium {{ 'active' if request.endpoint and request.endpoint.startswith('loans') }}">
-                        <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
-                            </path>
-                        </svg>
-                        Loans
-                    </a>
-                </nav>
-
-                <!-- User info at bottom -->
-                <div class="absolute bottom-0 left-0 w-full px-4 pb-4">
-                    <div class="glass-card rounded-xl p-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-200">{{ current_user.username }}</p>
-                                <p class="text-xs text-gray-400 capitalize">{{ current_user.role }}{% if
-                                    current_user.branch %} · {{ current_user.branch.name }}{% endif %}</p>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <!-- Settings Button -->
-                                <button onclick="document.getElementById('settingsModal').classList.remove('hidden')"
-                                    class="p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-                                    title="Settings">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                                        </path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
-                                        </path>
-                                    </svg>
-                                </button>
-                                <!-- Logout Button -->
-                                <a href="{{ url_for('auth.logout') }}"
-                                    class="p-2 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
-                                    title="Logout">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                                        </path>
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <!-- Sidebar Component -->
+        {% include 'components/sidebar.html' %}
 
         <!-- Main content -->
         <div class="flex-1 sm:ml-64">
@@ -499,7 +417,7 @@
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+        <div class="fixed top-8 right-8 z-50 space-y-2 max-w-sm">
             {% for category, message in messages %}
             <div class="p-3 rounded-lg text-sm fade-in
             {% if category == 'success' %}bg-emerald-500/10 border border-emerald-500/20 text-emerald-400
@@ -519,96 +437,8 @@
     <script src="{{ url_for('static', filename='js/flowbite.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/apexcharts.min.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
-    <!-- Settings Modal -->
-    <div id="settingsModal"
-        class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/60 backdrop-blur-sm">
-        <div class="glass-card w-full max-w-md p-6 mx-4 rounded-xl shadow-2xl">
-            <h3 class="text-xl font-bold gradient-text mb-4">Display Settings</h3>
-
-            <div class="space-y-4 mb-6">
-                <p class="text-sm text-gray-400">Select your preferred interface theme. The Active Role Palette will
-                    automatically adapt to your chosen contrast mode.</p>
-
-                <div class="space-y-2">
-                    <label
-                        class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
-                        <input type="radio" name="theme_pref" value="dawn"
-                            class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
-                        <div class="ml-3">
-                            <span class="block font-medium text-gray-200">Dawn (Light Mode)</span>
-                            <span class="block text-xs text-gray-400">High-visibility white backgrounds for bright
-                                environments.</span>
-                        </div>
-                    </label>
-
-                    <label
-                        class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
-                        <input type="radio" name="theme_pref" value="dusk"
-                            class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
-                        <div class="ml-3">
-                            <span class="block font-medium text-gray-200">Dusk (Dark Mode)</span>
-                            <span class="block text-xs text-gray-400">Deep slate blues and frosted glass. Premium
-                                default.</span>
-                        </div>
-                    </label>
-
-                    <label
-                        class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
-                        <input type="radio" name="theme_pref" value="midnight"
-                            class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
-                        <div class="ml-3">
-                            <span class="block font-medium text-gray-200">Midnight (AMOLED)</span>
-                            <span class="block text-xs text-gray-400">Pitch black high-contrast. Battery saving and
-                                glare reduction.</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <div class="flex justify-end mt-6">
-                <button type="button" onclick="document.getElementById('settingsModal').classList.add('hidden')"
-                    class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-500/50 transition-colors">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentPref = "{{ current_user.theme_preference if current_user.is_authenticated else 'dusk' }}";
-            const radio = document.querySelector(`input[name="theme_pref"][value="${currentPref}"]`);
-            if (radio) radio.checked = true;
-
-            // Add live change listeners to all theme radio buttons
-            document.querySelectorAll('input[name="theme_pref"]').forEach(input => {
-                input.addEventListener('change', async (e) => {
-                    const newTheme = e.target.value;
-
-                    // 1. Instantly apply the theme to the HTML tag for live preview
-                    document.documentElement.setAttribute('data-theme', newTheme);
-
-                    // 2. Save to backend asynchronously in the background
-                    try {
-                        const response = await fetch("{{ url_for('auth.settings_theme') }}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({ theme: newTheme })
-                        });
-
-                        if (!response.ok) {
-                            console.error('Failed to save theme setting to database.');
-                        }
-                    } catch (error) {
-                        console.error('Error saving theme:', error);
-                    }
-                });
-            });
-        });
-    </script>
+    <!-- Settings Modal Component -->
+    {% include 'components/settings_modal.html' %}
 </body>
 
 </html>

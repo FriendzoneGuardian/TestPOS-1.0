@@ -1,0 +1,88 @@
+<div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black/60 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-md p-6 mx-4 rounded-xl shadow-2xl">
+        <h3 class="text-xl font-bold gradient-text mb-4">Display Settings</h3>
+
+        <div class="space-y-4 mb-6">
+            <p class="text-sm text-gray-400">Select your preferred interface theme. The Active Role Palette will
+                automatically adapt to your chosen contrast mode.</p>
+
+            <div class="space-y-2">
+                <label
+                    class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="theme_pref" value="dawn"
+                        class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Dawn (Light Mode)</span>
+                        <span class="block text-xs text-gray-400">High-visibility white backgrounds for bright
+                            environments.</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="theme_pref" value="dusk"
+                        class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Dusk (Dark Mode)</span>
+                        <span class="block text-xs text-gray-400">Deep slate blues and frosted glass. Premium
+                            default.</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center p-3 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <input type="radio" name="theme_pref" value="midnight"
+                        class="w-4 h-4 text-primary-500 bg-gray-900 border-gray-600 focus:ring-primary-500 focus:ring-2">
+                    <div class="ml-3">
+                        <span class="block font-medium text-gray-200">Midnight (AMOLED)</span>
+                        <span class="block text-xs text-gray-400">Pitch black high-contrast. Battery saving and
+                            glare reduction.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button type="button" onclick="document.getElementById('settingsModal').classList.add('hidden')"
+                class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-500/50 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPref = "{{ current_user.theme_preference if current_user.is_authenticated else 'dusk' }}";
+        const radio = document.querySelector(`input[name="theme_pref"][value="${currentPref}"]`);
+        if (radio) radio.checked = true;
+
+        // Add live change listeners to all theme radio buttons
+        document.querySelectorAll('input[name="theme_pref"]').forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const newTheme = e.target.value;
+
+                // 1. Instantly apply the theme to the HTML tag for live preview
+                document.documentElement.setAttribute('data-theme', newTheme);
+
+                // 2. Save to backend asynchronously in the background
+                try {
+                    const response = await fetch("{{ url_for('auth.settings_theme') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ theme: newTheme })
+                    });
+
+                    if (!response.ok) {
+                        console.error('Failed to save theme setting to database.');
+                    }
+                } catch (error) {
+                    console.error('Error saving theme:', error);
+                }
+            });
+        });
+    });
+</script>

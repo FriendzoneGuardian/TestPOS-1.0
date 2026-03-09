@@ -1,50 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Loans · TheMoneyShot{% endblock %}
+{% block title %}Loans & Credit · TheMoneyShot{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-white">Loan Management</h1>
-        <p class="text-sm text-gray-400 mt-1">Track customer credit and payments</p>
+<div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <div class="w-10 h-10 bg-violet-500/20 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+            Loans & Credit Ledger
+        </h1>
+        <a href="{{ url_for('loans.create_customer') }}"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 text-white text-sm font-bold hover:from-primary-500 hover:to-accent-500 transition-all shadow-lg shadow-primary-500/20">
+            + New Customer
+        </a>
     </div>
-    <a href="{{ url_for('loans.create_customer') }}"
-        class="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 text-white text-sm font-semibold transition-all shadow-lg shadow-primary-500/25">
-        + Add Customer
-    </a>
-</div>
 
-<div class="glass-card rounded-xl overflow-hidden">
-    <table class="w-full text-sm text-left">
-        <thead class="text-xs uppercase text-gray-400 bg-surface-900">
-            <tr>
-                <th class="px-5 py-3">Customer</th>
-                <th class="px-5 py-3">Contact</th>
-                <th class="px-5 py-3">Outstanding Balance</th>
-                <th class="px-5 py-3">Action</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-800">
-            {% for c in customers %}
-            <tr class="hover:bg-white/[0.02]">
-                <td class="px-5 py-3 font-medium text-gray-200">{{ c.name }}</td>
-                <td class="px-5 py-3 text-gray-400">{{ c.contact or '—' }}</td>
-                <td class="px-5 py-3">
-                    <span
-                        class="{{ 'text-red-400 font-semibold' if c.outstanding_balance > 0 else 'text-emerald-400' }}">
-                        ${{ "%.2f"|format(c.outstanding_balance) }}
-                    </span>
-                </td>
-                <td class="px-5 py-3">
-                    <a href="{{ url_for('loans.customer_detail', customer_id=c.id) }}"
-                        class="text-xs px-3 py-1 rounded-lg bg-primary-500/15 text-primary-400 hover:bg-primary-500/25">View</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4" class="px-5 py-6 text-center text-gray-500">No customers yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for c in customers %}
+        <a href="{{ url_for('loans.customer_detail', customer_id=c.id) }}"
+            class="glass-card rounded-xl p-5 hover:border-primary-500/30 transition-all group">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-white group-hover:text-primary-400 transition-colors">{{ c.name }}
+                </h3>
+                <span
+                    class="text-[10px] uppercase tracking-wider {{ 'text-emerald-400' if c.outstanding_balance == 0 else 'text-amber-400' }}">
+                    {{ 'Paid' if c.outstanding_balance == 0 else 'Has Balance' }}
+                </span>
+            </div>
+            <p class="text-2xl font-black {{ 'text-emerald-400' if c.outstanding_balance == 0 else 'text-amber-400' }}">
+                {{ c.outstanding_balance|currency }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ c.contact or 'No contact info' }}</p>
+        </a>
+        {% else %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500">No customers found. Create one to get started.</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

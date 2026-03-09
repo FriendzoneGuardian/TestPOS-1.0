@@ -1,0 +1,53 @@
+test_case_01_phantom_stock (__main__.TestPOSCashierExploits.test_case_01_phantom_stock)
+Over-sell: 9999 units of product 1. Server must reject. ... ok
+test_case_02_minus_money_exploit (__main__.TestPOSCashierExploits.test_case_02_minus_money_exploit)
+Negative quantity: -50 units. Server must reject. ... ok
+test_case_03_cross_branch_heist (__main__.TestPOSCashierExploits.test_case_03_cross_branch_heist)
+Non-existent product_id=999. Server must return 400. ... ok
+test_case_04_double_tap_void (__main__.TestPOSCashierExploits.test_case_04_double_tap_void)
+Void the same order item twice. Second void must be blocked. ... ok
+test_case_05_infinite_credit_loop (__main__.TestPOSCashierExploits.test_case_05_infinite_credit_loop)
+Astronomical price ╫ qty. Server must cap at $50K. ... ok
+test_case_06_role_spoof_privilege_escalation (__main__.TestPOSRoleSecurity.test_case_06_role_spoof_privilege_escalation)
+Admin tries /pos/checkout \u2192 must get 403. ... ok
+test_case_07_ghost_void_invalid_id (__main__.TestPOSRoleSecurity.test_case_07_ghost_void_invalid_id)
+Void item_id=999999 \u2192 must get 404. ... ok
+test_case_08_broken_cart_malformed_json (__main__.TestPOSRoleSecurity.test_case_08_broken_cart_malformed_json)
+Send payload with no 'items' key. Must get 400. ... ok
+test_case_09_unauthorized_cashier_void (__main__.TestPOSRoleSecurity.test_case_09_unauthorized_cashier_void)
+Cashier tries /pos/void-order \u2192 must get 403. ... ok
+test_case_10_missing_csrf_token (__main__.TestPOSRoleSecurity.test_case_10_missing_csrf_token)
+POST without X-CSRFToken \u2192 must get 400. ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.791s
+
+OK
+
+====== PART A: Cashier Exploit Tests (01-05) ======
+
+[01] The Phantom Stock (Over-selling)
+
+[02] The Minus Money Exploit (Input Tampering)
+
+[03] The Cross-Branch Heist (Validation Bypass)
+
+[04] The Double Tap (Void Duplication)
+
+[05] The Infinite Credit Loop (Extreme Values)
+====== PART A Complete ======
+
+
+====== PART B: Role & Payload Security (06-10) ======
+
+[06] The Role Spoof (Privilege Escalation)
+
+[07] The Ghost Void (Invalid Object ID)
+
+[08] The Broken Cart (Malformed Payload)
+
+[09] The Unauthorized Cashier Void
+
+[10] Missing CSRF Token (State Tampering)
+====== PART B Complete ======
+

@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
 
-**Version:** Alpha 1.5 — *She's learned a few new tricks.*
+**Version:** Alpha 2.1.6 / Beta 1.0 — *Bottoms Up (Desktop Shell & Aesthetic Persistence)*
 
 ---
 
@@ -17,12 +17,17 @@ A dangerously attractive, multi-branch Point of Sale system built with **Flask**
 | Module | Description |
 |--------|-------------|
 | **Theme Engine (Live)** | Instantly flip between Dawn (Light), Dusk (Dark), and Midnight (AMOLED) states. No reload needed. Smooth. |
+| **Aesthetic Memory** | Dawn/Dusk/Midnight themes now persist via cookies, adapting the UI before you even log in. |
 | **Role Aesthetic System** | The environment dynamically shifts colors based on your vibe: Admin/Rose, Cashier/Turquoise, Auditor/Amber. |
-| **Branch Management** | Multi-branch support with per-branch stock tracking. She gets around — professionally |
-| **Void System** | Void individual items or entire orders. Full audit logging, because we don't do anything without consent |
-| **Loan / Credit** | Customer credit tracking with payment processing. We keep tabs on who owes us one |
-| **Reports** | Sales & void reports with CSV export. She exposes everything — every number, every transaction |
-| **Dashboard** | Live stats, 7-day sales chart (ApexCharts), top sellers. The full-body view of your business |
+| **Desktop Shell** | Native Windows wrapper via Electron. Custom draggable regions, safe margins, and crisp frameless borders. |
+| **Shift Management** | Strict Starting/Ending Cash declarations. 10-second countdowns on open, X-Report partials on close. |
+| **Cash Vaulting (Safe Word)** | Real physical cash tracking. Withdrawals on shift open, Safe Drops on shift close, hard POS lockouts. |
+| **Periodic Audits (The Climax)**| Aggregate Sales, Voids, Loans, and Low-Stock warnings over Daily, Weekly, Monthly, or Annual horizons. |
+| **Audit Logs** | Rigorous tracking of stock adjustments and void transactions. Zero blindspots, zero trust. |
+| **Branch Management** | Multi-branch support with per-branch stock tracking. She gets around — professionally. |
+| **Void System** | Void individual items or entire orders securely from the admin/manager dashboard. Fully logged. |
+| **Loan / Credit** | Customer credit tracking with payment processing. We keep tabs on who owes us one. |
+| **Reports & Dashboards** | Live stats, Vault balances, active ledgers, and the dedicated Auditor Command Center. |
 
 ## 🛠️ Tech Stack — What's Under the Hood
 
@@ -30,9 +35,10 @@ No need to undress the architecture yourself — here's the full reveal:
 
 - **Backend:** Python 3 · Flask · SQLAlchemy · Flask-Login · Flask-Migrate
 - **Frontend:** Jinja2 · Tailwind CSS (local build) · Flowbite · ApexCharts
+- **Desktop Wrapper:** ElectronJS · Native Preload APIs
 - **Database:** SQLite (dev) — PostgreSQL-ready (prod)
 
-> Built tight, runs smooth, and handles heavy loads with grace.
+> Built tight, runs smooth, handles heavy loads, and now sits comfortably on your desktop.
 
 ## 🚀 Quick Start — Getting It Up and Running
 
@@ -58,11 +64,11 @@ npm run build:css
 # 6. Seed the database (plant the seed)
 python seed.py
 
-# 7. Run the dev server (let her rip)
-python run.py
+# 7. Run the desktop app! (Let her ride)
+npm run electron:dev
 ```
 
-Then open **http://127.0.0.1:5000** — she'll be waiting for you.
+*(Note: The Electron wrapper will automatically spawn the Flask server on http://127.0.0.1:5000 in the background for you.)*
 
 ## 🔑 Default Accounts — Who's in the Backdoor?
 

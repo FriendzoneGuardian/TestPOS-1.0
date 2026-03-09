@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Auditor Dashboard · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-white mb-1">Auditor Command Center</h1>
+    <p class="text-sm text-gray-400">Watch the money. Track the shrinkage. Trust nobody.</p>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Active Loans -->
+    <div class="glass-card rounded-xl p-5 shadow-lg border border-gray-800">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Outstanding Debt</h3>
+        <p class="text-2xl font-bold text-amber-500 mb-1">{{ active_loans|currency }}</p>
+        <p class="text-xs text-gray-400">Cash tied up in credit</p>
+    </div>
+
+    <!-- Void Volume -->
+    <div class="glass-card rounded-xl p-5 shadow-lg border border-red-500/20">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">30-Day Void Volume</h3>
+        <p class="text-2xl font-bold text-red-400 mb-1">{{ void_volume|currency }}</p>
+        <p class="text-xs text-gray-400">Money neutralized post-sale</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Shift Discrepancies -->
+    <div class="glass-card flex flex-col min-h-0 rounded-xl overflow-hidden border border-gray-800">
+        <div class="p-4 border-b border-gray-800 bg-surface-900/50">
+            <h3 class="text-sm font-semibold text-white">Recent Shift Discrepancies</h3>
+            <p class="text-xs text-gray-400">Cash registers vs actual counts</p>
+        </div>
+        <div class="p-4 overflow-y-auto max-h-96">
+            {% if recent_shifts %}
+            <div class="space-y-3">
+                {% for shift in recent_shifts %}
+                {% set diff = shift.ending_cash - shift.expected_cash %}
+                <div
+                    class="p-3 bg-surface-800/50 rounded-lg border {{ 'border-emerald-500/20' if diff == 0 else 'border-red-500/30' if diff < 0 else 'border-orange-500/30' }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-sm font-medium text-gray-200">{{ shift.user.username }}</span>
+                            <span class="text-xs text-gray-500 ml-2">{{ shift.end_time.strftime('%Y-%m-%d %H:%M')
+                                }}</span>
+                        </div>
+                        {% if diff == 0 %}
+                        <span
+                            class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Perfect</span>
+                        {% elif diff < 0 %} <span
+                            class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            Short</span>
+                            {% else %}
+                            <span
+                                class="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Over</span>
+                            {% endif %}
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+                        <div>
+                            <span class="block text-gray-500 mb-0.5">Expected</span>
+                            <span class="text-gray-300">{{ shift.expected_cash|currency }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500 mb-0.5">Declared</span>
+                            <span class="text-white">{{ shift.ending_cash|currency }}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-gray-500 mb-0.5">Variance</span>
+                            <span
+                                class="font-bold {{ 'text-emerald-400' if diff == 0 else 'text-red-400' if diff < 0 else 'text-orange-400' }}">{{
+                                diff|currency }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">No recent shifts recorded.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Suspicious Stock Adjustments -->
+    <div class="glass-card flex flex-col min-h-0 rounded-xl overflow-hidden border border-orange-500/20">
+        <div class="p-4 border-b border-gray-800 bg-surface-900/50">
+            <h3 class="text-sm font-semibold text-orange-400">Suspicious Stock Decreases</h3>
+            <p class="text-xs text-gray-400">Manual adjustments that reduced inventory</p>
+        </div>
+        <div class="p-0 overflow-y-auto max-h-96">
+            <table class="w-full text-left whitespace-nowrap">
+                <thead class="text-[10px] uppercase text-gray-500 bg-surface-900/80 border-b border-gray-800">
+                    <tr>
+                        <th class="px-4 py-2">User & Time</th>
+                        <th class="px-4 py-2">Product</th>
+                        <th class="px-4 py-2 text-right">Qty Change</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    {% for adj in suspicious_adjustments %}
+                    <tr class="hover:bg-surface-800/50 transition-colors">
+                        <td class="px-4 py-3">
+                            <span class="block text-xs font-medium text-gray-300">{{ adj.user.username }}</span>
+                            <span class="block text-[10px] text-gray-500">{{ adj.timestamp.strftime('%m/%d %H:%M')
+                                }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="block text-xs text-gray-300">{{ adj.product.name }}</span>
+                            <span class="block text-[10px] text-gray-500">{{ adj.branch.name }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <span class="block text-sm font-mono font-bold text-red-400">{{ adj.new_qty - adj.old_qty
+                                }}</span>
+                            <span class="block text-[10px] text-gray-500">{{ adj.old_qty }} &rarr; {{ adj.new_qty
+                                }}</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-6 text-center text-xs text-gray-500">No suspicious adjustments
+                            found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,7 @@
+"""
+FILE: app/models.py
+PURPOSE: Database schema definitions (SQLAlchemy).
+"""
 from datetime import datetime, timezone
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -73,6 +77,7 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False, default=0.0)
     category = db.Column(db.String(80), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    low_stock_threshold = db.Column(db.Integer, default=10, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
@@ -174,3 +179,105 @@ class LoanPayment(db.Model):
 
     def __repr__(self):
         return f'<LoanPayment ${self.amount}>'
+
+
+# ---------------------------------------------------------------------------
+# Stock Audit Log
+# ---------------------------------------------------------------------------
+class StockAuditLog(db.Model):
+    __tablename__ = 'stock_audit_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
+    old_qty = db.Column(db.Integer, nullable=False)
+    new_qty = db.Column(db.Integer, nullable=False)
+    reason = db.Column(db.String(255), nullable=True)
+    action_type = db.Column(db.String(50), nullable=False) # receive, adjust, etc.
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref='stock_audit_logs', lazy=True)
+    product = db.relationship('Product', backref='stock_audit_logs', lazy=True)
+    branch = db.relationship('Branch', backref='stock_audit_logs', lazy=True)
+
+    def __repr__(self):
+        return f'<StockAuditLog Product {self.product_id} / {self.old_qty} -> {self.new_qty}>'
+
+
+# ---------------------------------------------------------------------------
+# Shift
+# ---------------------------------------------------------------------------
+class Shift(db.Model):
+    __tablename__ = 'shifts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
+    start_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    end_time = db.Column(db.DateTime, nullable=True)
+    starting_cash = db.Column(db.Float, nullable=False, default=0.0)
+    ending_cash = db.Column(db.Float, nullable=True)
+    expected_cash = db.Column(db.Float, nullable=True)
+    status = db.Column(db.String(20), default='open') # open | closed
+
+    user = db.relationship('User', backref='shifts', lazy=True)
+    branch = db.relationship('Branch', backref='shifts', lazy=True)
+
+    def __repr__(self):
+        return f'<Shift {self.id} User {self.user_id}>'
+
+
+# ---------------------------------------------------------------------------
+# Void Log
+# ---------------------------------------------------------------------------
+class VoidLog(db.Model):
+    __tablename__ = 'void_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id'), nullable=True) # Null if entire order voided
+    voided_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    reason = db.Column(db.String(255), nullable=False)
+    amount_refunded = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    order = db.relationship('Order', backref='void_logs', lazy=True)
+    authorized_by = db.relationship('User', backref='authorized_voids', lazy=True)
+
+    def __repr__(self):
+        return f'<VoidLog Order {self.order_id}>'
+
+
+# ---------------------------------------------------------------------------
+# Branch Vault (Safe / Cash Pool)
+# ---------------------------------------------------------------------------
+class BranchVault(db.Model):
+    __tablename__ = 'branch_vaults'
+    id = db.Column(db.Integer, primary_key=True)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False, unique=True)
+    starting_balance = db.Column(db.Float, nullable=False, default=0.0)  # Immutable baseline
+    balance = db.Column(db.Float, nullable=False, default=0.0)
+    last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    branch = db.relationship('Branch', backref=db.backref('vault', uselist=False), lazy=True)
+    transactions = db.relationship('VaultTransaction', backref='vault', lazy=True)
+
+    def __repr__(self):
+        return f'<BranchVault Branch {self.branch_id} Balance {self.balance}>'
+
+
+# ---------------------------------------------------------------------------
+# Vault Transaction Log
+# ---------------------------------------------------------------------------
+class VaultTransaction(db.Model):
+    __tablename__ = 'vault_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    vault_id = db.Column(db.Integer, db.ForeignKey('branch_vaults.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    transaction_type = db.Column(db.String(20), nullable=False)  # Deposit | Withdrawal
+    reason = db.Column(db.String(255), nullable=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref='vault_transactions', lazy=True)
+
+    def __repr__(self):
+        return f'<VaultTransaction {self.transaction_type} {self.amount}>'

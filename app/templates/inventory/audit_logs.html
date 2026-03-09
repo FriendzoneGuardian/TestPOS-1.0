@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Audit Logs · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white mb-1">Stock Audit Logs</h1>
+        <p class="text-sm text-gray-400">Historical ledger of all manual stock adjustments.</p>
+    </div>
+    <div class="mt-4 md:mt-0">
+        <a href="{{ url_for('inventory.index') }}"
+            class="px-4 py-2 bg-surface-800 hover:bg-surface-700 text-gray-300 rounded-xl transition-colors font-medium border border-gray-700 inline-flex items-center text-sm">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="glass-card rounded-xl overflow-hidden shadow-xl border border-gray-800">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead class="text-xs uppercase text-gray-400 bg-surface-900 border-b border-gray-800">
+                <tr>
+                    <th class="px-6 py-4 font-semibold tracking-wider">Timestamp</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider">User</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider">Product & Branch</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider text-center">Action</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider text-center">Adjustment</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider">Reason</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                {% for log in logs %}
+                <tr class="hover:bg-surface-800/50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-400">
+                        {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center text-xs font-bold text-gray-300 mr-2 border border-gray-600">
+                                {{ log.user.username[0]|upper }}
+                            </span>
+                            <span class="text-sm text-gray-200 font-medium">{{ log.user.username }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="block text-sm font-medium text-gray-200">{{ log.product.name }}</span>
+                        <span class="block text-xs text-gray-500">{{ log.branch.name }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {% if log.action_type == 'receive' %}
+                        <span
+                            class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider">Receive</span>
+                        {% elif log.action_type == 'adjust' %}
+                        <span
+                            class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider">Adjust</span>
+                        {% else %}
+                        <span
+                            class="bg-gray-500/10 text-gray-400 border border-gray-500/20 px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider">{{
+                            log.action_type }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center space-x-2 text-sm font-mono">
+                            <span class="text-gray-400">{{ log.old_qty }}</span>
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                            <span
+                                class="text-gray-200 font-bold {{ 'text-emerald-400' if log.new_qty > log.old_qty else 'text-red-400' if log.new_qty < log.old_qty else '' }}">{{
+                                log.new_qty }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">
+                        {{ log.reason }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">The ledger is empty. No stock
+                        audit logs recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
