@@ -1,6 +1,6 @@
 {
   "name": "themoneyshot",
-  "version": "1.9.0",
+  "version": "2.1.6",
   "description": "TheMoneyShot — A dangerously attractive multi-branch POS system.",
   "main": "electron/main.js",
   "scripts": {

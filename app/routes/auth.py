@@ -27,7 +27,9 @@ def login():
             login_user(user)
             next_page = request.args.get('next')
             flash('Logged in successfully.', 'success')
-            return redirect(next_page or url_for('dashboard.index'))
+            response = redirect(next_page or url_for('dashboard.index'))
+            response.set_cookie('theme_preference', user.theme_preference, max_age=31536000)
+            return response
         else:
             flash('Invalid username or password.', 'danger')
 

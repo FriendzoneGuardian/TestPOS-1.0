@@ -4,7 +4,7 @@
   CONTEXT: Inherited by every other page view in the app.
 -->
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ current_user.theme_preference if current_user.is_authenticated else 'dusk' }}">
+<html lang="en" data-theme="{{ current_user.theme_preference if current_user.is_authenticated else request.cookies.get('theme_preference', 'dusk') }}">
 
 <head>
     <meta charset="UTF-8">
