@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Customer Loans · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Customer Loans</h1>
+        <p class="text-sm text-gray-400 mt-1">Manage credit accounts and payments</p>
+    </div>
+    <!-- In Flask version there was a create_customer, I'll add if needed later -->
+</div>
+
+<div class="glass-card rounded-2xl overflow-hidden">
+    <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase text-gray-400 border-b border-gray-700 bg-surface-800/50">
+            <tr>
+                <th class="px-6 py-4">Customer</th>
+                <th class="px-6 py-4">Contact</th>
+                <th class="px-6 py-4">Outstanding Balance</th>
+                <th class="px-6 py-4">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800">
+            {% for customer in customers %}
+            <tr class="hover:bg-white/[0.02] transition-colors">
+                <td class="px-6 py-4 font-medium text-white">{{ customer.name }}</td>
+                <td class="px-6 py-4 text-gray-400">{{ customer.contact|default:"-" }}</td>
+                <td class="px-6 py-4">
+                    <span class="text-lg font-bold {% if customer.outstanding_balance > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                        ${{ customer.outstanding_balance|stringformat:".2f" }}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <a href="{% url 'sales:customer_detail' customer.id %}"
+                        class="px-3 py-1.5 rounded-lg bg-primary-500/10 text-primary-400 text-xs font-semibold hover:bg-primary-500/20 transition-all border border-primary-500/20">
+                        View Account
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500 italic">No customers found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

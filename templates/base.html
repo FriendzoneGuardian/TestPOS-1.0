@@ -1,0 +1,335 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django POS System{% endblock %}</title>
+    <meta name="description" content="Modern Django Point of Sale System">
+
+    <!-- Compiled Tailwind CSS + Flowbite (offline) -->
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #020617; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        :root {
+            /* Default Indigo Palette (Dusk Theme) */
+            --primary-50: #eef2ff;
+            --primary-100: #e0e7ff;
+            --primary-200: #c7d2fe;
+            --primary-300: #a5b4fc;
+            --primary-400: #818cf8;
+            --primary-500: #6366f1;
+            --primary-600: #4f46e5;
+            --primary-700: #4338ca;
+            --primary-800: #3730a3;
+            --primary-900: #312e81;
+            --primary-950: #1e1b4b;
+            --surface-900: #020617;
+            --surface-800: #0f172a;
+            --sidebar-active: rgba(99, 102, 241, 0.15);
+        }
+
+        {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+                :root {
+                    --primary-50: #fff1f2; --primary-100: #ffe4e6; --primary-200: #fecdd3; --primary-300: #fda4af;
+                    --primary-400: #fb7185; --primary-500: #f43f5e; --primary-600: #e11d48; --primary-700: #be123c;
+                    --primary-800: #9f1239; --primary-900: #881337; --primary-950: #4c0519;
+                    --sidebar-active: rgba(244, 63, 94, 0.15);
+                }
+            {% elif user.role == 'manager' %}
+                :root {
+                    --primary-50: #eef2ff; --primary-100: #e0e7ff; --primary-200: #c7d2fe; --primary-300: #a5b4fc;
+                    --primary-400: #818cf8; --primary-500: #6366f1; --primary-600: #4f46e5; --primary-700: #4338ca;
+                    --primary-800: #3730a3; --primary-900: #312e81; --primary-950: #1e1b4b;
+                    --sidebar-active: rgba(99, 102, 241, 0.15);
+                }
+            {% elif user.role == 'cashier' %}
+                :root {
+                    --primary-50: #ecfdf5; --primary-100: #d1fae5; --primary-200: #a7f3d0; --primary-300: #6ee7b7;
+                    --primary-400: #34d399; --primary-500: #10b981; --primary-600: #059669; --primary-700: #047857;
+                    --primary-800: #065f46; --primary-900: #064e3b; --primary-950: #022c22;
+                    --sidebar-active: rgba(16, 185, 129, 0.15);
+                }
+            {% elif user.role == 'accounting' %}
+                :root {
+                    --primary-50: #fffbeb; --primary-100: #fef3c7; --primary-200: #fde68a; --primary-300: #fcd34d;
+                    --primary-400: #fbbf24; --primary-500: #f59e0b; --primary-600: #d97706; --primary-700: #b45309;
+                    --primary-800: #92400e; --primary-900: #78350f; --primary-950: #451a03;
+                    --sidebar-active: rgba(245, 158, 11, 0.15);
+                }
+            {% endif %}
+
+            {% if user.theme_preference == 'midnight' %}
+                :root { 
+                    --surface-950: #020617; --surface-900: #020617; --surface-800: #01132a; 
+                    --surface-700: #1e293b; --surface-600: #334155; --text-main: #f8fafc;
+                }
+            {% elif user.theme_preference == 'dawn' %}
+                :root { 
+                    --surface-950: #ffffff; --surface-900: #f8fafc; --surface-800: #f1f5f9; 
+                    --surface-700: #e2e8f0; --surface-600: #cbd5e1; --text-main: #0f172a;
+                }
+                body { color: var(--text-main) !important; }
+            {% elif user.theme_preference == 'dusk' %}
+                :root { 
+                    --surface-950: #0f172a; --surface-900: #0f172a; --surface-800: #1e293b; 
+                    --surface-700: #334155; --surface-600: #475569; --text-main: #e2e8f0;
+                }
+            {% endif %}
+        {% endif %}
+
+        body { 
+            background-color: var(--surface-900);
+            background-image: 
+                radial-gradient(at 0% 0%, var(--primary-900) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, var(--primary-950) 0px, transparent 40%),
+                radial-gradient(at 50% 100%, var(--primary-800) 0px, transparent 50%);
+            background-attachment: fixed;
+            transition: background-color 0.5s ease;
+        }
+
+        .title-bar {
+            -webkit-app-region: drag;
+            height: 32px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+        }
+        .no-drag { -webkit-app-region: no-drag; }
+        
+        #lock-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(25px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--sidebar-active);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-500) 50%, var(--primary-600) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background: var(--sidebar-active);
+            color: var(--primary-400);
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="text-gray-200 min-h-screen">
+
+    <div class="title-bar hidden electron-only"></div>
+    
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="fade-in">
+        <div class="glass-card p-8 rounded-3xl text-center max-w-sm w-full mx-4 space-y-6">
+            <div class="w-20 h-20 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto">
+                <svg class="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-white">Terminal Locked</h2>
+                <p class="text-gray-400 text-sm mt-1">Authorized personnel only</p>
+            </div>
+            <button onclick="unlockTerminal()" class="w-full py-4 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-all shadow-lg shadow-primary-500/25">
+                Unlock Terminal
+            </button>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
+            <div class="h-full px-4 py-8 overflow-y-auto bg-surface-950 border-r border-gray-800/50">
+                <a href="{% url 'sales:dashboard' %}" class="flex items-center mb-8 px-2">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-2xl font-bold font-heading whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-primary-600">
+                    TheMoneyShot
+                </span>
+                </a>
+
+                <nav class="space-y-1">
+                    <a href="{% url 'sales:dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        Dashboard
+                    </a>
+                    {% if user.role != 'accounting' %}
+                    <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        POS Terminal
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_manager %}
+                    <a href="{% url 'inventory:branch_list' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        Branches
+                    </a>
+                    <a href="{% url 'sales:vault_manage' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Branch Vault
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'sales:shift_status' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Shift Management
+                    </a>
+
+                    {% if user.role != 'accounting' %}
+                    <a href="{% url 'sales:loan_list' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Customer Loans
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_accounting %}
+                    <a href="{% url 'sales:reports_index' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Reports
+                    </a>
+                    {% endif %}
+                    {% if user.is_admin %}
+                    <div class="pt-4 mt-4 border-t border-gray-800">
+                        <a href="/admin/" target="_blank" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+                            Django Admin
+                        </a>
+                    </div>
+                    {% endif %}
+                </nav>
+
+                <div class="absolute bottom-0 left-0 w-full px-4 pb-4 space-y-3">
+                    <!-- Theme Toggles -->
+                    <div class="flex items-center justify-around p-2 glass-card rounded-xl no-drag">
+                        <button onclick="setTheme('dawn')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-amber-400 transition-all {% if user.theme_preference == 'dawn' %}text-amber-400 bg-white/5{% endif %}" title="Dawn">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M4 9h1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </button>
+                        <button onclick="setTheme('dusk')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-indigo-400 transition-all {% if user.theme_preference == 'dusk' %}text-indigo-400 bg-white/5{% endif %}" title="Dusk">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        </button>
+                        <button onclick="setTheme('midnight')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-purple-400 transition-all {% if user.theme_preference == 'midnight' %}text-purple-400 bg-white/5{% endif %}" title="Midnight">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-3 no-drag">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-200">{{ user.username }}</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-primary-400">{{ user.role|default:"User" }}</p>
+                            </div>
+                            <form action="{% url 'core:logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="p-2 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                            <button onclick="lockTerminal()" class="p-2 rounded-lg hover:bg-primary-500/20 text-gray-400 hover:text-primary-400 transition-colors" title="Lock Terminal">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 sm:ml-64">
+            {% if messages %}
+            <div class="p-4 space-y-2">
+                {% for message in messages %}
+                <div class="flex items-center p-3 rounded-lg text-sm fade-in bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <main class="p-4 md:p-6 fade-in">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+    <main>
+        {% block content_unauth %}{% endblock %}
+    </main>
+    {% endif %}
+
+    <script src="{% static 'js/flowbite.min.js' %}"></script>
+    <script>
+        function setTheme(theme) {
+            fetch("{% url 'core:update_theme' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ theme: theme })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) location.reload();
+            });
+        }
+
+        // Electron detection
+        if (window.process && window.process.versions && window.process.versions.electron) {
+            document.querySelectorAll('.electron-only').forEach(el => el.classList.remove('hidden'));
+        }
+
+        // Lock Script
+        function lockTerminal() {
+            localStorage.setItem('pos_locked', 'true');
+            document.getElementById('lock-screen').style.display = 'flex';
+        }
+        function unlockTerminal() {
+            localStorage.removeItem('pos_locked');
+            document.getElementById('lock-screen').style.display = 'none';
+        }
+        if (localStorage.getItem('pos_locked') === 'true') {
+            document.getElementById('lock-screen').style.display = 'flex';
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

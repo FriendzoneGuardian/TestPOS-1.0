@@ -2,11 +2,14 @@
   "name": "testpos-1.0",
   "version": "1.0.0",
   "description": "> *From the makers of **SwiftGrade** — the Flutter-powered Capstone beast that scans answer sheets like a Zipgrade on steroids (OMR), reads handwritten short answers with OCR + NLP, and turns classrooms into game shows with Kahoot/Quizizz/Mentimeter-style interactivity.*\r >\r > *We present to you... a system that handles transactions so smooth, so satisfying, so precise — you'll want to do it again. And again. And maybe one more time just to be sure.*\r >\r > ***TheMoneyShot.** Every sale. Right on target. Every. Single. Time.*",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --minify",
-    "watch:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --watch",
+    "dev": "python manage.py runserver",
+    "electron": "electron .",
+    "start": "concurrently \"npm run watch:css\" \"python manage.py runserver\" \"wait-on http://127.0.0.1:8000 && npm run electron\"",
+    "test": "python manage.py test"
   },
   "repository": {
     "type": "git",
@@ -21,8 +24,12 @@
   },
   "homepage": "https://github.com/FriendzoneGuardian/TestPOS-1.0#readme",
   "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
     "flowbite": "^2.5.2",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^3.4.19",
+    "wait-on": "^8.0.2"
   },
   "dependencies": {
     "apexcharts": "^5.10.1"

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Shift Management · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">Shift Management</h1>
+    <p class="text-sm text-gray-400 mt-1">Start or end your daily operations and track cash flow.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Active Shift Status -->
+    <div class="lg:col-span-1 space-y-6">
+        <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+            {% if current_shift %}
+            <div class="absolute top-0 right-0 p-4">
+                <span class="flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+            </div>
+            <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Current Active Shift</h2>
+            <div class="space-y-4">
+                <div>
+                    <span class="text-[10px] text-gray-500 uppercase">Started At</span>
+                    <p class="text-lg font-semibold text-white">{{ current_shift.start_time|date:"M d, H:i" }}</p>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-500 uppercase">Starting Cash</span>
+                    <p class="text-2xl font-bold text-primary-400">${{ current_shift.starting_cash|stringformat:".2f" }}</p>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-800">
+                <h3 class="text-sm font-semibold text-white mb-4">End Your Shift</h3>
+                <form action="{% url 'sales:shift_end' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Actual Closing Cash</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" name="amount" step="0.01" min="0" required
+                                class="w-full pl-7 pr-4 py-2.5 rounded-xl bg-surface-800 border border-gray-700 text-white focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                placeholder="0.00">
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-2 italic">* Variance will be recorded upon closure</p>
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold shadow-lg shadow-red-500/20 transition-all">
+                        End Day / Close Shift
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">No Active Shift</h2>
+            <div class="p-6 rounded-xl bg-surface-800/50 border border-dashed border-gray-700 text-center">
+                <p class="text-sm text-gray-500 italic">Please start your day to access the POS Terminal.</p>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-800">
+                <h3 class="text-sm font-semibold text-white mb-4">Start Your Shift</h3>
+                <form action="{% url 'sales:shift_start' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Starting Cash (Float)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" name="amount" step="0.01" min="0" required
+                                class="w-full pl-7 pr-4 py-2.5 rounded-xl bg-surface-800 border border-gray-700 text-white focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                placeholder="0.00">
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all">
+                        Start Day / Open Shift
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Shift History -->
+    <div class="lg:col-span-2">
+        <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between bg-surface-800/20">
+                <h2 class="text-sm font-semibold text-white">Recent Shift History</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs uppercase text-gray-500 bg-surface-800/50">
+                        <tr>
+                            <th class="px-6 py-4">Date / Duration</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Start Cash</th>
+                            <th class="px-6 py-4">End Cash</th>
+                            <th class="px-6 py-4">Expected</th>
+                            <th class="px-6 py-4">Variance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                        {% for shift in past_shifts %}
+                        <tr class="hover:bg-white/[0.02] transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="text-white font-medium">{{ shift.start_time|date:"M d, Y" }}</div>
+                                <div class="text-[10px] text-gray-500">{{ shift.start_time|date:"H:i" }} - {{ shift.end_time|date:"H:i"|default:"Active" }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold
+                                    {% if shift.status == 'open' %}bg-emerald-500/10 text-emerald-400{% else %}bg-gray-500/10 text-gray-400{% endif %}">
+                                    {{ shift.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-300">${{ shift.starting_cash|stringformat:".2f" }}</td>
+                            <td class="px-6 py-4 text-white font-semibold">
+                                {% if shift.closing_cash != None %}
+                                    ${{ shift.closing_cash|stringformat:".2f" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-gray-400">${{ shift.expected_cash|stringformat:".2f" }}</td>
+                            <td class="px-6 py-4">
+                                {% if shift.status == 'closed' %}
+                                    <span class="font-bold {% if shift.variance < 0 %}text-red-400{% elif shift.variance > 0 %}text-emerald-400{% else %}text-gray-400{% endif %}">
+                                        {% if shift.variance == 0 %}
+                                            Balanced
+                                        {% else %}
+                                            {% if shift.variance > 0 %}+{% endif %}${{ shift.variance|stringformat:".2f" }}
+                                        {% endif %}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">No shift history found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

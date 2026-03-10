@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}POS Terminal · Django POS{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-4 h-[calc(100vh-7rem)]">
+
+    <!-- Product Grid -->
+    <div class="flex-1 flex flex-col min-h-0">
+        <div class="flex flex-col gap-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-xl font-bold text-white">POS Terminal</h1>
+                    <div class="h-6 w-px bg-gray-700 mx-1"></div>
+                    {% if current_shift %}
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Shift Active</span>
+                        <span class="text-xs text-gray-400 ml-1">${{ current_shift.starting_cash|stringformat:".2f" }} Float</span>
+                    </div>
+                    <button onclick="openEndDayReport()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-wider" title="End Day">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        End Day
+                    </button>
+                    {% endif %}
+                    <button onclick="lockTerminal()" class="p-2 rounded-lg bg-surface-800 border border-gray-700 text-gray-400 hover:text-primary-400 transition-all" title="Lock Terminal">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </button>
+                </div>
+                <input type="text" id="product-search" placeholder="Search products..."
+                    class="w-64 px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            </div>
+            
+            <!-- Category Filters -->
+            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button onclick="filterCategory('all')" class="category-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-primary-500 text-white whitespace-nowrap transition-all active" data-cat="all">
+                    All Items
+                </button>
+                {% for cat in categories %}
+                <button onclick="filterCategory('{{ cat }}')" class="category-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-gray-400 hover:text-gray-200 border border-gray-700 whitespace-nowrap transition-all" data-cat="{{ cat }}">
+                    {{ cat }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="product-grid"
+            class="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
+            {% for product in products %}
+            <button onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.current_stock }})"
+                class="product-card glass-card rounded-xl p-4 text-left hover:border-primary-500/40 transition-all group {% if product.is_out_of_stock %}opacity-50 grayscale cursor-not-allowed{% endif %}"
+                data-name="{{ product.name|lower }}" data-cat="{{ product.category|default:'General' }}">
+                
+                {% if product.is_out_of_stock %}
+                <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Out of Stock</span>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between items-start mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500/20 to-purple-500/20 flex items-center justify-center group-hover:from-primary-500/30 group-hover:to-purple-500/30 transition-all">
+                        <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold {% if product.is_out_of_stock %}text-red-400{% elif product.is_low_stock %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                            STK: {{ product.current_stock }}
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-sm font-medium text-gray-200 truncate">{{ product.name }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ product.category|default:"General" }}</p>
+                <p class="text-sm font-bold text-primary-400 mt-2">${{ product.price|stringformat:".2f" }}</p>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Cart Panel -->
+    <div class="w-full lg:w-96 glass-card rounded-xl p-5 flex flex-col min-h-0">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4 flex items-center">
+            <svg class="w-4 h-4 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z">
+                </path>
+            </svg>
+            Current Cart
+        </h2>
+
+        <div id="cart-items" class="flex-1 overflow-y-auto space-y-2 mb-4">
+            <p id="cart-empty" class="text-sm text-gray-500 text-center py-8">Cart is empty</p>
+        </div>
+
+        <!-- Cart Total -->
+        <div class="border-t border-gray-700 pt-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-400">Total</span>
+                <span id="cart-total" class="text-xl font-bold text-white">$0.00</span>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="flex gap-2">
+                <button onclick="setPayment('cash')" id="pay-cash"
+                    class="flex-1 py-2 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all">
+                    💵 Cash
+                </button>
+                <button onclick="setPayment('loan')" id="pay-loan"
+                    class="flex-1 py-2 rounded-lg text-xs font-semibold bg-surface-800 text-gray-400 border border-gray-700 transition-all">
+                    📋 Loan
+                </button>
+            </div>
+
+            <!-- Customer select (for Loans) -->
+            <div id="customer-select-wrap" class="hidden">
+                <select id="customer-select"
+                    class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm">
+                    <option value="">Select Customer...</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}">{{ c.name }} (Balance: ${{ c.outstanding_balance|stringformat:".2f" }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button onclick="checkout()" id="checkout-btn"
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white font-semibold text-sm transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+                Complete Sale
+            </button>
+        </div>
+    </div>
+</div>
+
+{% if not current_shift %}
+<!-- Day Start Mandatory Overlay -->
+<div id="shift-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-2xl">
+    <div class="glass-card p-10 rounded-3xl max-w-md w-full mx-4 space-y-8 border-primary-500/30 shadow-2xl shadow-primary-500/10">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-primary-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary-500/30">
+                <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Day Start Required</h2>
+            <p class="text-gray-400 mt-2 text-sm italic">Initialize your drawer to unlock the terminal.</p>
+        </div>
+
+        <div id="shift-form-step">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Starting Cash (Float)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <input type="number" id="starting-amount" step="0.01" min="0" value="0.00"
+                            class="w-full pl-8 pr-4 py-4 rounded-2xl bg-surface-900 border border-gray-700 text-white text-xl font-bold focus:ring-2 focus:ring-primary-500 transition-all outline-none shadow-inner">
+                    </div>
+                </div>
+                <button onclick="prepareShiftStart()"
+                    class="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all transform hover:scale-[1.02]">
+                    Unlock Terminal
+                </button>
+            </div>
+        </div>
+
+        <div id="shift-countdown-step" class="hidden text-center space-y-6 py-4">
+            <div class="relative w-24 h-24 mx-auto">
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-700" />
+                    <circle id="countdown-circle" cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-primary-500" stroke-dasharray="251.2" stroke-dashoffset="0" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span id="countdown-text" class="text-3xl font-black text-white">5</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-white font-bold text-lg">Verifying Float...</p>
+                <p class="text-gray-500 text-sm mt-1">Starting with $<span id="confirm-amount"></span></p>
+            </div>
+            <button onclick="cancelShiftStart()" class="text-red-400 hover:text-red-300 font-bold uppercase tracking-widest text-xs transition-colors">
+                Cancel Initialization
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let cart = [];
+    let paymentMethod = 'cash';
+
+    const getCookie = (name) => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    };
+
+    let currentCategory = 'all';
+
+    function filterCategory(cat) {
+        currentCategory = cat;
+        // Update UI pills
+        document.querySelectorAll('.category-pill').forEach(pill => {
+            if (pill.dataset.cat === cat) {
+                pill.classList.add('bg-primary-500', 'text-white');
+                pill.classList.remove('bg-surface-800', 'text-gray-400');
+            } else {
+                pill.classList.remove('bg-primary-500', 'text-white');
+                pill.classList.add('bg-surface-800', 'text-gray-400');
+            }
+        });
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const q = document.getElementById('product-search').value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(card => {
+            const matchesSearch = card.dataset.name.includes(q);
+            const matchesCat = currentCategory === 'all' || card.dataset.cat === currentCategory;
+            card.style.display = (matchesSearch && matchesCat) ? '' : 'none';
+        });
+    }
+
+    document.getElementById('product-search').addEventListener('input', applyFilters);
+
+    const container = document.getElementById('cart-items');
+    const btn = document.getElementById('checkout-btn');
+
+    function addToCart(productId, name, price, stock) {
+        if (stock <= 0) {
+            alert('Cannot add out-of-stock item.');
+            return;
+        }
+
+        const existing = cart.find(i => i.product_id === productId);
+        if (existing) {
+            if (existing.quantity >= stock) {
+                alert('Maximum available stock reached.');
+                return;
+            }
+            existing.quantity++;
+        } else {
+            cart.push({ product_id: productId, name: name, price: price, quantity: 1, stock: stock });
+        }
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function updateQty(index, delta) {
+        const item = cart[index];
+        const newQty = item.quantity + delta;
+        
+        if (newQty > item.stock) {
+            alert('Maximum available stock reached.');
+            return;
+        }
+        
+        if (newQty <= 0) {
+            cart.splice(index, 1);
+        } else {
+            item.quantity = newQty;
+        }
+        renderCart();
+    }
+
+    // Shift Start Logic
+    let countdownInterval;
+    let countdownValue = 5;
+
+    function prepareShiftStart() {
+        const amount = document.getElementById('starting-amount').value;
+        if (amount === '' || parseFloat(amount) < 0) {
+            alert('Please enter a valid starting amount.');
+            return;
+        }
+
+        document.getElementById('confirm-amount').textContent = parseFloat(amount).toFixed(2);
+        document.getElementById('shift-form-step').classList.add('hidden');
+        document.getElementById('shift-countdown-step').classList.remove('hidden');
+
+        countdownValue = 5;
+        updateCountdownUI();
+
+        countdownInterval = setInterval(() => {
+            countdownValue--;
+            updateCountdownUI();
+            if (countdownValue <= 0) {
+                clearInterval(countdownInterval);
+                startShift();
+            }
+        }, 1000);
+    }
+
+    function updateCountdownUI() {
+        document.getElementById('countdown-text').textContent = countdownValue;
+        const circle = document.getElementById('countdown-circle');
+        const offset = 251.2 * (countdownValue / 5);
+        circle.style.strokeDashoffset = 251.2 - offset;
+    }
+
+    function cancelShiftStart() {
+        clearInterval(countdownInterval);
+        document.getElementById('shift-countdown-step').classList.add('hidden');
+        document.getElementById('shift-form-step').classList.remove('hidden');
+    }
+
+    function startShift() {
+        const amount = document.getElementById('starting-amount').value;
+        fetch('{% url "sales:shift_start" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `amount=${amount}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+                cancelShiftStart();
+            }
+        });
+    }
+
+    // End Day / Preliminary Report Logic
+    function openEndDayReport() {
+        fetch('{% url "sales:shift_preview" %}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const reportHtml = `
+                    <div id="end-day-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl">
+                        <div class="glass-card p-8 rounded-3xl max-w-lg w-full mx-4 space-y-6 border-red-500/20 shadow-2xl shadow-red-500/10">
+                            <div class="text-center">
+                                <h2 class="text-2xl font-black text-white uppercase tracking-tight">Preliminary End-Day Report</h2>
+                                <p class="text-gray-400 text-sm mt-1">Review your totals before finalizing the vault.</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-surface-900 p-4 rounded-2xl border border-gray-800">
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Starting Float</span>
+                                    <p class="text-xl font-bold text-white">$${data.starting_cash.toFixed(2)}</p>
+                                </div>
+                                <div class="bg-surface-900 p-4 rounded-2xl border border-gray-800">
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cash Sales</span>
+                                    <p class="text-xl font-bold text-emerald-400">+$${data.cash_sales.toFixed(2)}</p>
+                                </div>
+                                <div class="bg-surface-900 p-4 rounded-2xl border border-gray-800">
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Loan Sales</span>
+                                    <p class="text-xl font-bold text-amber-400">+$${data.loan_sales.toFixed(2)}</p>
+                                </div>
+                                <div class="bg-primary-500/10 p-4 rounded-2xl border border-primary-500/30">
+                                    <span class="text-[10px] text-primary-400 font-bold uppercase tracking-widest">Expected Cash</span>
+                                    <p class="text-xl font-black text-white">$${data.expected_cash.toFixed(2)}</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 pt-4 border-t border-gray-800">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Internal Drawer Cash (Final Count)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                                        <input type="number" id="final-cash-count" step="0.01" value="${data.expected_cash.toFixed(2)}"
+                                            class="w-full pl-8 pr-4 py-4 rounded-2xl bg-surface-900 border border-gray-700 text-white text-xl font-bold focus:ring-2 focus:ring-red-500 transition-all outline-none">
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-2 italic text-center">* This value will be compared against expected totals for auditing.</p>
+                                </div>
+                                
+                                <div class="flex gap-3">
+                                    <button onclick="document.getElementById('end-day-modal').remove()" class="flex-1 py-4 rounded-2xl bg-surface-800 hover:bg-surface-700 text-gray-400 font-bold uppercase tracking-widest text-xs transition-all">
+                                        Keep Selling
+                                    </button>
+                                    <button onclick="endShift()" class="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black uppercase tracking-widest shadow-xl shadow-red-500/20 transition-all">
+                                        Close Day & Vault
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', reportHtml);
+            }
+        });
+    }
+
+    function endShift() {
+        const amount = document.getElementById('final-cash-count').value;
+        fetch('{% url "sales:shift_end" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `amount=${amount}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.href = "{% url 'core:login' %}";
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items');
+        const btn = document.getElementById('checkout-btn');
+
+        if (cart.length === 0) {
+            container.innerHTML = '<p id="cart-empty" class="text-sm text-gray-500 text-center py-8">Cart is empty</p>';
+            document.getElementById('cart-total').textContent = '$0.00';
+            btn.disabled = true;
+            return;
+        }
+
+        btn.disabled = false;
+        let total = 0;
+        let html = '';
+        cart.forEach((item, i) => {
+            const sub = item.price * item.quantity;
+            total += sub;
+            html += `
+                <div class="flex items-center justify-between bg-surface-800/50 rounded-lg p-3">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="text-sm font-medium text-gray-200 truncate">${item.name}</p>
+                        <p class="text-xs text-gray-400">$${item.price.toFixed(2)} × ${item.quantity}</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="updateQty(${i}, -1)" class="w-6 h-6 rounded bg-gray-700 text-gray-300 text-xs hover:bg-gray-600">−</button>
+                        <span class="text-sm font-mono w-6 text-center text-white">${item.quantity}</span>
+                        <button onclick="updateQty(${i}, 1)" class="w-6 h-6 rounded bg-gray-700 text-gray-300 text-xs hover:bg-gray-600">+</button>
+                        <button onclick="removeFromCart(${i})" class="ml-1 w-6 h-6 rounded bg-red-500/20 text-red-400 text-xs hover:bg-red-500/30">✕</button>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+        document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+    }
+
+    function setPayment(method) {
+        paymentMethod = method;
+        const cashBtn = document.getElementById('pay-cash');
+        const loanBtn = document.getElementById('pay-loan');
+        const custWrap = document.getElementById('customer-select-wrap');
+
+        if (method === 'cash') {
+            cashBtn.className = 'flex-1 py-2 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all';
+            loanBtn.className = 'flex-1 py-2 rounded-lg text-xs font-semibold bg-surface-800 text-gray-400 border border-gray-700 transition-all';
+            custWrap.classList.add('hidden');
+        } else {
+            loanBtn.className = 'flex-1 py-2 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-all';
+            cashBtn.className = 'flex-1 py-2 rounded-lg text-xs font-semibold bg-surface-800 text-gray-400 border border-gray-700 transition-all';
+            custWrap.classList.remove('hidden');
+        }
+    }
+
+    function checkout() {
+        if (cart.length === 0) return;
+        const customerId = document.getElementById('customer-select').value;
+
+        fetch('{% url "sales:checkout" %}', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') 
+            },
+            body: JSON.stringify({ items: cart, payment_method: paymentMethod, customer_id: customerId })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    cart = [];
+                    renderCart();
+                    alert(`✅ Order #${data.order_id} completed! Total: $${data.total.toFixed(2)}`);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(() => alert('Network error.'));
+    }
+</script>
+{% endblock %}

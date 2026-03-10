@@ -9,3 +9,7 @@ instance/
 # Whitelist test scripts
 !tests/
 !tests/*.py
+
+.flask_legacy/
+dist/
+test_results.log
