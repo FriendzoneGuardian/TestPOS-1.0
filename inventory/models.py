@@ -6,7 +6,6 @@ class Product(models.Model):
     sku = models.CharField(max_length=50, unique=True)
     price = models.FloatField(default=0.0)
     category = models.CharField(max_length=80, null=True, blank=True)
-    low_stock_threshold = models.IntegerField(default=10)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -13,3 +13,5 @@ instance/
 .flask_legacy/
 dist/
 test_results.log
+
+legacy_flask_reference/

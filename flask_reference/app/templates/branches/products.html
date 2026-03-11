@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Stock — {{ branch.name }} · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white">{{ branch.name }} — Stock</h1>
+        <p class="text-sm text-gray-400 mt-1">Manage inventory for this branch</p>
+    </div>
+    <a href="{{ url_for('branches.index') }}"
+        class="px-4 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700">←
+        Back</a>
+</div>
+
+<div class="glass-card rounded-xl overflow-hidden">
+    <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase text-gray-400 bg-surface-900">
+            <tr>
+                <th class="px-5 py-3">Product</th>
+                <th class="px-5 py-3">SKU</th>
+                <th class="px-5 py-3">Price</th>
+                <th class="px-5 py-3">Stock Qty</th>
+                <th class="px-5 py-3">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800">
+            {% for product, qty in stock_items %}
+            <tr class="hover:bg-white/[0.02]">
+                <td class="px-5 py-3 text-gray-200">{{ product.name }}</td>
+                <td class="px-5 py-3 text-gray-400 font-mono text-xs">{{ product.sku }}</td>
+                <td class="px-5 py-3 text-gray-200">${{ "%.2f"|format(product.price) }}</td>
+                <td class="px-5 py-3">
+                    <span class="font-mono {{ 'text-red-400' if (qty or 0) <= 5 else 'text-emerald-400' }}">{{ qty or 0
+                        }}</span>
+                </td>
+                <td class="px-5 py-3">
+                    <form method="POST" action="{{ url_for('branches.update_stock', branch_id=branch.id) }}"
+                        class="flex items-center gap-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <input type="number" name="quantity" value="{{ qty or 0 }}" min="0"
+                            class="w-20 px-2 py-1 rounded-lg bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500">
+                        <button type="submit"
+                            class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 text-xs hover:bg-indigo-500/30">Set</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
