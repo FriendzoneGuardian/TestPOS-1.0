@@ -15,8 +15,17 @@ class User(AbstractUser):
         ('admin', 'Admin'),
         ('manager', 'Manager'),
         ('cashier', 'Cashier'),
+        ('accounting', 'Accounting'),
     ]
+    
+    THEME_CHOICES = [
+        ('dawn', 'Dawn (Light)'),
+        ('dusk', 'Dusk (Dark)'),
+        ('midnight', 'Midnight (AMOLED)'),
+    ]
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='cashier')
+    theme_preference = models.CharField(max_length=20, choices=THEME_CHOICES, default='dusk')
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     is_active_account = models.BooleanField(default=True) # Django User already has is_active, but keeping custom just in case
 
@@ -25,3 +34,6 @@ class User(AbstractUser):
 
     def is_manager(self):
         return self.role in ('admin', 'manager')
+
+    def is_accounting(self):
+        return self.role == 'accounting'

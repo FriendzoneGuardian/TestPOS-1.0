@@ -4,8 +4,8 @@
   "description": "> *From the makers of **SwiftGrade** — the Flutter-powered Capstone beast that scans answer sheets like a Zipgrade on steroids (OMR), reads handwritten short answers with OCR + NLP, and turns classrooms into game shows with Kahoot/Quizizz/Mentimeter-style interactivity.*\r >\r > *We present to you... a system that handles transactions so smooth, so satisfying, so precise — you'll want to do it again. And again. And maybe one more time just to be sure.*\r >\r > ***TheMoneyShot.** Every sale. Right on target. Every. Single. Time.*",
   "main": "index.js",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --minify",
-    "watch:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --watch",
+    "build:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -1,4 +1,4 @@
-# 💰 TheMoneyShot — POS System
+# 💰 TheMoneyShot — POS System (Django + Electron Edition)
 
 > *From the makers of **SwiftGrade** — the Flutter-powered Capstone beast that scans answer sheets like a Zipgrade on steroids (OMR), reads handwritten short answers with OCR + NLP, and turns classrooms into game shows with Kahoot/Quizizz/Mentimeter-style interactivity.*
 >
@@ -6,9 +6,9 @@
 >
 > ***TheMoneyShot.** Every sale. Right on target. Every. Single. Time.*
 
-A dangerously attractive, multi-branch Point of Sale system built with **Flask**, **Tailwind CSS**, and **Flowbite**. Dark-mode glassmorphism UI that'll make your registers blush.
+A dangerously attractive, multi-branch Point of Sale system. She used to be a Flask girl, but she's matured into a **Django** architecture with an incoming **Electron** shell wrapper. We've retained the dark-mode glassmorphism UI, "Puddles" ambient backgrounds, and dynamic role-based color matrices that'll make your registers blush.
 
-**Version:** Alpha 1.1 — *She's learned a few new tricks.*
+**Version:** Beta 1.5 — *She's fully migrated, securely vaulted, and ready for heavier loads.*
 
 ---
 
@@ -16,22 +16,24 @@ A dangerously attractive, multi-branch Point of Sale system built with **Flask**
 
 | Module | Description |
 |--------|-------------|
-| **POS Terminal** | Smooth product grid, real-time cart action — she handles multiple items at once without breaking a sweat |
-| **Branch Management** | Multi-branch support with per-branch stock tracking. She gets around — professionally |
-| **Void System** | Void individual items or entire orders. Full audit logging, because we don't do anything without consent |
-| **Loan / Credit** | Customer credit tracking with payment processing. We keep tabs on who owes us one |
-| **Reports** | Sales & void reports with CSV export. She exposes everything — every number, every transaction |
-| **Dashboard** | Live stats, 7-day sales chart (ApexCharts), top sellers. The full-body view of your business |
+| **POS Terminal** | Smooth product grid, real-time cart action — she handles multiple items at once without breaking a sweat. |
+| **Role-Based Theming** | "Fifty Shades of Roles": Admin, Manager, Cashier, and Accounting (The Golden Ledger) all get custom injected CSS color matrices and ambient glowing puddles. |
+| **Branch Management** | Multi-branch support with strict data isolation. She gets around — professionally. |
+| **Cash Session Vaulting** | Strict opening/closing cash counts with variance auditing. You must insert your float before she lets you start playing. |
+| **Loan / Credit** | Customer credit tracking with a strict ₱1,500 limit and payroll deduction cycles. We keep tabs on who owes us one. |
+| **Reports** | Daily, Weekly, Bi-Monthly, Monthly, Quarterly, and Annually. She exposes everything — every number, every transaction — but mostly strictly on demand for Accounting. |
 
 ## 🛠️ Tech Stack — What's Under the Hood
 
 No need to undress the architecture yourself — here's the full reveal:
 
-- **Backend:** Python 3 · Flask · SQLAlchemy · Flask-Login · Flask-Migrate
-- **Frontend:** Jinja2 · Tailwind CSS (local build) · Flowbite · ApexCharts
-- **Database:** SQLite (dev) — PostgreSQL-ready (prod)
+- **Backend:** Python 3 · Django 6+ · Django ORM
+- **Frontend:** Django Templates · Tailwind CSS (offline compiled) · Flowbite
+- **Themes & UI:** Native CSS variables (`data-category` and `data-theme` matrices), Ambient Puddles, Glassmorphism Overlays.
+- **Database:** SQLite (dev) — PostgreSQL-ready (production).
+- **Desktop Shell (WIP):** Electron.js — *Keeping her strictly local, wrapped tight in a native desktop window.*
 
-> Built tight, runs smooth, and handles heavy loads with grace.
+> Built tight, runs smooth, and handles heavy database relations with absolute grace.
 
 ## 🚀 Quick Start — Getting It Up and Running
 
@@ -54,56 +56,53 @@ pip install -r requirements.txt
 npm install
 npm run build:css
 
-# 6. Seed the database (plant the seed)
-python seed.py
+# 6. Apply Migrations & Seed the database (plant the seed)
+python manage.py makemigrations
+python manage.py migrate
+python manage.py seed_pos
 
 # 7. Run the dev server (let her rip)
-python run.py
+python manage.py runserver 8000
 ```
 
-Then open **http://127.0.0.1:5000** — she'll be waiting for you.
+Then open **http://127.0.0.1:8000/login/** — she'll be waiting for you.
 
 ## 🔑 Default Accounts — Who's in the Backdoor?
 
-| Username | Password | Role | Branch |
-|----------|----------|------|--------|
-| `admin` | `admin123` | Admin | Main Branch |
-| `manager` | `manager123` | Manager | Main Branch |
-| `cashier1` | `cashier123` | Cashier | Main Branch |
-| `cashier2` | `cashier123` | Cashier | Uptown Branch |
+By default, the `seed_pos` command generates the following fully randomized combinations, but here are the standard role test accounts you can create:
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `admin123` | Admin (Mapped to Manager / Sudo) |
+| `cashier1` | `cashier123` | Cashier |
+| `accountant` | `accountant123` | Accounting (Golden Ledger Only) |
 
 > ⚠️ **Change these immediately in production.** Leaving defaults on is like leaving the door wide open — and not in the fun way.
 
 ## 📂 Project Structure — The Anatomy
 
 ```
-TheMoneyShot/
-├── app/
-│   ├── __init__.py          # App factory — where it all begins
-│   ├── models.py            # Database models (8 tables, fully relational)
-│   ├── routes/
-│   │   ├── auth.py          # Login / Logout — knows when to come and go
-│   │   ├── dashboard.py     # Dashboard + chart API — the money view
-│   │   ├── pos.py           # POS terminal + checkout + voids
-│   │   ├── branches.py      # Branch CRUD + stock management
-│   │   ├── reports.py       # Sales/void reports + CSV export
-│   │   └── loans.py         # Customer loans + payments — IOUs with class
-│   └── templates/           # Jinja2 templates (Tailwind + Flowbite)
-├── config.py
-├── run.py
-├── seed.py
-├── requirements.txt
-└── .env
+TestPOS-1.0/
+├── core/                # Core logic, authentication, and custom User models.
+├── sales/               # Checkout, Shifts, Vaults, and POS Terminal views.
+├── inventory/           # Products, Categories, Stock tracking.
+├── tp_django/           # The main Django configuration and wiring.
+├── templates/           # Centralized Base HTML files with strict layout inheritance.
+├── static/
+│   ├── src/             # input.css featuring the declarative Role Matrix.
+│   └── css/             # Compiled Tailwind output — offline and self-sufficient.
+├── electron/            # (WIP) Desktop shell implementation.
+├── Legacy/              # (Archived) The original Flask implementation.
+├── manage.py
+└── README.md
 ```
 
-## 📋 Roadmap — What's Coming Next
+## 📋 Roadmap — What's Coming Next (Beta 1.6+)
 
-- [ ] 🧾 Receipt printing / PDF generation — *physical proof of the transaction*
-- [ ] 📷 Barcode scanner integration — *scan, beep, done*
-- [ ] 👥 User management admin panel — *control who gets access*
-- [ ] 📦 Inventory alerts (low stock) — *she'll tell you when she's running low*
-- [ ] 💱 Multi-currency support — *international affairs*
-- [ ] 🐳 Deployment guide (Docker / Gunicorn) — *taking her public*
+- [ ] 👥 **The Velvet Rope:** Strict In-App User Management (No more Django Admin).
+- [ ] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
+- [ ] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
+- [ ] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
 
 ## 🤝 Contributing
 

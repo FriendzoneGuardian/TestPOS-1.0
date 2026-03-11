@@ -3,20 +3,25 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils import timezone
+from django.utils import timezone
 from .models import Order, OrderItem, Customer
 from inventory.models import Product, BranchStock
+from core.mixins import role_required
 import json
 
 @login_required
+@role_required(['admin', 'manager', 'cashier'])
 def terminal(request):
     products = Product.objects.filter(is_active=True).order_by('category', 'name')
     customers = Customer.objects.order_by('name')
     return render(request, 'pos/terminal.html', {
         'products': products,
-        'customers': customers
+        'customers': customers,
+        'current_shift': True  # STUB for Beta 1.2
     })
 
 @login_required
+@role_required(['admin', 'manager', 'cashier'])
 @transaction.atomic
 def checkout(request):
     if request.method != 'POST':
@@ -107,3 +112,24 @@ def checkout(request):
         customer.save()
 
     return JsonResponse({'success': True, 'order_id': order.id, 'total': total})
+
+@login_required
+@role_required(['admin', 'manager', 'cashier'])
+def shift_start(request):
+    return JsonResponse({'success': True, 'message': 'Shift started (stub).'})
+
+@login_required
+@role_required(['admin', 'manager', 'cashier'])
+def shift_preview(request):
+    return JsonResponse({
+        'success': True,
+        'starting_cash': 0.0,
+        'cash_sales': 0.0,
+        'loan_sales': 0.0,
+        'expected_cash': 0.0
+    })
+
+@login_required
+@role_required(['admin', 'manager', 'cashier'])
+def shift_end(request):
+    return JsonResponse({'success': True, 'message': 'Shift ended (stub).'})

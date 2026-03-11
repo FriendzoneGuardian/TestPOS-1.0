@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-theme="{{ current_theme|default:'dusk' }}" data-role="{{ user_role|default:'guest' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -12,22 +12,26 @@
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
     <style>
+        :root {
+            /* theme_vars are now managed exclusively in static/src/input.css */
+        }
         * { font-family: 'Inter', sans-serif; }
-        body { background: #020617; }
+        
         .glass-card {
-            background: rgba(30, 41, 59, 0.6);
+            background-color: color-mix(in srgb, var(--color-surface-800, #1e293b) 60%, transparent);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(99, 102, 241, 0.15);
+            border: 1px solid var(--color-primary-500);
         }
         .gradient-text {
-            background: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #a78bfa 100%);
+            background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 50%, #a78bfa 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .sidebar-link { transition: all 0.2s ease; }
         .sidebar-link:hover, .sidebar-link.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: #818cf8;
+            background: color-mix(in srgb, var(--color-primary-500) 15%, transparent);
+            color: var(--color-primary-400);
         }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn {
@@ -41,10 +45,14 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="text-gray-200 min-h-screen">
+<body class="bg-surface-900 text-gray-200 min-h-screen relative overflow-x-hidden transition-colors duration-500">
+
+    <!-- Ambient Glowing Puddles -->
+    <div class="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen opacity-20 pointer-events-none transition-colors duration-1000" style="background-color: var(--bg-puddle-1);"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[140px] mix-blend-screen opacity-10 pointer-events-none transition-colors duration-1000" style="background-color: var(--bg-puddle-2);"></div>
 
     {% if user.is_authenticated %}
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen relative z-10">
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
             <div class="h-full px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
@@ -66,28 +74,38 @@
                     </a>
                 </nav>
 
-                <div class="absolute bottom-0 left-0 w-full px-4 pb-4">
-                    <div class="glass-card rounded-xl p-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-200">{{ user.username }}</p>
-                                <p class="text-xs text-gray-400 capitalize">{{ user.role }}</p>
-                            </div>
-                            <form action="{% url 'admin:logout' %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="p-2 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                    </svg>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </aside>
 
-        <div class="flex-1 sm:ml-64">
+        <div class="flex-1 sm:ml-64 flex flex-col">
+            <!-- Top Navbar for Old POS Style -->
+            <header class="w-full h-16 bg-surface-900 border-b border-gray-800 flex items-center justify-end px-4 sm:px-6">
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggles -->
+                    <div class="flex items-center space-x-2 border-r border-gray-700 pr-4">
+                        <button onclick="updateTheme('dawn')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Light Mode">☀️</button>
+                        <button onclick="updateTheme('dusk')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Dark Mode">🌙</button>
+                        <button onclick="updateTheme('midnight')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="AMOLED Mode">🌑</button>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-semibold text-gray-200 leading-tight">{{ user.username }}</p>
+                        <p class="text-xs text-gray-400 capitalize">{{ user.role }}</p>
+                    </div>
+                    
+                    <!-- Logout -->
+                    <form action="{% url 'core:logout' %}" method="post" class="m-0 flex items-center">
+                        {% csrf_token %}
+                        <button type="submit" class="p-2 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors" title="Logout">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </header>
             {% if messages %}
             <div class="p-4 space-y-2">
                 {% for message in messages %}
@@ -104,12 +122,28 @@
         </div>
     </div>
     {% else %}
-    <main>
+    <main class="relative z-10">
         {% block content_unauth %}{% endblock %}
     </main>
     {% endif %}
 
     <script src="{% static 'js/flowbite.min.js' %}"></script>
+    <script>
+        function updateTheme(theme) {
+            fetch("{% url 'core:update_theme' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({theme: theme})
+            }).then(r => r.json()).then(data => {
+                if(data.success) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                }
+            });
+        }
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
