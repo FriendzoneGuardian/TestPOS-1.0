@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
     <style>
-        :root {
-            /* theme_vars are now managed exclusively in static/src/input.css */
-        }
         * { font-family: 'Inter', sans-serif; }
         
         .glass-card {
@@ -66,12 +63,38 @@
                 </a>
 
                 <nav class="space-y-1">
+                    {% if user.is_admin %}
                     <a href="/admin/" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
-                        Django Admin
+                        Django Admin (Sudo)
                     </a>
+                    {% endif %}
+                    
+                    {% if user.is_manager %}
+                    <a href="{% url 'core:manager_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        Manager Dashboard
+                    </a>
+                    <a href="{% url 'core:user_management' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        User Management
+                    </a>
+                    {% endif %}
+
+                    {% if user.role == 'admin' or user.role == 'manager' or user.role == 'accounting' %}
+                    <a href="{% url 'inventory:dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        Inventory Dashboard
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_accounting or user.is_admin %}
+                    <a href="{% url 'core:accounting_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400">
+                        Golden Ledger (Audit)
+                    </a>
+                    {% endif %}
+
+                    {% if user.role == 'admin' or user.role == 'cashier' %}
                     <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
                         POS Terminal
                     </a>
+                    {% endif %}
                 </nav>
 
 
@@ -82,11 +105,75 @@
             <!-- Top Navbar for Old POS Style -->
             <header class="w-full h-16 bg-surface-900 border-b border-gray-800 flex items-center justify-end px-4 sm:px-6">
                 <div class="flex items-center space-x-4">
-                    <!-- Theme Toggles -->
-                    <div class="flex items-center space-x-2 border-r border-gray-700 pr-4">
-                        <button onclick="updateTheme('dawn')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Light Mode">☀️</button>
-                        <button onclick="updateTheme('dusk')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Dark Mode">🌙</button>
-                        <button onclick="updateTheme('midnight')" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="AMOLED Mode">🌑</button>
+                    <!-- Inventory Alerts (Bell) -->
+                    {% if user.role == 'admin' or user.role == 'manager' %}
+                    <div class="relative flex items-center pr-4 border-r border-gray-700">
+                        <button id="alertsMenuButton" data-dropdown-toggle="alertsMenuDropdown" class="p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors relative" title="Inventory Alerts">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            {% if low_stock_count > 0 %}
+                            <div class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-surface-900 rounded-full -top-1 -right-1">{{ low_stock_count }}</div>
+                            {% endif %}
+                        </button>
+                        
+                        <!-- Alerts Dropdown -->
+                        <div id="alertsMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-lg w-72 border border-gray-700 max-h-96 overflow-y-auto">
+                            <div class="px-4 py-3 text-xs text-gray-400 uppercase font-semibold flex justify-between items-center">
+                                Low Stock Alerts
+                                {% if low_stock_count > 0 %}
+                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px]">{{ low_stock_count }} items</span>
+                                {% endif %}
+                            </div>
+                            <ul class="py-2 text-sm text-gray-200">
+                                {% for alert in low_stock_alerts %}
+                                <li class="px-4 py-3 hover:bg-surface-700/50 border-b border-gray-700 last:border-0 transition-colors">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="font-medium text-gray-100">{{ alert.product_name }}</span>
+                                        <span class="text-xs text-red-400 bg-red-500/10 px-1.5 rounded">{{ alert.quantity }} left</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-gray-400">
+                                        <span>Reorder at: {{ alert.reorder_level }}</span>
+                                        <span>{{ alert.branch_name }}</span>
+                                    </div>
+                                </li>
+                                {% empty %}
+                                <li class="px-4 py-4 text-center text-gray-500 text-sm">
+                                    All stock levels are nominal.
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="p-2 border-t border-gray-700">
+                                <a href="{% url 'inventory:dashboard' %}" class="block text-center text-sm text-primary-400 hover:text-primary-300 py-1.5 transition-colors">View Inventory Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- BBQ Stick (Burger Menu) -->
+                    <div class="relative flex items-center pr-4 border-r border-gray-700">
+                        <button id="bbqMenuButton" data-dropdown-toggle="bbqMenuDropdown" class="p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Settings Menu">
+                            <!-- Burger Icon -->
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div id="bbqMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-lg w-48 border border-gray-700">
+                            <div class="px-4 py-3 text-xs text-gray-400 uppercase font-semibold">
+                                display theme
+                            </div>
+                            <ul class="py-2 text-sm text-gray-200" aria-labelledby="bbqMenuButton">
+                                <li>
+                                    <button onclick="updateTheme('dawn')" class="block w-full text-left px-4 py-2 hover:bg-gray-700 hover:text-white transition-colors">☀️ Dawn (Light)</button>
+                                </li>
+                                <li>
+                                    <button onclick="updateTheme('dusk')" class="block w-full text-left px-4 py-2 hover:bg-gray-700 hover:text-white transition-colors">🌙 Dusk (Dark)</button>
+                                </li>
+                                <li>
+                                    <button onclick="updateTheme('midnight')" class="block w-full text-left px-4 py-2 hover:bg-gray-700 hover:text-white transition-colors">🌑 Midnight (AMOLED)</button>
+                                </li>
+                            </ul>
+                            <div class="py-2 text-sm text-gray-200">
+                                <span class="block px-4 py-2 text-gray-500 cursor-not-allowed" title="Coming Soon">⚙️ Profile Settings</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- User Info -->

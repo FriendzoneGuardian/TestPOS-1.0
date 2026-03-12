@@ -79,6 +79,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.theme_processor',
+                'core.context_processors.inventory_alerts_processor',
             ],
         },
     },
@@ -139,7 +140,7 @@ USE_TZ = True
 
 
 LOGIN_URL = 'core:login'
-LOGIN_REDIRECT_URL = 'sales:terminal'
+LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:login'
 
 # Static files (CSS, JavaScript, Images)

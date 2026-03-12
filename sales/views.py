@@ -3,25 +3,37 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils import timezone
-from django.utils import timezone
 from .models import Order, OrderItem, Customer
 from inventory.models import Product, BranchStock
 from core.mixins import role_required
 import json
 
 @login_required
-@role_required(['admin', 'manager', 'cashier'])
+@role_required(['admin', 'cashier'])
 def terminal(request):
-    products = Product.objects.filter(is_active=True).order_by('category', 'name')
+    products = Product.objects.filter(is_active=True).prefetch_related('stock').order_by('category', 'name')
     customers = Customer.objects.order_by('name')
+    
+    categories = []
+    for product in products:
+        if product.category and product.category not in categories:
+            categories.append(product.category)
+            
+        # Get stock for current user branch
+        branch_stock = product.stock.filter(branch=request.user.branch).first()
+        product.current_stock = branch_stock.quantity if branch_stock else 0
+        product.is_out_of_stock = product.current_stock <= 0
+        product.is_low_stock = product.current_stock <= product.reorder_level
+        
     return render(request, 'pos/terminal.html', {
         'products': products,
         'customers': customers,
+        'categories': categories,
         'current_shift': True  # STUB for Beta 1.2
     })
 
 @login_required
-@role_required(['admin', 'manager', 'cashier'])
+@role_required(['admin', 'cashier'])
 @transaction.atomic
 def checkout(request):
     if request.method != 'POST':
