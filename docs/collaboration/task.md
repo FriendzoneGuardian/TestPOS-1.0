@@ -89,6 +89,10 @@
 # Alpha 3.0 — "The Concrete Hardening"
 > Implementation of advanced business rules from the `concrete_implementation_plan.md`.
 
+## Alpha 3.0.1 — Base-Unit Inventory & Bundles (Planned)
+- [ ] Unit conversion inventory per product (carton/pack/stick) with strict base-unit storage.
+- [ ] Bundle promos like “3 pcs for ₱5” with audit-safe pricing and stock deductions.
+
 ## Alpha 3.1 — Financial Integrity
 - [ ] Implement COGS calculation logic in Sales reporting.
 - [ ] Add aging categories (0-15, 16-30, 31+ days) for Credit Ledgers.

@@ -103,6 +103,7 @@ TestPOS-1.0/
 - [x] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
 - [ ] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
 - [ ] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
+- [ ] 🧮 **Alpha 3.0.1 (Planned):** Base-unit inventory with unit conversions (carton/pack/stick) + bundle promos like “3 pcs for ₱5”, audit-safe and cashier-friendly.
 
 ## 🧪 Theme Options (Humor, WIP)
 We mocked possible theme variants (including a high-contrast “Noon” mode for daylight-visibility and accessibility) as static previews:

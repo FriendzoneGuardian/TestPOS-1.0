@@ -41,6 +41,9 @@ This file summarizes what changed today so other contributors can quickly catch 
 - **Insufficient cash cancels checkout** (no loan fallback for now).
 - Audit trails currently combine Stock + Void logs; no Order-level audit entries yet.
 
+## Planned (Deferred)
+- **Alpha 3.0.1**: Base-unit inventory with per-product unit conversions (carton/pack/stick) and bundle promos (e.g., 3 pcs for ₱5). Planned only, no implementation yet.
+
 ## Suggested Next Steps
 - Validate cashier shift flow and cash tender modal UX end-to-end.
 - Decide whether to add Order-level audit trail rows.

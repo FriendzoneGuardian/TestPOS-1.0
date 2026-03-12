@@ -88,3 +88,6 @@ render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/templates/pos/terminal
 
 ### Access Policy
 - POS Terminal is cashier-only (Admin/Accounting excluded from terminal access + navbar link).
+
+### Planning Note
+- Alpha 3.0.1 (base-unit inventory + unit conversions + bundle promos) added to roadmap; deferred for a later version.
