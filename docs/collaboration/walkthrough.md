@@ -59,6 +59,39 @@ Systematically audit and fix all broken routes, missing references, unresponsive
 ![Golden Ledger in Dawn theme with readable stat values](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\golden_ledger_dawn_verification_1773275417901.png)
 ````
 
+## Beta 1.8 Logic Verification (2026-03-12)
+
+### Cash Tender Modal Flow
+- **Complete Sale (cash)**: Opens a floating "Cash Tendered" modal.
+- **Insufficient Cash**: Blocks checkout with inline error messaging.
+- **Overpay**: Correctly calculates `change_given` and records it.
+- **Auto-Close**: Success state auto-closes the modal after 5 seconds.
+
+### Shift Accountability
+- **Shift Start**: Captures `starting_cash` and branch context.
+- **Shift Flow**: Blocks terminal checkout if no active shift exists.
+- **Shift End**: Calculates `expected_cash` based on sales and records `actual_cash` with variance.
+
+### Audit Trails
+- **Accounting Dashboard**: Now displays live audit trails from `StockAuditLog` and `VoidLog`.
+- **System Integrity**: All stock deductions and void rollbacks are tracked with timestamps and responsible users.
+
+### Internal Verification of Collaborator Changes (2026-03-12)
+- **Login UX Refresh**: Verified the new tagline "Every sale. Right on target. Every. Single. Time." and the theme toggle below the login card.
+- **Cashier POS Flow**: Confirmed shift start/enforcement and the floating "Cash Tendered" modal with change calculation.
+- **Audit Trails**: Confirmed that the accountant role can view live transaction logs in the Golden Ledger.
+
+````carousel
+![Refreshed Login Page with Theme Toggle](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\login_page_verification_1773309786235.png)
+<!-- slide -->
+![Cash Tendered Modal with Change Calculation](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\cash_tendered_final_change_due_1773310067664.png)
+<!-- slide -->
+![Golden Ledger with Live Audit Trails](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\accounting_audit_trails_1773310232906.png)
+````
+
+### Access Policy
+- **Cashier-Only Terminal**: Enforced via `role_required(['cashier'])`. Admin and Accounting roles are now restricted from terminal access.
+
 ## Files Modified
 
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/templates/base.html)
@@ -68,26 +101,3 @@ render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/us
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/dashboards/accounting.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/inventory/templates/inventory/dashboard.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/templates/pos/terminal.html)
-
-## 2026-03-12 Verification Addendum
-
-### Cash Tender Modal Flow (Beta 1.8)
-- Complete Sale (cash) opens a floating "Cash Tendered" modal.
-- Insufficient cash blocks checkout with inline error messaging.
-- Exact or overpay shows change due and confirms the sale.
-- Modal auto-closes after ~5 seconds on success.
-
-### Shift Accountability
-- Shift start/preview/end endpoints wired and return real values.
-- Terminal blocks checkout when no active shift exists.
-- Starting cash stored in Shift record.
-
-### Audit Trails (Accounting + Admin)
-- Accounting dashboard shows live audit trails combining StockAuditLog + VoidLog.
-- Dashboard stats now reflect real totals and void counts.
-
-### Access Policy
-- POS Terminal is cashier-only (Admin/Accounting excluded from terminal access + navbar link).
-
-### Planning Note
-- Alpha 3.0.1 (base-unit inventory + unit conversions + bundle promos) added to roadmap; deferred for a later version.

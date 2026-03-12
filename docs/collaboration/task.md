@@ -59,7 +59,6 @@
 ## Beta 1.8 — "Bare Assets" (Audit & Payment Logic)
 - [x] Implement **"Payment Tendered" Logic**: Record `amount_paid`, `cost`, and `change_given`.
 - [x] Implement Error Trapping for insufficient cash payments.
-- [ ] Implement **"Charge to Loan" Fallback**: Allow lacking amounts to be added as a Loan Transaction (within ₱1,500 limit).
 - [ ] Decision (2026-03-12): Insufficient cash **cancels** checkout (no loan fallback in this iteration).
 - [x] Port `StockAuditLog`, `Shift`, and `VoidLog` models.
 - [x] Re-implement "Starting Cash" shift requirements for the backend.
@@ -71,7 +70,7 @@
 - [x] **Collaborator Handoff Documentation Setup**
 
 ## Beta 1.9 — "Safe Words & The Climax" (Vaulting & Reports)
-- [ ] Port `BranchVault` and `VaultTransaction` backend logic.
+- [/] Port `BranchVault` and `VaultTransaction` backend logic.
 - [ ] Port aggregation queries for Periodic Reports: Daily, Weekly, Bi-Monthly (15 days), Monthly, Quarterly, Annually.
 - [ ] Configure Daily/Weekly reports to generate on-demand at Shift End.
 - [ ] Configure Monthly+ reports to generate via Accounting role override.
