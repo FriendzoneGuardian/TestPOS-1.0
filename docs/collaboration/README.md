@@ -18,6 +18,13 @@ Key screenshots are included in this folder to demonstrate:
 - **User Management modal fixes**
 - **Golden Ledger theme adaptivity**
 
+## Latest Changes (2026-03-12)
+- Cash tendered flow moved to floating modal with change calculation and 5s auto-close on success.
+- Shift start/preview/end wired; terminal blocks checkout without an active shift.
+- Audit trails now visible in Accounting dashboard (Stock + Void logs).
+- Low stock modal auto-triggers once per session for Admin/Manager.
+- POS terminal access restricted to Cashier only.
+
 ## How to Proceed
 Please review `task.md` for the current roadmap and `refactoring_audit.md` to understand the architectural polish applied to the project.
 

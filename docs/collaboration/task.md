@@ -54,15 +54,19 @@
     - Admin: Everything
 - [x] Re-build the Inventory Management dashboard for cross-branch stock.
 - [x] Re-implement POS Category Filter pills and OOS/Re-order visual cues.
+- [x] Auto-trigger Low Stock Modal on Admin/Manager login (once per session).
 
 ## Beta 1.8 — "Bare Assets" (Audit & Payment Logic)
-- [ ] Implement **"Payment Tendered" Logic**: Record `amount_paid`, `cost`, and `change_given`.
-- [ ] Implement Error Trapping for insufficient cash payments.
+- [x] Implement **"Payment Tendered" Logic**: Record `amount_paid`, `cost`, and `change_given`.
+- [x] Implement Error Trapping for insufficient cash payments.
 - [ ] Implement **"Charge to Loan" Fallback**: Allow lacking amounts to be added as a Loan Transaction (within ₱1,500 limit).
 - [ ] Decision (2026-03-12): Insufficient cash **cancels** checkout (no loan fallback in this iteration).
-- [ ] Port `StockAuditLog`, `Shift`, and `VoidLog` models.
-- [ ] Re-implement "Starting Cash" shift requirements for the backend.
-- [ ] Implement Backend authorization gates for post-checkout Voids.
+- [x] Port `StockAuditLog`, `Shift`, and `VoidLog` models.
+- [x] Re-implement "Starting Cash" shift requirements for the backend.
+- [x] Implement Backend authorization gates for post-checkout Voids.
+- [x] Cash tendered flow moved to floating modal with change display + 5s close.
+- [x] Cashier-only POS access enforced (Admin/Accounting excluded from terminal).
+- [x] Accounting/Audit Trails display Stock + Void logs (read-only).
 - [x] **Comprehensive Refactoring & UI/UX Audit (The Purge)**
 - [x] **Collaborator Handoff Documentation Setup**
 

@@ -44,6 +44,8 @@ Transition from basic project scaffolding to a hardened operational state. This 
     - **Accounting**: Reports (Paper Trails) only.
     - **Admin**: Full access.
 
+**Implementation Note (2026-03-12)**: Auto-trigger low-stock modal now shows once per session/day for Admin/Manager via `sessionStorage`.
+
 ---
 
 ### Beta 1.8 — "Bare Assets" (Audit & Payment Integrity)
@@ -54,11 +56,14 @@ Transition from basic project scaffolding to a hardened operational state. This 
     - **Error Trapping**: Block insufficient cash payments with a "Payment Insufficient" prompt.
     - **Alternative (Loan Fallback)**: If cash is insufficient, allow "Charging to Loan" (creating a Credit Transaction) for the missing balance (₱1,500 limit applies).
     - **Decision (2026-03-12)**: Insufficient cash cancels checkout; no loan fallback in this iteration.
+    - **UX Update (2026-03-12)**: Cash tender captured in a floating modal, shows change, auto-closes after 5s on success.
 - #### [NEW] Models
     - `Shift`: Captures `starting_cash`, `end_time`, and `expected_cash_total`.
     - `VoidLog`: Detailed tracking of items (`user`, `reason`, `timestamp`).
 - #### [NEW] Interceptors
     - `shift_required` decorator: Blocks terminal access if no active shift is recorded.
+
+**Implementation Note (2026-03-12)**: Shift start/preview/end endpoints wired; cashier-only terminal access enforced; audit trails surfaced in Accounting dashboard using Stock + Void logs.
 
 ## 3. Verification Plan
 

@@ -68,3 +68,23 @@ render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/us
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/dashboards/accounting.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/inventory/templates/inventory/dashboard.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/templates/pos/terminal.html)
+
+## 2026-03-12 Verification Addendum
+
+### Cash Tender Modal Flow (Beta 1.8)
+- Complete Sale (cash) opens a floating "Cash Tendered" modal.
+- Insufficient cash blocks checkout with inline error messaging.
+- Exact or overpay shows change due and confirms the sale.
+- Modal auto-closes after ~5 seconds on success.
+
+### Shift Accountability
+- Shift start/preview/end endpoints wired and return real values.
+- Terminal blocks checkout when no active shift exists.
+- Starting cash stored in Shift record.
+
+### Audit Trails (Accounting + Admin)
+- Accounting dashboard shows live audit trails combining StockAuditLog + VoidLog.
+- Dashboard stats now reflect real totals and void counts.
+
+### Access Policy
+- POS Terminal is cashier-only (Admin/Accounting excluded from terminal access + navbar link).

@@ -8,18 +8,32 @@ from django.views.decorators.http import require_POST
 from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog
 from inventory.models import Product, BranchStock
 from core.mixins import role_required
+from core.models import Branch
 import json
 
+def resolve_branch(user):
+    if getattr(user, 'branch', None):
+        return user.branch
+    branch = Branch.objects.first()
+    if not branch:
+        branch, _ = Branch.objects.get_or_create(name='Main Branch')
+    if user.is_authenticated and getattr(user, 'branch', None) is None:
+        user.branch = branch
+        user.save(update_fields=['branch'])
+    return branch
+
 def get_active_shift(user):
-    if not user.is_authenticated or not user.branch:
+    branch = resolve_branch(user)
+    if not user.is_authenticated or not branch:
         return None
-    return Shift.objects.filter(branch=user.branch, status='open').order_by('-start_time').first()
+    return Shift.objects.filter(branch=branch, status='open').order_by('-start_time').first()
 
 @login_required
 @role_required(['cashier'])
 def terminal(request):
     products = Product.objects.filter(is_active=True).prefetch_related('stock').order_by('category', 'name')
     customers = Customer.objects.order_by('name')
+    branch = resolve_branch(request.user)
     
     categories = []
     for product in products:
@@ -27,7 +41,7 @@ def terminal(request):
             categories.append(product.category)
             
         # Get stock for current user branch
-        branch_stock = product.stock.filter(branch=request.user.branch).first()
+        branch_stock = product.stock.filter(branch=branch).first() if branch else None
         product.current_stock = branch_stock.quantity if branch_stock else 0
         product.is_out_of_stock = product.current_stock <= 0
         product.is_low_stock = product.current_stock <= product.reorder_level
@@ -60,6 +74,10 @@ def checkout(request):
     payment_method = data.get('payment_method', 'cash')
     customer_id = data.get('customer_id')
     amount_paid = data.get('amount_paid')
+
+    branch = resolve_branch(request.user)
+    if not branch:
+        return JsonResponse({'success': False, 'message': 'User branch required.'}, status=400)
 
     active_shift = get_active_shift(request.user)
     if not active_shift:
@@ -94,7 +112,7 @@ def checkout(request):
             return JsonResponse({'success': False, 'message': 'Order exceeds maximum item limit (1000).'}, status=400)
 
         # Get stock for the user's branch
-        stock = BranchStock.objects.select_for_update().filter(branch=request.user.branch, product=product).first()
+        stock = BranchStock.objects.select_for_update().filter(branch=branch, product=product).first()
         
         if not stock or stock.quantity < qty:
             return JsonResponse({'success': False, 'message': f'Insufficient stock for {product.name}.'}, status=400)
@@ -118,7 +136,7 @@ def checkout(request):
 
     order = Order.objects.create(
         user=request.user,
-        branch=request.user.branch,
+        branch=branch,
         customer=customer,
         payment_method=payment_method,
         status='completed',
@@ -138,7 +156,7 @@ def checkout(request):
         stock.save()
         StockAuditLog.objects.create(
             product=product,
-            branch=request.user.branch,
+            branch=branch,
             user=request.user,
             quantity_change=-qty,
             reason='sale',
@@ -156,7 +174,8 @@ def checkout(request):
 @role_required(['cashier'])
 @require_POST
 def shift_start(request):
-    if not request.user.branch:
+    branch = resolve_branch(request.user)
+    if not branch:
         return JsonResponse({'success': False, 'message': 'User branch required.'}, status=400)
     if get_active_shift(request.user):
         return JsonResponse({'success': False, 'message': 'An active shift already exists.'}, status=400)
@@ -168,7 +187,7 @@ def shift_start(request):
         return JsonResponse({'success': False, 'message': 'Invalid starting amount.'}, status=400)
     Shift.objects.create(
         user=request.user,
-        branch=request.user.branch,
+        branch=branch,
         starting_cash=amount,
         expected_cash=amount,
         status='open'
@@ -183,7 +202,7 @@ def shift_preview(request):
         return JsonResponse({'success': False, 'message': 'No active shift.'}, status=400)
 
     orders = Order.objects.filter(
-        branch=request.user.branch,
+        branch=resolve_branch(request.user),
         order_date__gte=active_shift.start_time,
         status='completed'
     )
@@ -212,7 +231,7 @@ def shift_end(request):
         return JsonResponse({'success': False, 'message': 'Invalid final cash amount.'}, status=400)
 
     orders = Order.objects.filter(
-        branch=request.user.branch,
+        branch=resolve_branch(request.user),
         order_date__gte=active_shift.start_time,
         status='completed'
     )
