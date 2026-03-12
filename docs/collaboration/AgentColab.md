@@ -4,6 +4,12 @@ This file summarizes what changed today so other contributors can quickly catch 
 
 ## Major Deliveries
 
+### Login UX Refresh (2026-03-12)
+- Emphasized **The MoneyShot** as primary login title with tagline directly below.
+- Added horizontal Dawn/Dusk/Midnight toggle below login card (no clipping).
+- Dawn background softened to ~80% white / 20% gray on login page.
+- Removed redundant “POS System” line to reduce visual noise.
+
 ### Beta 1.7 Follow-Through
 - Low stock modal now auto-triggers for Admin/Manager on login (once per session/day).
 - Low stock bell and inventory dashboard behavior preserved.
@@ -37,4 +43,3 @@ This file summarizes what changed today so other contributors can quickly catch 
 - Validate cashier shift flow and cash tender modal UX end-to-end.
 - Decide whether to add Order-level audit trail rows.
 - Begin Beta 1.9 (vaulting + periodic reports) once Beta 1.8 verification passes.
-
