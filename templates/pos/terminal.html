@@ -183,12 +183,50 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Cash Tender Modal -->
+<div id="cash-modal" class="hidden fixed inset-0 z-[110] items-center justify-center bg-slate-950/80 backdrop-blur-xl">
+    <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-emerald-500/20 shadow-2xl shadow-emerald-500/10">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-xl font-black text-white uppercase tracking-tight">Cash Tendered</h2>
+                <p class="text-gray-400 text-sm">Enter amount received from customer.</p>
+            </div>
+            <button id="cash-close" onclick="closeCashModal()" class="text-gray-400 hover:text-white">X</button>
+        </div>
+        <div class="space-y-3">
+            <div class="flex justify-between text-sm text-gray-300">
+                <span>Total Due</span>
+                <span id="cash-total" class="font-semibold">$0.00</span>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Amount Paid</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                    <input type="number" id="cash-tendered" step="0.01" min="0"
+                        class="w-full pl-7 pr-3 py-3 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent" oninput="updateCashChange()">
+                </div>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-400">Change Due</span>
+                <span id="cash-change" class="text-emerald-400 font-semibold">$0.00</span>
+            </div>
+            <div id="cash-status" class="text-xs text-gray-400"></div>
+            <div class="text-[10px] text-gray-500">Modal closes in <span id="cash-timer">5</span>s after success.</div>
+        </div>
+        <div class="flex gap-3 pt-2">
+            <button onclick="closeCashModal()" class="flex-1 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-300 text-sm font-semibold">Cancel</button>
+            <button id="cash-confirm" onclick="confirmCashTender()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold">Complete Sale</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
     let cart = [];
     let paymentMethod = 'cash';
+    let cashModalTimer = null;
 
     function lockTerminal() {
         alert('Terminal Lock is not yet implemented. Coming in Beta 1.8.');
@@ -477,9 +515,118 @@
         }
     }
 
+    function getCartTotal() {
+        return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    }
+
+    function openCashModal() {
+        const total = getCartTotal();
+        const modal = document.getElementById('cash-modal');
+        const totalEl = document.getElementById('cash-total');
+        const input = document.getElementById('cash-tendered');
+        const changeEl = document.getElementById('cash-change');
+        const statusEl = document.getElementById('cash-status');
+        const confirmBtn = document.getElementById('cash-confirm');
+        const timerEl = document.getElementById('cash-timer');
+        const closeBtn = document.getElementById('cash-close');
+
+        totalEl.textContent = '$' + total.toFixed(2);
+        input.value = total.toFixed(2);
+        changeEl.textContent = '$0.00';
+        changeEl.className = 'text-emerald-400 font-semibold';
+        statusEl.textContent = '';
+        timerEl.textContent = '5';
+        confirmBtn.disabled = false;
+        closeBtn.disabled = false;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        input.focus();
+        input.select();
+    }
+
+    function closeCashModal() {
+        const modal = document.getElementById('cash-modal');
+        const statusEl = document.getElementById('cash-status');
+        const confirmBtn = document.getElementById('cash-confirm');
+        const closeBtn = document.getElementById('cash-close');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        statusEl.textContent = '';
+        confirmBtn.disabled = false;
+        closeBtn.disabled = false;
+        if (cashModalTimer) {
+            clearInterval(cashModalTimer);
+            cashModalTimer = null;
+        }
+    }
+
+    function updateCashChange() {
+        const total = getCartTotal();
+        const input = document.getElementById('cash-tendered');
+        const changeEl = document.getElementById('cash-change');
+        const statusEl = document.getElementById('cash-status');
+        const amount = parseFloat(input.value);
+
+        if (isNaN(amount)) {
+            changeEl.textContent = '$0.00';
+            changeEl.className = 'text-gray-400 font-semibold';
+            statusEl.textContent = '';
+            return;
+        }
+
+        const change = amount - total;
+        if (change < 0) {
+            changeEl.textContent = 'Insufficient';
+            changeEl.className = 'text-red-400 font-semibold';
+            statusEl.textContent = 'Payment insufficient.';
+            statusEl.className = 'text-xs text-red-400';
+        } else {
+            changeEl.textContent = '$' + change.toFixed(2);
+            changeEl.className = 'text-emerald-400 font-semibold';
+            statusEl.textContent = '';
+        }
+    }
+
+    function confirmCashTender() {
+        const total = getCartTotal();
+        const input = document.getElementById('cash-tendered');
+        const statusEl = document.getElementById('cash-status');
+        const confirmBtn = document.getElementById('cash-confirm');
+        const amount = parseFloat(input.value);
+
+        if (isNaN(amount)) {
+            statusEl.textContent = 'Enter a valid amount.';
+            statusEl.className = 'text-xs text-red-400';
+            return;
+        }
+
+        if (amount < total) {
+            statusEl.textContent = 'Payment insufficient.';
+            statusEl.className = 'text-xs text-red-400';
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        statusEl.textContent = 'Processing sale...';
+        statusEl.className = 'text-xs text-gray-400';
+
+        performCheckout(amount, true);
+    }
+
     function checkout() {
         if (cart.length === 0) return;
         const customerId = document.getElementById('customer-select').value;
+        if (paymentMethod === 'cash') {
+            openCashModal();
+            return;
+        }
+
+        performCheckout(null, false, customerId);
+    }
+
+    function performCheckout(amountPaid, showCashResult, customerIdOverride=null) {
+        const customerId = customerIdOverride ?? document.getElementById('customer-select').value;
 
         fetch('{% url "sales:checkout" %}', {
             method: 'POST',
@@ -487,16 +634,53 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken') 
             },
-            body: JSON.stringify({ items: cart, payment_method: paymentMethod, customer_id: customerId })
+            body: JSON.stringify({ items: cart, payment_method: paymentMethod, customer_id: customerId, amount_paid: amountPaid })
         })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
+                    const change = data.change ?? 0;
                     cart = [];
                     renderCart();
-                    alert(`✅ Order #${data.order_id} completed! Total: $${data.total.toFixed(2)}`);
+                    if (showCashResult) {
+                        const statusEl = document.getElementById('cash-status');
+                        const changeEl = document.getElementById('cash-change');
+                        const confirmBtn = document.getElementById('cash-confirm');
+                        const closeBtn = document.getElementById('cash-close');
+
+                        changeEl.textContent = '$' + change.toFixed(2);
+                        changeEl.className = 'text-emerald-400 font-semibold';
+                        statusEl.textContent = 'Sale complete. Closing in 5s...';
+                        statusEl.className = 'text-xs text-emerald-400';
+                        confirmBtn.disabled = true;
+                        closeBtn.disabled = true;
+
+                        let remaining = 5;
+                        const timerEl = document.getElementById('cash-timer');
+                        timerEl.textContent = remaining.toString();
+                        cashModalTimer = setInterval(() => {
+                            remaining -= 1;
+                            timerEl.textContent = remaining.toString();
+                            if (remaining <= 0) {
+                                clearInterval(cashModalTimer);
+                                cashModalTimer = null;
+                                closeCashModal();
+                                closeBtn.disabled = false;
+                            }
+                        }, 1000);
+                    } else {
+                        alert(`Order #${data.order_id} completed! Total: $${data.total.toFixed(2)}`);
+                    }
                 } else {
-                    alert('❌ ' + data.message);
+                    if (showCashResult) {
+                        const statusEl = document.getElementById('cash-status');
+                        const confirmBtn = document.getElementById('cash-confirm');
+                        statusEl.textContent = data.message || 'Checkout failed.';
+                        statusEl.className = 'text-xs text-red-400';
+                        confirmBtn.disabled = false;
+                    } else {
+                        alert(data.message || 'Checkout failed.');
+                    }
                 }
             })
             .catch(() => alert('Network error.'));

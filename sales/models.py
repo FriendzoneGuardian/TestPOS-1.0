@@ -26,6 +26,8 @@ class Order(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='orders')
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     total_amount = models.FloatField(default=0.0)
+    amount_paid = models.FloatField(default=0.0)
+    change_given = models.FloatField(default=0.0)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
     void_reason = models.TextField(null=True, blank=True)
@@ -33,6 +35,42 @@ class Order(models.Model):
 
     def __str__(self):
         return f'Order #{self.id}'
+
+class Shift(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('closed', 'Closed'),
+    ]
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    starting_cash = models.FloatField(default=0.0)
+    expected_cash = models.FloatField(default=0.0)
+    actual_cash = models.FloatField(null=True, blank=True, default=0.0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='shifts')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shifts')
+
+    @property
+    def variance(self):
+        if self.actual_cash is None:
+            return 0.0
+        return round((self.actual_cash or 0.0) - (self.expected_cash or 0.0), 2)
+
+    @property
+    def closing_cash(self):
+        return self.actual_cash
+
+class StockAuditLog(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_audits')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='stock_audits')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='stock_audits')
+    quantity_change = models.IntegerField()
+    reason = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_audits')
+
+    def __str__(self):
+        return f'{self.product.name}: {self.quantity_change}'
 
 class OrderItem(models.Model):
     ITEM_STATUS = [
@@ -52,6 +90,15 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.product.name} x{self.quantity}'
+
+class VoidLog(models.Model):
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name='void_logs')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='void_logs')
+    reason = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Void {self.order_item_id}'
 
 class LoanPayment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payments')

@@ -90,7 +90,7 @@
                     </a>
                     {% endif %}
 
-                    {% if user.role == 'admin' or user.role == 'cashier' %}
+                    {% if user.role|lower == 'cashier' %}
                     <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
                         POS Terminal
                     </a>
@@ -203,6 +203,37 @@
             </div>
             {% endif %}
 
+            {% if user.role == 'admin' or user.role == 'manager' %}
+            <div id="low-stock-modal" class="hidden fixed inset-0 z-[120] items-center justify-center bg-slate-950/80 backdrop-blur-xl">
+                <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-red-500/20 shadow-2xl shadow-red-500/10">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 class="text-xl font-black text-white uppercase tracking-tight">Low Stock Alert</h2>
+                            <p class="text-gray-400 text-sm">Critical items need attention.</p>
+                        </div>
+                        <button id="low-stock-close" class="text-gray-400 hover:text-white">X</button>
+                    </div>
+                    <ul class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        {% for alert in low_stock_alerts %}
+                        <li class="flex items-center justify-between bg-surface-900 border border-gray-800 rounded-xl px-4 py-3">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-100">{{ alert.product_name }}</div>
+                                <div class="text-xs text-gray-500">{{ alert.branch_name }} · Reorder at {{ alert.reorder_level }}</div>
+                            </div>
+                            <span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">{{ alert.quantity }} left</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-sm text-gray-500 text-center py-4">All stock levels are nominal.</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="flex gap-3">
+                        <button id="low-stock-dismiss" class="flex-1 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-300 text-sm font-semibold">Dismiss</button>
+                        <a href="{% url 'inventory:dashboard' %}" class="flex-1 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold text-center">View Inventory</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <main class="p-4 md:p-6 fade-in">
                 {% block content %}{% endblock %}
             </main>
@@ -230,6 +261,29 @@
                 }
             });
         }
+
+        (function initLowStockModal() {
+            const lowStockCount = {{ low_stock_count|default:0 }};
+            const userId = "{{ user.id|default:'' }}";
+            if (!lowStockCount || !userId) return;
+            const today = new Date().toISOString().slice(0, 10);
+            const key = `lowStockModalSeen:${userId}:${today}`;
+            if (sessionStorage.getItem(key)) return;
+            const modal = document.getElementById('low-stock-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            sessionStorage.setItem(key, '1');
+
+            const closeBtn = document.getElementById('low-stock-close');
+            const dismissBtn = document.getElementById('low-stock-dismiss');
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
+        })();
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>

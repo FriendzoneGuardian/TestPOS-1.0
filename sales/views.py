@@ -2,14 +2,21 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
-from .models import Order, OrderItem, Customer
+from django.views.decorators.http import require_POST
+from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog
 from inventory.models import Product, BranchStock
 from core.mixins import role_required
 import json
 
+def get_active_shift(user):
+    if not user.is_authenticated or not user.branch:
+        return None
+    return Shift.objects.filter(branch=user.branch, status='open').order_by('-start_time').first()
+
 @login_required
-@role_required(['admin', 'cashier'])
+@role_required(['cashier'])
 def terminal(request):
     products = Product.objects.filter(is_active=True).prefetch_related('stock').order_by('category', 'name')
     customers = Customer.objects.order_by('name')
@@ -25,15 +32,17 @@ def terminal(request):
         product.is_out_of_stock = product.current_stock <= 0
         product.is_low_stock = product.current_stock <= product.reorder_level
         
+    current_shift = get_active_shift(request.user)
+
     return render(request, 'pos/terminal.html', {
         'products': products,
         'customers': customers,
         'categories': categories,
-        'current_shift': True  # STUB for Beta 1.2
+        'current_shift': current_shift
     })
 
 @login_required
-@role_required(['admin', 'cashier'])
+@role_required(['cashier'])
 @transaction.atomic
 def checkout(request):
     if request.method != 'POST':
@@ -50,6 +59,11 @@ def checkout(request):
 
     payment_method = data.get('payment_method', 'cash')
     customer_id = data.get('customer_id')
+    amount_paid = data.get('amount_paid')
+
+    active_shift = get_active_shift(request.user)
+    if not active_shift:
+        return JsonResponse({'success': False, 'message': 'Shift required before checkout.'}, status=400)
 
     if payment_method == 'loan' and not customer_id:
         return JsonResponse({'success': False, 'message': 'Select a customer for loan transactions.'}, status=400)
@@ -61,16 +75,9 @@ def checkout(request):
         except (Customer.DoesNotExist, ValueError):
             return JsonResponse({'success': False, 'message': 'Customer not found.'}, status=400)
 
-    order = Order.objects.create(
-        user=request.user,
-        branch=request.user.branch,
-        customer=customer,
-        payment_method=payment_method,
-        status='completed'
-    )
-
     total = 0.0
     total_qty = 0
+    item_rows = []
     
     for item in items_data:
         try:
@@ -87,61 +94,196 @@ def checkout(request):
             return JsonResponse({'success': False, 'message': 'Order exceeds maximum item limit (1000).'}, status=400)
 
         # Get stock for the user's branch
-        stock = BranchStock.objects.filter(branch=request.user.branch, product=product).first()
+        stock = BranchStock.objects.select_for_update().filter(branch=request.user.branch, product=product).first()
         
         if not stock or stock.quantity < qty:
             return JsonResponse({'success': False, 'message': f'Insufficient stock for {product.name}.'}, status=400)
+        total += product.price * qty
+        item_rows.append((product, qty, stock))
 
+    if total > 50000.00:
+        return JsonResponse({'success': False, 'message': 'Order exceeds maximum transaction total ($50,000.00).'}, status=400)
+
+    if payment_method == 'cash':
+        try:
+            amount_paid = float(amount_paid)
+        except (TypeError, ValueError):
+            return JsonResponse({'success': False, 'message': 'Enter a valid amount paid.'}, status=400)
+        if amount_paid < total:
+            return JsonResponse({'success': False, 'message': 'Payment insufficient.'}, status=400)
+        change_given = round(amount_paid - total, 2)
+    else:
+        amount_paid = 0.0
+        change_given = 0.0
+
+    order = Order.objects.create(
+        user=request.user,
+        branch=request.user.branch,
+        customer=customer,
+        payment_method=payment_method,
+        status='completed',
+        total_amount=total,
+        amount_paid=amount_paid,
+        change_given=change_given
+    )
+
+    for product, qty, stock in item_rows:
         OrderItem.objects.create(
             order=order,
             product=product,
             quantity=qty,
             price_at_time=product.price
         )
-        total += product.price * qty
-
-        # Decrease branch stock
         stock.quantity -= qty
         stock.save()
-
-    if total > 50000.00:
-        # Transaction will rollback due to @transaction.atomic if we raise an exception or similar
-        # But here we are manually returning a 400. 
-        # Actually, in Django, if we are inside atomic, we should probably raise an Exception to rollback,
-        # or we rely on the fact that we haven't committed yet.
-        # However, Order.objects.create already committed if not in atomic.
-        # Since we are in atomic, returning a response doesn't rollback unless we raise.
-        # Let's fix this logic.
-        transaction.set_rollback(True)
-        return JsonResponse({'success': False, 'message': 'Order exceeds maximum transaction total ($50,000.00).'}, status=400)
-
-    order.total_amount = total
-    order.save()
+        StockAuditLog.objects.create(
+            product=product,
+            branch=request.user.branch,
+            user=request.user,
+            quantity_change=-qty,
+            reason='sale',
+            order=order
+        )
 
     # If loan, add to customer outstanding balance
     if payment_method == 'loan' and customer:
         customer.outstanding_balance += total
         customer.save()
 
-    return JsonResponse({'success': True, 'order_id': order.id, 'total': total})
+    return JsonResponse({'success': True, 'order_id': order.id, 'total': total, 'change': change_given})
 
 @login_required
-@role_required(['admin', 'manager', 'cashier'])
+@role_required(['cashier'])
+@require_POST
 def shift_start(request):
-    return JsonResponse({'success': True, 'message': 'Shift started (stub).'})
+    if not request.user.branch:
+        return JsonResponse({'success': False, 'message': 'User branch required.'}, status=400)
+    if get_active_shift(request.user):
+        return JsonResponse({'success': False, 'message': 'An active shift already exists.'}, status=400)
+    try:
+        amount = float(request.POST.get('amount', 0))
+    except (TypeError, ValueError):
+        return JsonResponse({'success': False, 'message': 'Invalid starting amount.'}, status=400)
+    if amount < 0:
+        return JsonResponse({'success': False, 'message': 'Invalid starting amount.'}, status=400)
+    Shift.objects.create(
+        user=request.user,
+        branch=request.user.branch,
+        starting_cash=amount,
+        expected_cash=amount,
+        status='open'
+    )
+    return JsonResponse({'success': True, 'message': 'Shift started.'})
 
 @login_required
-@role_required(['admin', 'manager', 'cashier'])
+@role_required(['cashier'])
 def shift_preview(request):
+    active_shift = get_active_shift(request.user)
+    if not active_shift:
+        return JsonResponse({'success': False, 'message': 'No active shift.'}, status=400)
+
+    orders = Order.objects.filter(
+        branch=request.user.branch,
+        order_date__gte=active_shift.start_time,
+        status='completed'
+    )
+    cash_sales = orders.filter(payment_method='cash').aggregate(total=Sum('total_amount'))['total'] or 0.0
+    loan_sales = orders.filter(payment_method='loan').aggregate(total=Sum('total_amount'))['total'] or 0.0
+    expected_cash = round(active_shift.starting_cash + cash_sales, 2)
+
     return JsonResponse({
         'success': True,
-        'starting_cash': 0.0,
-        'cash_sales': 0.0,
-        'loan_sales': 0.0,
-        'expected_cash': 0.0
+        'starting_cash': active_shift.starting_cash,
+        'cash_sales': cash_sales,
+        'loan_sales': loan_sales,
+        'expected_cash': expected_cash
     })
 
 @login_required
-@role_required(['admin', 'manager', 'cashier'])
+@role_required(['cashier'])
+@require_POST
 def shift_end(request):
-    return JsonResponse({'success': True, 'message': 'Shift ended (stub).'})
+    active_shift = get_active_shift(request.user)
+    if not active_shift:
+        return JsonResponse({'success': False, 'message': 'No active shift to close.'}, status=400)
+    try:
+        amount = float(request.POST.get('amount', 0))
+    except (TypeError, ValueError):
+        return JsonResponse({'success': False, 'message': 'Invalid final cash amount.'}, status=400)
+
+    orders = Order.objects.filter(
+        branch=request.user.branch,
+        order_date__gte=active_shift.start_time,
+        status='completed'
+    )
+    cash_sales = orders.filter(payment_method='cash').aggregate(total=Sum('total_amount'))['total'] or 0.0
+    expected_cash = round(active_shift.starting_cash + cash_sales, 2)
+
+    active_shift.expected_cash = expected_cash
+    active_shift.actual_cash = amount
+    active_shift.end_time = timezone.now()
+    active_shift.status = 'closed'
+    active_shift.save(update_fields=['expected_cash', 'actual_cash', 'end_time', 'status'])
+
+    return JsonResponse({'success': True, 'message': 'Shift closed.'})
+
+@login_required
+@role_required(['admin', 'manager'])
+@require_POST
+@transaction.atomic
+def void_item(request):
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON.'}, status=400)
+
+    item_id = data.get('item_id')
+    reason = (data.get('reason') or '').strip()
+    if not item_id or not reason:
+        return JsonResponse({'success': False, 'message': 'Void reason is required.'}, status=400)
+
+    try:
+        item = OrderItem.objects.select_for_update().select_related('order', 'product').get(id=int(item_id))
+    except (OrderItem.DoesNotExist, ValueError):
+        return JsonResponse({'success': False, 'message': 'Item not found.'}, status=404)
+
+    if item.status == 'voided':
+        return JsonResponse({'success': False, 'message': 'Item already voided.'}, status=400)
+
+    item.status = 'voided'
+    item.void_reason = reason
+    item.save(update_fields=['status', 'void_reason'])
+
+    stock = BranchStock.objects.select_for_update().filter(branch=item.order.branch, product=item.product).first()
+    if stock:
+        stock.quantity += item.quantity
+        stock.save()
+        StockAuditLog.objects.create(
+            product=item.product,
+            branch=item.order.branch,
+            user=request.user,
+            quantity_change=item.quantity,
+            reason='void',
+            order=item.order
+        )
+
+    VoidLog.objects.create(
+        order_item=item,
+        user=request.user,
+        reason=reason
+    )
+
+    order = item.order
+    order.total_amount = max(0.0, (order.total_amount or 0.0) - item.subtotal)
+    if order.payment_method == 'loan' and order.customer:
+        order.customer.outstanding_balance = max(0.0, order.customer.outstanding_balance - item.subtotal)
+        order.customer.save(update_fields=['outstanding_balance'])
+
+    if not order.items.filter(status='active').exists():
+        order.status = 'voided'
+        order.void_reason = reason
+        order.voided_at = timezone.now()
+
+    order.save(update_fields=['total_amount', 'status', 'void_reason', 'voided_at'])
+
+    return JsonResponse({'success': True, 'message': 'Item voided.'})

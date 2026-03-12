@@ -70,7 +70,7 @@
                     </td>
                     <td class="px-6 py-4 text-gray-500">{{ product.reorder_level }}</td>
                     <td class="px-6 py-4 text-right space-x-3">
-                        {% if user.role in 'admin,manager' %}
+                        {% if user.role == 'admin' or user.role == 'manager' %}
                         <button class="text-primary-400 hover:text-primary-300 font-medium">Restock</button>
                         {% endif %}
                     </td>

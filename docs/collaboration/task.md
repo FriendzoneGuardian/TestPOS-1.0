@@ -59,6 +59,7 @@
 - [ ] Implement **"Payment Tendered" Logic**: Record `amount_paid`, `cost`, and `change_given`.
 - [ ] Implement Error Trapping for insufficient cash payments.
 - [ ] Implement **"Charge to Loan" Fallback**: Allow lacking amounts to be added as a Loan Transaction (within ₱1,500 limit).
+- [ ] Decision (2026-03-12): Insufficient cash **cancels** checkout (no loan fallback in this iteration).
 - [ ] Port `StockAuditLog`, `Shift`, and `VoidLog` models.
 - [ ] Re-implement "Starting Cash" shift requirements for the backend.
 - [ ] Implement Backend authorization gates for post-checkout Voids.
