@@ -62,6 +62,8 @@
 - [ ] Port `StockAuditLog`, `Shift`, and `VoidLog` models.
 - [ ] Re-implement "Starting Cash" shift requirements for the backend.
 - [ ] Implement Backend authorization gates for post-checkout Voids.
+- [x] **Comprehensive Refactoring & UI/UX Audit (The Purge)**
+- [x] **Collaborator Handoff Documentation Setup**
 
 ## Beta 1.9 — "Safe Words & The Climax" (Vaulting & Reports)
 - [ ] Port `BranchVault` and `VaultTransaction` backend logic.
