@@ -1,14 +1,14 @@
-# 💰 TheMoneyShot — POS System (Django + Electron Edition)
+# 💰 The MoneyShot — POS System (Django + Electron Edition)
 
 > *From the makers of **SwiftGrade** — the Flutter-powered Capstone beast that scans answer sheets like a Zipgrade on steroids (OMR), reads handwritten short answers with OCR + NLP, and turns classrooms into game shows with Kahoot/Quizizz/Mentimeter-style interactivity.*
 >
 > *We present to you... a system that handles transactions so smooth, so satisfying, so precise — you'll want to do it again. And again. And maybe one more time just to be sure.*
 >
-> ***TheMoneyShot.** Every sale. Right on target. Every. Single. Time.*
+> ***The MoneyShot.** Every sale. Right on target. Every. Single. Time.*
 
 A dangerously attractive, multi-branch Point of Sale system. She used to be a Flask girl, but she's matured into a **Django** architecture with an incoming **Electron** shell wrapper. We've retained the dark-mode glassmorphism UI, "Puddles" ambient backgrounds, and dynamic role-based color matrices that'll make your registers blush.
 
-**Version:** Beta 1.5 — *She's fully migrated, securely vaulted, and ready for heavier loads.*
+**Version:** Beta 1.8 — *Cash tendered, shift-locked, and audit-aware.*
 
 ---
 
@@ -19,7 +19,7 @@ A dangerously attractive, multi-branch Point of Sale system. She used to be a Fl
 | **POS Terminal** | Smooth product grid, real-time cart action — she handles multiple items at once without breaking a sweat. |
 | **Role-Based Theming** | "Fifty Shades of Roles": Admin, Manager, Cashier, and Accounting (The Golden Ledger) all get custom injected CSS color matrices and ambient glowing puddles. |
 | **Branch Management** | Multi-branch support with strict data isolation. She gets around — professionally. |
-| **Cash Session Vaulting** | Strict opening/closing cash counts with variance auditing. You must insert your float before she lets you start playing. |
+| **Shift Accountability** | Strict opening/closing cash counts with variance auditing. You must insert your float before she lets you start playing. |
 | **Loan / Credit** | Customer credit tracking with a strict ₱1,500 limit and payroll deduction cycles. We keep tabs on who owes us one. |
 | **Reports** | Daily, Weekly, Bi-Monthly, Monthly, Quarterly, and Annually. She exposes everything — every number, every transaction — but mostly strictly on demand for Accounting. |
 
@@ -97,12 +97,18 @@ TestPOS-1.0/
 └── README.md
 ```
 
-## 📋 Roadmap — What's Coming Next (Beta 1.6+)
+## 📋 Roadmap — What's Coming Next (Beta 1.9+)
 
-- [ ] 👥 **The Velvet Rope:** Strict In-App User Management (No more Django Admin).
-- [ ] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
+- [x] 👥 **The Velvet Rope:** Strict In-App User Management (No more Django Admin).
+- [x] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
 - [ ] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
 - [ ] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
+
+## 🧪 Theme Options (Humor, WIP)
+We mocked possible theme variants (including a high-contrast “Noon” mode for daylight-visibility and accessibility) as static previews:
+
+- `docs/collaboration/options/login_theme_options.html`
+- `docs/collaboration/options/admin_theme_options.html`
 
 ## 🤝 Contributing
 
@@ -116,5 +122,5 @@ MIT — do whatever you want with it. Just don't blame us if your accountant has
 
 <p align="center">
   <i>Built with ☕, questionable naming decisions, and zero regrets.</i><br>
-  <b>questionably Suggestive</b> — <i>We make software that raises eyebrows and productivity.</i>
+  <b>Mildly Suggestive (SFW)</b> — <i>We make software that raises eyebrows and productivity.</i>
 </p>

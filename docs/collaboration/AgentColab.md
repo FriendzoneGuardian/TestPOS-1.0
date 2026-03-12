@@ -9,6 +9,7 @@ This file summarizes what changed today so other contributors can quickly catch 
 - Added horizontal Dawn/Dusk/Midnight toggle below login card (no clipping).
 - Dawn background softened to ~80% white / 20% gray on login page.
 - Removed redundant “POS System” line to reduce visual noise.
+- Added static theme option mockups (Login/Admin) for Dawn/Dusk/Midnight/Noon.
 
 ### Beta 1.7 Follow-Through
 - Low stock modal now auto-triggers for Admin/Manager on login (once per session/day).
@@ -34,6 +35,7 @@ This file summarizes what changed today so other contributors can quickly catch 
 - `core/views.py` + `core/templates/core/dashboards/accounting.html` (audit trails display)
 - `core/templates/core/dashboards/manager.html` (live sales data)
 - `docs/collaboration/*` (task/walkthrough/readme updates)
+- `docs/collaboration/options/*` (static theme option artifacts)
 
 ## Notes / Decisions
 - **Insufficient cash cancels checkout** (no loan fallback for now).
