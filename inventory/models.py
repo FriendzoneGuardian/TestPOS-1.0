@@ -7,6 +7,7 @@ class Product(models.Model):
     price = models.FloatField(default=0.0)
     category = models.CharField(max_length=80, null=True, blank=True)
     reorder_level = models.PositiveIntegerField(default=10)
+    image_hash = models.CharField(max_length=64, null=True, blank=True)  # Linking strategy for UI assets
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

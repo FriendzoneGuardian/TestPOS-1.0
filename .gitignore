@@ -17,3 +17,6 @@ test_results.log
 legacy_flask_reference/
 
 Legacy/
+
+# Pokemon Filler Assets (Testing Only)
+static/assets/items/

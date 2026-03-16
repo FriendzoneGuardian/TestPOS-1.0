@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Periodic Reports · TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">Periodic Reports</h1>
+    <p class="text-sm text-gray-400 mt-1">Aggregated financial summaries across configurable time windows.</p>
+</div>
+
+<!-- Period Selector -->
+<div class="flex flex-wrap gap-2 mb-8">
+    <a href="?period=daily"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-all {% if period == 'daily' %}bg-primary-600 text-white shadow-lg shadow-primary-500/20{% else %}bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700{% endif %}">
+        Daily
+    </a>
+    <a href="?period=weekly"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-all {% if period == 'weekly' %}bg-primary-600 text-white shadow-lg shadow-primary-500/20{% else %}bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700{% endif %}">
+        Weekly
+    </a>
+    <a href="?period=15day"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-all {% if period == '15day' %}bg-primary-600 text-white shadow-lg shadow-primary-500/20{% else %}bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700{% endif %}">
+        15-Day
+    </a>
+    <a href="?period=monthly"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-all {% if period == 'monthly' %}bg-primary-600 text-white shadow-lg shadow-primary-500/20{% else %}bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700{% endif %}">
+        Monthly
+    </a>
+    <a href="?period=annual"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-all {% if period == 'annual' %}bg-primary-600 text-white shadow-lg shadow-primary-500/20{% else %}bg-surface-800 text-gray-400 border border-gray-700 hover:bg-surface-700{% endif %}">
+        Annual
+    </a>
+</div>
+
+<!-- Date Range -->
+<div class="glass-card rounded-2xl p-4 mb-8 flex items-center justify-between">
+    <div>
+        <span class="text-xs text-gray-500 uppercase font-semibold">Period Range</span>
+        <p class="text-sm text-white font-medium">{{ start_date|date:"M d, Y H:i" }} &mdash; {{ end_date|date:"M d, Y H:i" }}</p>
+    </div>
+    <span class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-400 text-xs font-bold uppercase">{{ period }}</span>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-gray-500 uppercase font-semibold">Total Revenue</span>
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-white">${{ total_revenue|stringformat:".2f" }}</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-gray-500 uppercase font-semibold">Total Orders</span>
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-white">{{ total_orders }}</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-gray-500 uppercase font-semibold">Avg Order Value</span>
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-white">${{ avg_order|stringformat:".2f" }}</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-gray-500 uppercase font-semibold">Voided Orders</span>
+            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </div>
+        <p class="text-3xl font-extrabold text-white">{{ void_count }}</p>
+    </div>
+</div>
+
+<div class="glass-card rounded-2xl p-6">
+    <p class="text-xs text-gray-500 italic text-center">Detailed per-day breakdown coming in Alpha 3.1.</p>
+</div>
+{% endblock %}

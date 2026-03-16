@@ -10,4 +10,8 @@ urlpatterns = [
     path('shift/start/', views.shift_start, name='shift_start'),
     path('shift/preview/', views.shift_preview, name='shift_preview'),
     path('shift/end/', views.shift_end, name='shift_end'),
+    path('shift/manage/', views.shift_manage, name='shift_manage'),
+    path('vault/', views.vault_manage, name='vault_manage'),
+    path('vault/transaction/', views.vault_transaction, name='vault_transaction'),
+    path('reports/', views.periodic_reports, name='periodic_reports'),
 ]

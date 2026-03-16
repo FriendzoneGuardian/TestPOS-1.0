@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog
+from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog, BranchVault, VaultTransaction
 from inventory.models import Product, BranchStock
 from core.mixins import role_required
 from core.models import Branch
@@ -171,7 +171,7 @@ def checkout(request):
     return JsonResponse({'success': True, 'order_id': order.id, 'total': total, 'change': change_given})
 
 @login_required
-@role_required(['cashier'])
+@role_required(['cashier', 'manager', 'admin'])
 @require_POST
 def shift_start(request):
     branch = resolve_branch(request.user)
@@ -192,10 +192,20 @@ def shift_start(request):
         expected_cash=amount,
         status='open'
     )
-    return JsonResponse({'success': True, 'message': 'Shift started.'})
+    msg = "Shift Started! Target locked, let's get those sales! 🎯"
+    from django.contrib import messages
+    messages.success(request, msg)
+
+    # AJAX gets JSON, form POST gets redirect
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/x-www-form-urlencoded' and request.headers.get('X-CSRFToken'):
+        return JsonResponse({'success': True, 'message': msg})
+    
+    if request.user.role == 'cashier':
+        return redirect('sales:shift_manage')
+    return redirect('core:manager_dashboard')
 
 @login_required
-@role_required(['cashier'])
+@role_required(['cashier', 'manager', 'admin'])
 def shift_preview(request):
     active_shift = get_active_shift(request.user)
     if not active_shift:
@@ -244,7 +254,38 @@ def shift_end(request):
     active_shift.status = 'closed'
     active_shift.save(update_fields=['expected_cash', 'actual_cash', 'end_time', 'status'])
 
-    return JsonResponse({'success': True, 'message': 'Shift closed.'})
+    # Auto-deposit to vault
+    vault, _ = BranchVault.objects.get_or_create(branch=resolve_branch(request.user))
+    VaultTransaction.objects.create(
+        vault=vault,
+        amount=amount,
+        transaction_type='deposit',
+        reason=f'Shift close remittance (Shift #{active_shift.id})',
+        user=request.user,
+    )
+    vault.balance += amount
+    vault.save()
+
+    variance = active_shift.variance
+    if variance == 0:
+        msg = "Shift Balanced! Perfect score, you're a legend! 🏆"
+        msg_type = 'success'
+    elif variance < 0:
+        msg = f"Shift Closed. Short of ${abs(variance)}. We'll get 'em next time, chin up! 💔"
+        msg_type = 'error'
+    else:
+        msg = f"Shift Closed. Over by ${variance}. Check the receipts? 🧐"
+        msg_type = 'warning'
+
+    from django.contrib import messages
+    getattr(messages, msg_type)(request, msg)
+
+    if request.headers.get('X-CSRFToken'):
+        return JsonResponse({'success': True, 'message': msg, 'type': msg_type, 'variance': variance})
+    
+    if request.user.role == 'cashier':
+        return redirect('sales:shift_manage')
+    return redirect('core:manager_dashboard')
 
 @login_required
 @role_required(['admin', 'manager'])
@@ -306,3 +347,111 @@ def void_item(request):
     order.save(update_fields=['total_amount', 'status', 'void_reason', 'voided_at'])
 
     return JsonResponse({'success': True, 'message': 'Item voided.'})
+
+@login_required
+@role_required(['admin', 'cashier'])
+def vault_manage(request):
+    branch = resolve_branch(request.user)
+    vault, _ = BranchVault.objects.get_or_create(branch=branch)
+    transactions = VaultTransaction.objects.filter(vault=vault).order_by('-timestamp')[:50]
+    return render(request, 'reports/vault_manage.html', {
+        'vault': vault,
+        'transactions': transactions,
+    })
+
+@login_required
+@role_required(['admin', 'cashier'])
+@require_POST
+@transaction.atomic
+def vault_transaction(request):
+    branch = resolve_branch(request.user)
+    vault, _ = BranchVault.objects.get_or_create(branch=branch)
+    tx_type = request.POST.get('type', 'deposit')
+    try:
+        amount = float(request.POST.get('amount', 0))
+    except (TypeError, ValueError):
+        from django.contrib import messages
+        messages.error(request, 'Invalid amount.')
+        return redirect('sales:vault_manage')
+    if amount <= 0:
+        from django.contrib import messages
+        messages.error(request, 'Amount must be positive.')
+        return redirect('sales:vault_manage')
+    reason = (request.POST.get('reason') or '').strip()
+    if not reason:
+        from django.contrib import messages
+        messages.error(request, 'Reason is required.')
+        return redirect('sales:vault_manage')
+    if tx_type == 'withdrawal' and amount > vault.balance:
+        from django.contrib import messages
+        messages.error(request, 'Insufficient vault balance for withdrawal.')
+        return redirect('sales:vault_manage')
+    VaultTransaction.objects.create(
+        vault=vault,
+        amount=amount,
+        transaction_type=tx_type,
+        reason=reason,
+        user=request.user,
+    )
+    if tx_type == 'deposit':
+        vault.balance += amount
+    else:
+        vault.balance -= amount
+    vault.save()
+    return redirect('sales:vault_manage')
+
+@login_required
+@role_required(['cashier'])
+def shift_manage(request):
+    branch = resolve_branch(request.user)
+    current_shift = get_active_shift(request.user)
+    past_shifts = Shift.objects.filter(branch=branch).order_by('-start_time')[:20]
+    return render(request, 'reports/shift_manage.html', {
+        'current_shift': current_shift,
+        'past_shifts': past_shifts,
+    })
+
+@login_required
+@role_required(['admin', 'accounting'])
+def periodic_reports(request):
+    from datetime import timedelta
+    from django.db.models import Count, Avg
+    branch = resolve_branch(request.user)
+    period = request.GET.get('period', 'daily')
+    now = timezone.now()
+
+    if period == 'weekly':
+        start_date = now - timedelta(days=7)
+    elif period == '15day':
+        start_date = now - timedelta(days=15)
+    elif period == 'monthly':
+        start_date = now - timedelta(days=30)
+    elif period == 'annual':
+        start_date = now - timedelta(days=365)
+    else:
+        start_date = now - timedelta(days=1)
+        period = 'daily'
+
+    orders = Order.objects.filter(
+        branch=branch,
+        order_date__gte=start_date,
+        status='completed'
+    )
+    total_revenue = orders.aggregate(total=Sum('total_amount'))['total'] or 0.0
+    total_orders = orders.count()
+    avg_order = orders.aggregate(avg=Avg('total_amount'))['avg'] or 0.0
+    void_count = Order.objects.filter(
+        branch=branch,
+        order_date__gte=start_date,
+        status='voided'
+    ).count()
+
+    return render(request, 'reports/periodic.html', {
+        'period': period,
+        'start_date': start_date,
+        'end_date': now,
+        'total_revenue': round(total_revenue, 2),
+        'total_orders': total_orders,
+        'avg_order': round(avg_order, 2),
+        'void_count': void_count,
+    })

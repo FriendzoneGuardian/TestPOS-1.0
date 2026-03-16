@@ -108,3 +108,27 @@ class LoanPayment(models.Model):
 
     def __str__(self):
         return f'LoanPayment ${self.amount} for {self.customer.name}'
+
+class BranchVault(models.Model):
+    branch = models.OneToOneField(Branch, on_delete=models.CASCADE, related_name='vault')
+    balance = models.FloatField(default=0.0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.branch.name} Vault ()'
+
+
+class VaultTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('deposit', 'Deposit'),
+        ('withdrawal', 'Withdrawal'),
+    ]
+    vault = models.ForeignKey(BranchVault, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.FloatField()
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    reason = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.transaction_type}  ({self.reason})'

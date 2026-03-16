@@ -1,50 +1,42 @@
-# Agent Collaboration Update — 2026-03-12
+# Agent Collaboration Update — 2026-03-13
 
-This file summarizes what changed today so other contributors can quickly catch up.
+This file summarizes the most recent major deliveries and the updated project roadmap.
 
 ## Major Deliveries
 
-### Login UX Refresh (2026-03-12)
-- Emphasized **The MoneyShot** as primary login title with tagline directly below.
-- Added horizontal Dawn/Dusk/Midnight toggle below login card (no clipping).
-- Dawn background softened to ~80% white / 20% gray on login page.
-- Removed redundant “POS System” line to reduce visual noise.
-- Added static theme option mockups (Login/Admin) for Dawn/Dusk/Midnight/Noon.
+### Beta 1.9 — "Safe Words & The Climax" (Vaulting & Reports)
+- **Vault Accountability**: Re-introduced `BranchVault` (OneToOne with Branch) and `VaultTransaction` (Deposit/Withdrawal) models.
+- **Shift-Vault Sync**: `shift_end` now automatically remits the closing cash balance into the `BranchVault` as a deposit.
+- **Periodic Reporting**: Implemented a new reporting engine with 5 time windows: Daily, Weekly, 15-Day, Monthly, and Annual.
+- **Role-Gated Navigation**: 
+    - Accounting/Admin: Can access Vault Management and Periodic Reports.
+    - Cashier/Manager: Can access Shift Management.
+- **UI Architecture**: Added `reports/periodic.html` with premium stat cards and period selector pills.
 
-### Beta 1.7 Follow-Through
-- Low stock modal now auto-triggers for Admin/Manager on login (once per session/day).
-- Low stock bell and inventory dashboard behavior preserved.
-
-### Beta 1.8 Core Implementation
-- **Payment tendered**: `amount_paid` + `change_given` recorded on orders.
-- **Cash tendered UX**: floating modal for cash entry, change display, blocks insufficient cash, auto-closes after 5 seconds on success.
-- **Shift accountability**: `Shift` model added; shift start/preview/end wired; checkout blocked without active shift.
-- **Audit trails**: `StockAuditLog` + `VoidLog` models added; audit trails displayed in Accounting dashboard.
-- **Void handling**: backend void endpoint with idempotent protection and stock rollback.
-- **POS access policy**: Cashier-only terminal access enforced; Admin/Accounting removed from terminal link.
-
-## Important Fixes
-- Branch auto-assignment: if a user has no branch, a default branch is created/assigned to prevent shift/order failures.
-- Role checks normalized to be case-insensitive.
+### Versioning Contraction & Roadmap Shift
+- **Contracted Versioning**: Per user request, the roadmap has been shifted down to an **Alpha 2.x** stream.
+- **Alpha 2.0** (Next): Electron Shell & Polish (Integrated spawn logic).
+- **Alpha 2.1** (Next): Base-Unit Inventory & Bundle Promos (Multi-unit conversions).
+- **Alpha 2.2+**: Financial Integrity, Credit Control, and Multi-branch Isolation.
 
 ## Files Touched (High Signal)
-- `sales/models.py` (Shift, StockAuditLog, VoidLog, amount_paid/change_given)
-- `sales/views.py` (shift logic, checkout validation, void endpoint, branch fallback)
-- `templates/pos/terminal.html` (cash tender modal + flow)
-- `templates/base.html` (POS link restriction + low stock modal)
-- `core/views.py` + `core/templates/core/dashboards/accounting.html` (audit trails display)
-- `core/templates/core/dashboards/manager.html` (live sales data)
-- `docs/collaboration/*` (task/walkthrough/readme updates)
-- `docs/collaboration/options/*` (static theme option artifacts)
+- `sales/models.py`: Added `BranchVault` and `VaultTransaction`.
+- `sales/views.py`: 
+    - New views: `vault_manage`, `vault_transaction`, `shift_manage`, `periodic_reports`.
+    - Modified: `shift_end` (integrated vault auto-deposit).
+- `sales/urls.py`: Added 4 new routes.
+- `templates/base.html`: Patched sidebar with new role-gated links.
+- `templates/reports/periodic.html`: [NEW] Aggregated stats UI.
+- `docs/collaboration/*`: Synced `task.md`, `walkthrough.md`, and `implementation_plan.md` to reflect the new versioning.
+
+## Important Fixes
+- **Line Ending Persistence**: Fixed issues with file edits using a Python patch approach to handle mixed CRLF/LF line endings in critical templates and views.
+- **Stat Aggregation**: Verified aggregate Sum/Avg calculations for periodic reports on the live server.
 
 ## Notes / Decisions
-- **Insufficient cash cancels checkout** (no loan fallback for now).
-- Audit trails currently combine Stock + Void logs; no Order-level audit entries yet.
-
-## Planned (Deferred)
-- **Alpha 3.0.1**: Base-unit inventory with per-product unit conversions (carton/pack/stick) and bundle promos (e.g., 3 pcs for ₱5). Planned only, no implementation yet.
+- **Terminal Blackout**: Confirmed this feature was already functional in `terminal.html` (blackout overlay appears when no active shift is detected); no additional implementation needed.
+- **Insufficient Cash**: Remains a "Cancel Checkout" trigger (no loan fallback in current branch).
 
 ## Suggested Next Steps
-- Validate cashier shift flow and cash tender modal UX end-to-end.
-- Decide whether to add Order-level audit trail rows.
-- Begin Beta 1.9 (vaulting + periodic reports) once Beta 1.8 verification passes.
+- **Alpha 2.0**: Update `electron/main.js` to spawn the Django server and port the IPC bridge.
+- **Alpha 2.1**: Begin implementing the `ProductUnit` model and base-unit deduction logic from the multi-unit inventory scratchpad.

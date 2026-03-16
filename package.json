@@ -6,6 +6,9 @@
   "scripts": {
     "build:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --minify",
     "watch:css": "npx tailwindcss -i ./static/src/input.css -o ./static/css/output.css --watch",
+    "electron:start": "cd electron && npm start",
+    "app:dev": "npm run electron:start",
+    "start": "npm run app:dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

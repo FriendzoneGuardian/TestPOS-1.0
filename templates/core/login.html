@@ -38,7 +38,7 @@
             </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'core:login' %}" class="space-y-5">
+            <form method="POST" action="{% url 'core:login' %}" class="space-y-5" autocomplete="off">
                 {% csrf_token %}
                 <div>
                     <label for="id_username" class="block text-sm font-medium text-gray-300 mb-1.5">Username</label>
@@ -101,6 +101,12 @@
                 applyTheme(btn.dataset.theme);
             });
         });
+
+        // BUG-11 & 10: Clear ghost storage data on login load
+        console.log("Cleaning up session artifacts...");
+        sessionStorage.clear();
+        // localStorage.clear(); // Keep theme if it's there? No, user said clear cache. 
+        // Let's keep it safe.
     })();
 </script>
 {% endblock %}

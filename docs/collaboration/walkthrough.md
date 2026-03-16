@@ -78,6 +78,8 @@ Systematically audit and fix all broken routes, missing references, unresponsive
 
 ### Internal Verification of Collaborator Changes (2026-03-12)
 - **Login UX Refresh**: Verified the new tagline "Every sale. Right on target. Every. Single. Time." and the theme toggle below the login card.
+### Planning Note
+- Alpha 2.1.1 (base-unit inventory + unit conversions + bundle promos) added to roadmap; deferred for a later version.
 - **Cashier POS Flow**: Confirmed shift start/enforcement and the floating "Cash Tendered" modal with change calculation.
 - **Audit Trails**: Confirmed that the accountant role can view live transaction logs in the Golden Ledger.
 
@@ -101,3 +103,50 @@ render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/us
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/core/templates/core/dashboards/accounting.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/inventory/templates/inventory/dashboard.html)
 render_diffs(file:///c:/Users/franc/Documents/TestPOS-1.0/templates/pos/terminal.html)
+
+## Beta 1.9 Implementation (2026-03-13)
+
+### Changes Made
+- **Models**: Re-created `BranchVault` and `VaultTransaction` in `sales/models.py` (migration 0006).
+- **Views**: Added `vault_manage`, `vault_transaction`, `shift_manage`, and `periodic_reports`.
+- **Shift-Vault Integration**: `shift_end` now auto-deposits closing cash into the vault.
+- **URLs**: 4 new routes in `sales/urls.py`.
+- **Sidebar**: Role-gated links for Shift Management, Vault Management, and Periodic Reports.
+- **Template**: Created `reports/periodic.html` with period selectors and stat cards.
+
+### Verification Results
+- `manage.py check`: **0 issues** ✅
+- Vault Management: **PASS** ✅
+- Periodic Reports: **PASS** ✅
+- Sidebar Access Control: **PASS** ✅
+
+````carousel
+![Vault Management Page](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\vault_management_verified_1773362994324.png)
+<!-- slide -->
+![Periodic Reports - Weekly View](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\periodic_reports_weekly_1773363020705.png)
+<!-- slide -->
+![Accountant Sidebar with New Links](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\sidebar_new_links_1773362963081.png)
+````
+
+## Alpha 2.0 Implementation (2026-03-13)
+
+### Changes Made
+- **Electron Re-scaffolding**: Rebuilt the missing `electron/` directory from scratch with `main.js`, `package.json`, and `preload.js`.
+- **Server Lifecycle**: Automated the spawning and killing of the Django development server via Electron's lifecycle hooks in `main.js`.
+- **One-Click Installer**: Implemented `setup.bat` (Batch) and `install.py` (Python) for automated offline environment bootstrapping.
+- **Vended Wheels Strategy**: Adopted an offline-first deployment strategy using vended wheels to ensure reliability in air-gapped environments.
+
+### Second Pass Bug Fixes
+- **ESM Crash Fix**: Removed `electron-is-dev` v3 (ESM-only) — replaced with `app.isPackaged`.
+- **Server Polling**: Added HTTP polling with `waitForServer()` (800ms intervals, 30 attempts max).
+- **Windows Process Kill**: Implemented `taskkill /PID /T /F` for reliable process tree cleanup.
+- **White Flash Prevention**: Window uses `show: false` + `ready-to-show` event.
+- **Error Fallback**: Added inline HTML error page if Django fails to start.
+
+### Verification Results
+- **Electron Launch**: **PASS** ✅
+- **Django Auto-Spawn**: **PASS** ✅
+- **Server Readiness Polling**: **PASS** ✅
+- **Login Page Loaded**: **PASS** ✅
+
+![Electron-served Login Page](C:\Users\franc\.gemini\antigravity\brain\34f8acdd-73e9-4495-8073-030010908933\login_page_confirmation_1773366502237.png)

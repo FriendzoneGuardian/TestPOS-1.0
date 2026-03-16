@@ -38,6 +38,8 @@
     - Accounting: Money Flow, Cash Flow, Stock Flow (Read Only)
     - Manager: Stock Levels and Sold Items
     - Cashier: POS as Homepage (Stocks/Reports Disabled)
+- [x] **BUG-07 (Timestamp Localization)**: Force UTC+8/Asia/Manila in settings.
+- [x] **BUG-06 (Vault Move)**: Transfer vault management to Cashier (UI + Backend).
 - [x] Implement the **"BBQ Stick" (Burger Menu)** for Theme switching (Dawn/Dusk/Midnight) in the top-right.
 - [x] Re-implement CSRF-protected User CRUD APIs with role assignment.
     ### Beta 1.6.1 — "Bouncer Duties"
@@ -69,45 +71,57 @@
 - [x] **Comprehensive Refactoring & UI/UX Audit (The Purge)**
 - [x] **Collaborator Handoff Documentation Setup**
 
-## Beta 1.9 — "Safe Words & The Climax" (Vaulting & Reports)
-- [/] Port `BranchVault` and `VaultTransaction` backend logic.
-- [ ] Port aggregation queries for Periodic Reports: Daily, Weekly, Bi-Monthly (15 days), Monthly, Quarterly, Annually.
-- [ ] Configure Daily/Weekly reports to generate on-demand at Shift End.
-- [ ] Configure Monthly+ reports to generate via Accounting role override.
-- [ ] Re-implement the Terminal Blackout/Lockout state for closed shifts.
+## Alpha 1.9 — "The Full Discharge" (Vaulting, Sessions & Reports)
+- [x] Re-implement `BranchVault` and `VaultTransaction` models.
+- [x] Implement `vault_manage` and `vault_transaction` views.
+- [x] Integrate `shift_end` with vault remittance logic.
+- [x] Build `periodic_reports` aggregation logic (Daily, Weekly, 15-day, Monthly, Annual).
+- [x] ~~Implement POS Terminal "Blackout" overlay for inactive shifts.~~ (Already implemented)
+- [x] Update Navigation (Sidebar) for new reporting/vault modules.
+- [x] **Cash Sessions & Variance**:
+    - [x] Implement `CashSessions` tracking with Opening/Closing balance requirements. (Implemented via `Shift`)
+    - [x] Add Variance Detection (Overage/Shortage) and variance auditing. (Available in Shift History)
+    - [x] Implement strict "Terminal Lockout" for closed sessions. (Enforced via UI + Backend)
 
-## Beta 2.0 — "Desk Slam & Lube Job" (Electron Shell & Polish)
-- [ ] Update `electron/main.js` to spawn the Django development server.
-- [ ] Port the IPC Bridge for window controls and startup splash logic.
+## Alpha 2.0 — "Desk Slam & Lube Job" (Electron Shell & Polish) [/]
+- [x] Update `electron/main.js` to spawn the Django development server.
+- [x] Port the IPC Bridge for window controls and startup splash logic.
 - [ ] Verify template modularity (Django Includes/Inlines).
-- [ ] Implement standard AI-oriented orientation comments in Django core files.
-- [ ] Ensure cookie-based theme persistence on the overhauled login page.
+- [x] Implement standard AI-oriented orientation comments in Django core files.
+- [x] Ensure cookie-based theme persistence on the overhauled login page.
+- [x] **Shell**: Remove native Electron menu bar for kiosk-mode feel.
+
+## Alpha 2.0.1 — "The QA Purge" (Hotfixes)
+- [x] Fix shift_start/shift_end direct return JSON (BUG-08).
+- [x] Fix terminal lockout scope and sidebar z-index (BUG-09).
+- [x] Implement NoCacheMiddleware for secure logout (BUG-10).
+- [x] **Typing Bug**: Replace native `alert()` with custom Toasts + focus restoration (BUG-11).
+- [x] **Stacking Fix**: Move modals to body root and standardize z-indexes for foreground priority (BUG-01).
+- [x] **Shift Toasts**: Standardize shift lifecycle notifications via Django messages (BUG-12).
+- [x] **Dropdown Restoration**: Fix broken script tags and re-enable Flowbite dropdowns (BUG-13).
+- [x] **BUG-14**: Restrict Shift Management to Cashier role only (UI + View).
 
 ---
 
-# Alpha 3.0 — "The Concrete Hardening"
+# Alpha 2.1 — "Hard Insertion" (Inventory & Bundles)
 > Implementation of advanced business rules from the `concrete_implementation_plan.md`.
 
-## Alpha 3.0.1 — Base-Unit Inventory & Bundles (Planned)
+## Alpha 2.1.1 — Base-Unit Inventory & Bundles (Planned)
 - [ ] Unit conversion inventory per product (carton/pack/stick) with strict base-unit storage.
 - [ ] Bundle promos like “3 pcs for ₱5” with audit-safe pricing and stock deductions.
 
-## Alpha 3.1 — Financial Integrity
+# Alpha 2.2 — "The Golden Gush" (Financial Integrity)
 - [ ] Implement COGS calculation logic in Sales reporting.
 - [ ] Add aging categories (0-15, 16-30, 31+ days) for Credit Ledgers.
 - [ ] Implement Gross Profit and Balance Snapshot dashboards per store.
 
-## Alpha 3.2 — Credit & Payroll Control
-- [ ] Enforce strict ₱1,500 credit limit in the checkout transaction.
+# Alpha 2.3 — "Positions of Interest" (Credit & Payroll)
+- [ ] **Revolving Credit**: Forward unpaid balances to the next 15-day cycle with a searchable audit trail.
+- [ ] Enforce strict ₱1,500 total outstanding credit limit in the checkout transaction.
 - [ ] Build 15-day payroll evaluation and automatic salary deduction logic.
 - [ ] Implement carrying over balances to the next payroll cycle.
 
-## Alpha 3.3 — Cash Session & Vaulting
-- [ ] Implement `CashSessions` tracking with Opening/Closing balance requirements.
-- [ ] Add Variance Detection (Overage/Shortage) and variance auditing.
-- [ ] Implement strict "Terminal Lockout" for closed sessions.
-
-## Alpha 3.4 — Scalable multi-branch Isolation
+# Alpha 2.4 — "Private Sessions" (Scalable Isolation)
 - [ ] Audit all Business Logic Layer modules for strict `store_id` enforcement.
 - [ ] Implement Multi-Store assignment logic for individual employees.
 - [ ] Verify Cross-Store data viewing prevention rules.

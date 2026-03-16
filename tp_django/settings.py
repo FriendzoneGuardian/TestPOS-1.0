@@ -63,6 +63,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_browser_reload.middleware.BrowserReloadMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # BUG-10 Fix: Prevent browser caching of authenticated pages (Security)
+    'core.middleware.NoCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'tp_django.urls'
@@ -132,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
@@ -142,6 +144,11 @@ USE_TZ = True
 LOGIN_URL = 'core:login'
 LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:login'
+
+# Session Security
+SESSION_COOKIE_AGE = 300  # 5 minutes in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Rolling session (inactivity based)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/

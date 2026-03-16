@@ -10,6 +10,9 @@
 
     <!-- Compiled Tailwind CSS + Flowbite (offline) -->
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -51,7 +54,7 @@
     {% if user.is_authenticated %}
     <div class="flex min-h-screen relative z-10">
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
+        <aside id="sidebar" class="fixed top-0 left-0 z-[100] w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
             <div class="h-full px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
                 <a href="/" class="flex items-center mb-8 px-2">
                     <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3">
@@ -90,6 +93,24 @@
                     </a>
                     {% endif %}
 
+                    {% if user.role == 'cashier' %}
+                    <a href="{% url 'sales:shift_manage' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        Shift Management
+                    </a>
+                    {% endif %}
+
+                    {% if user.role == 'cashier' or user.is_admin %}
+                    <a href="{% url 'sales:vault_manage' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-500 hover:text-emerald-400">
+                        Vault Management
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_accounting or user.is_admin %}
+                    <a href="{% url 'sales:periodic_reports' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                        Periodic Reports
+                    </a>
+                    {% endif %}
+
                     {% if user.role|lower == 'cashier' %}
                     <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
                         POS Terminal
@@ -103,7 +124,7 @@
 
         <div class="flex-1 sm:ml-64 flex flex-col">
             <!-- Top Navbar for Old POS Style -->
-            <header class="w-full h-16 bg-surface-900 border-b border-gray-800 flex items-center justify-end px-4 sm:px-6">
+            <header class="w-full h-16 bg-surface-900 border-b border-gray-800 flex items-center justify-end px-4 sm:px-6 sticky top-0 z-[90]">
                 <div class="flex items-center space-x-4">
                     <!-- Inventory Alerts (Bell) -->
                     {% if user.role == 'admin' or user.role == 'manager' %}
@@ -116,11 +137,11 @@
                         </button>
                         
                         <!-- Alerts Dropdown -->
-                        <div id="alertsMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-lg w-72 border border-gray-700 max-h-96 overflow-y-auto">
-                            <div class="px-4 py-3 text-xs text-gray-400 uppercase font-semibold flex justify-between items-center">
+                        <div id="alertsMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-2xl w-72 border border-gray-700 max-h-96 overflow-y-auto transition-all duration-300">
+                            <div class="px-4 py-3 text-[10px] text-gray-500 uppercase font-black flex justify-between items-center tracking-widest">
                                 Low Stock Alerts
                                 {% if low_stock_count > 0 %}
-                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px]">{{ low_stock_count }} items</span>
+                                <span class="bg-red-500 text-white px-2 py-0.5 rounded-full font-bold">{{ low_stock_count }}</span>
                                 {% endif %}
                             </div>
                             <ul class="py-2 text-sm text-gray-200">
@@ -155,7 +176,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <!-- Dropdown menu -->
-                        <div id="bbqMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-lg w-48 border border-gray-700">
+                        <div id="bbqMenuDropdown" class="z-50 hidden bg-surface-800 divide-y divide-gray-700 rounded-lg shadow-2xl w-48 border border-gray-700 transition-all duration-300">
                             <div class="px-4 py-3 text-xs text-gray-400 uppercase font-semibold">
                                 display theme
                             </div>
@@ -193,48 +214,96 @@
                     </form>
                 </div>
             </header>
-            {% if messages %}
-            <div class="p-4 space-y-2">
-                {% for message in messages %}
-                <div class="flex items-center p-3 rounded-lg text-sm fade-in bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    <span>{{ message }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            <!-- Global Helper Functions (BUG-11 / Hotfix) -->
+            <script>
+                // Global Toast System (BUG-11) - Moved up for early availability
+                function showToast(title, message, type = 'info') {
+                    const container = document.getElementById('toast-container');
+                    if (!container) return;
+                    const id = 'toast-' + Date.now();
+                    const colors = {
+                        'success': 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+                        'error': 'bg-red-500/10 border-red-500/30 text-red-400',
+                        'warning': 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+                        'info': 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                    };
+                    const icons = {
+                        'success': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                        'error': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                        'warning': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
+                        'info': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+                    };
 
-            {% if user.role == 'admin' or user.role == 'manager' %}
-            <div id="low-stock-modal" class="hidden fixed inset-0 z-[120] items-center justify-center bg-slate-950/80 backdrop-blur-xl">
-                <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-red-500/20 shadow-2xl shadow-red-500/10">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h2 class="text-xl font-black text-white uppercase tracking-tight">Low Stock Alert</h2>
-                            <p class="text-gray-400 text-sm">Critical items need attention.</p>
-                        </div>
-                        <button id="low-stock-close" class="text-gray-400 hover:text-white">X</button>
-                    </div>
-                    <ul class="space-y-2 max-h-64 overflow-y-auto pr-1">
-                        {% for alert in low_stock_alerts %}
-                        <li class="flex items-center justify-between bg-surface-900 border border-gray-800 rounded-xl px-4 py-3">
-                            <div>
-                                <div class="text-sm font-semibold text-gray-100">{{ alert.product_name }}</div>
-                                <div class="text-xs text-gray-500">{{ alert.branch_name }} · Reorder at {{ alert.reorder_level }}</div>
+                    const html = `
+                        <div id="${id}" class="glass-card pointer-events-auto p-4 rounded-2xl border ${colors[type] || colors['info']} flex items-start gap-3 min-w-[300px] max-w-sm shadow-2xl transition-all duration-300 transform translate-x-20 opacity-0">
+                            <div class="flex-shrink-0 mt-0.5">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[type] || icons['info']}</svg>
                             </div>
-                            <span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">{{ alert.quantity }} left</span>
-                        </li>
-                        {% empty %}
-                        <li class="text-sm text-gray-500 text-center py-4">All stock levels are nominal.</li>
-                        {% endfor %}
-                    </ul>
-                    <div class="flex gap-3">
-                        <button id="low-stock-dismiss" class="flex-1 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-300 text-sm font-semibold">Dismiss</button>
-                        <a href="{% url 'inventory:dashboard' %}" class="flex-1 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold text-center">View Inventory</a>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
+                            <div class="flex-1">
+                                <h4 class="text-xs font-black uppercase tracking-wider">${title}</h4>
+                                <p class="text-sm mt-0.5 opacity-90">${message}</p>
+                            </div>
+                            <button onclick="document.getElementById('${id}').remove()" class="flex-shrink-0 opacity-50 hover:opacity-100 transition-opacity">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('afterbegin', html);
+                    const el = document.getElementById(id);
+                    setTimeout(() => { if(el) el.classList.remove('translate-x-20', 'opacity-0'); }, 10);
+                    setTimeout(() => { 
+                        if (el) {
+                            el.classList.add('translate-x-20', 'opacity-0');
+                            setTimeout(() => el.remove(), 300);
+                        }
+                    }, 5000);
+                }
 
-            <main class="p-4 md:p-6 fade-in">
+                function updateTheme(theme) {
+                    fetch("{% url 'core:update_theme' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({theme: theme})
+                    }).then(r => r.json()).then(data => {
+                        if(data.success) {
+                            document.documentElement.setAttribute('data-theme', theme);
+                        }
+                    });
+                }
+
+                // Sidebar Active State (Refined for Multi-Role Dashboards)
+                document.addEventListener('DOMContentLoaded', () => {
+                    const currentPath = window.location.pathname;
+                    const links = document.querySelectorAll('.sidebar-link');
+                    links.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && href !== '#' && (currentPath === href || (currentPath.startsWith(href) && href !== '/'))) {
+                            link.classList.add('active');
+                        }
+                    });
+                });
+            </script>
+
+            <!-- Django Messages -> Toast System -->
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    {% if messages %}
+                        {% for message in messages %}
+                            showToast(
+                                "{{ message.tags|title|default:'Notification' }}", 
+                                "{{ message|escapejs }}", 
+                                "{{ message.tags|default:'info' }}"
+                            );
+                        {% endfor %}
+                    {% endif %}
+                });
+            </script>
+
+
+            <main class="relative p-4 md:p-6 fade-in flex-1">
                 {% block content %}{% endblock %}
             </main>
         </div>
@@ -244,24 +313,8 @@
         {% block content_unauth %}{% endblock %}
     </main>
     {% endif %}
-
     <script src="{% static 'js/flowbite.min.js' %}"></script>
     <script>
-        function updateTheme(theme) {
-            fetch("{% url 'core:update_theme' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({theme: theme})
-            }).then(r => r.json()).then(data => {
-                if(data.success) {
-                    document.documentElement.setAttribute('data-theme', theme);
-                }
-            });
-        }
-
         (function initLowStockModal() {
             const lowStockCount = {{ low_stock_count|default:0 }};
             const userId = "{{ user.id|default:'' }}";
@@ -285,7 +338,50 @@
             if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
         })();
 
+        // Focus Restoration (BUG-11)
+        window.addEventListener('focus', () => {
+            const terminalInput = document.getElementById('product-search');
+            if (terminalInput && !document.querySelector('input:focus, textarea:focus')) {
+                terminalInput.focus();
+            }
+        });
     </script>
+
+    <!-- Global UI Components (Pinned to Body Root for BUG-01 & BUG-11) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] space-y-3 pointer-events-none"></div>
+
+    {% if user.role == 'admin' or user.role == 'manager' %}
+    <div id="low-stock-modal" class="hidden fixed inset-0 z-[150] items-center justify-center bg-slate-950/90 backdrop-blur-2xl">
+        <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-red-500/20 shadow-2xl shadow-red-500/10 scale-in relative z-20">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-xl font-black text-white uppercase tracking-tight">Low Stock Alert</h2>
+                    <p class="text-gray-400 text-sm">Critical items need attention.</p>
+                </div>
+                <button id="low-stock-close" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <ul class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {% for alert in low_stock_alerts %}
+                <li class="flex items-center justify-between bg-surface-900 border border-gray-800 rounded-xl px-4 py-3">
+                    <div>
+                        <div class="text-sm font-semibold text-gray-100">{{ alert.product_name }}</div>
+                        <div class="text-xs text-gray-500">{{ alert.branch_name }} · Reorder at {{ alert.reorder_level }}</div>
+                    </div>
+                    <span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">{{ alert.quantity }} left</span>
+                </li>
+                {% empty %}
+                <li class="text-sm text-gray-500 text-center py-4">All stock levels are nominal.</li>
+                {% endfor %}
+            </ul>
+            <div class="flex gap-3">
+                <button id="low-stock-dismiss" class="flex-1 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-400 text-sm font-bold border border-gray-700/50 transition-all">Later</button>
+                <a href="{% url 'inventory:dashboard' %}" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-sm font-bold text-center transition-all shadow-lg shadow-red-500/20">Manage Stock</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

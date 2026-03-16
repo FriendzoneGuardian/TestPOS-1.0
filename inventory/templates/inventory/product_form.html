@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4">
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">{{ title }}</h1>
+            <p class="text-gray-400 mt-2 text-sm italic">Manage your product records with precision.</p>
+        </div>
+        <a href="{% url 'inventory:dashboard' %}" class="flex items-center text-sm font-medium text-gray-400 hover:text-white transition-colors">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <div class="glass-card p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+        <!-- Abstract gradient background -->
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/10 blur-3xl rounded-full"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/10 blur-3xl rounded-full"></div>
+
+        <form method="post" class="space-y-6 relative z-10">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Product Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">SKU / Barcode</label>
+                    {{ form.sku }}
+                    {% if form.sku.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.sku.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Price ($)</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.price.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.category.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Reorder Level (Alert at)</label>
+                    {{ form.reorder_level }}
+                    {% if form.reorder_level.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.reorder_level.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 py-2">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-300">Active and available for sale</label>
+            </div>
+
+            <div class="pt-6 border-t border-white/5">
+                <button type="submit" class="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white font-bold text-lg transition-all shadow-xl shadow-primary-500/20 active:scale-[0.98]">
+                    {% if product %}Update Product Details{% else %}Add to Inventory{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
