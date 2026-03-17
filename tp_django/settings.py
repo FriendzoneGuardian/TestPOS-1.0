@@ -65,6 +65,8 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # BUG-10 Fix: Prevent browser caching of authenticated pages (Security)
     'core.middleware.NoCacheMiddleware',
+    'core.middleware.MidnightPurgeMiddleware',
+    'core.middleware.SecurityBootFlushMiddleware',
 ]
 
 ROOT_URLCONF = 'tp_django.urls'
@@ -146,7 +148,7 @@ LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:login'
 
 # Session Security
-SESSION_COOKIE_AGE = 3600  # 1 hour (Increased from 300s to prevent logout mid-edit)
+SESSION_COOKIE_AGE = 1800  # 30 minutes (Nerfed from 1 hour for security)
 SESSION_SAVE_EVERY_REQUEST = True  # Rolling session (inactivity based)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

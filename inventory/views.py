@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -97,4 +98,54 @@ def delete_product(request, pk):
     product_name = product.name
     product.delete()
     messages.success(request, f'Product "{product_name}" deleted.')
+    return redirect('inventory:dashboard')
+
+
+@login_required
+@role_required(['admin', 'manager'])
+@transaction.atomic
+def restock_product(request, pk):
+    if request.method != 'POST':
+        return redirect('inventory:dashboard')
+    
+    product = get_object_or_404(Product, pk=pk)
+    branch_id = request.POST.get('branch_id')
+    quantity = int(request.POST.get('quantity', 0))
+    status = request.POST.get('status', 'good')
+    expiry_date = request.POST.get('expiry_date') or None
+    reason = request.POST.get('reason', 'Manual Restock')
+
+    if quantity <= 0:
+        messages.error(request, 'Quantity must be greater than zero.')
+        return redirect('inventory:dashboard')
+
+    branch = get_object_or_404(Branch, id=branch_id)
+    
+    # Create the batch
+    from .models import StockBatch
+    StockBatch.objects.create(
+        product=product,
+        branch=branch,
+        quantity=quantity,
+        status=status,
+        expiry_date=expiry_date
+    )
+
+    # Update aggregate stock if status is 'good'
+    if status == 'good':
+        stock, _ = BranchStock.objects.get_or_create(branch=branch, product=product)
+        stock.quantity += quantity
+        stock.save()
+
+    # Log to audit trail
+    from sales.models import StockAuditLog
+    StockAuditLog.objects.create(
+        product=product,
+        branch=branch,
+        user=request.user,
+        quantity_change=quantity,
+        reason=f"Restock ({status}): {reason}"
+    )
+
+    messages.success(request, f'Added {quantity} units to {product.name} at {branch.name}.')
     return redirect('inventory:dashboard')

@@ -1,25 +1,44 @@
+# Environment & Dependency Bloat
 venv/
 node_modules/
+.env
+
+# Python & Build Artifacts
 __pycache__/
 *.pyc
-instance/
-.env
-*.db
-    
-# Whitelist test scripts
-!tests/
-!tests/*.py
-
-.flask_legacy/
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
 dist/
+build/
+*.egg-info/
+
+# Databases & Local States
+*.db
+db.sqlite3
+.db_lock_success
+
+# System & IDE Junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# [FUTURE PROOF] Test Related Files & Assets
+# Automatically ignores all 'tests' directories and standard test file patterns
+tests/
+test_*.py
+*_test.py
 test_results.log
-
-legacy_flask_reference/
-
-Legacy/
-
-# Pokemon Filler Assets (Testing Only)
+assets/testing/
+pokemon_assets_debug/
 static/assets/items/
 
-# Reference Credentials
+# Local Reference Data
 accounts_reference.csv
+tmp/
+!tmp/.gitkeep

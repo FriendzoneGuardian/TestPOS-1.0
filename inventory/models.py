@@ -24,3 +24,26 @@ class BranchStock(models.Model):
 
     def __str__(self):
         return f'{self.branch.name} - {self.product.name} ({self.quantity})'
+
+
+class StockBatch(models.Model):
+    STATUS_CHOICES = [
+        ('good', 'Good'),
+        ('broken', 'Broken'),
+        ('rotten', 'Rotten'),
+        ('expired', 'Expired'),
+        ('incomplete', 'Incomplete'),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='batches')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='batches')
+    quantity = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='good')
+    expiry_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    supplier_info = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.product.name} ({self.status}) - {self.quantity}'
+
+    class Meta:
+        ordering = ['created_at']  # FIFO by default

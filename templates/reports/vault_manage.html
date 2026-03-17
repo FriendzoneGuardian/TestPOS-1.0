@@ -13,7 +13,7 @@
         <div class="glass-card rounded-2xl p-6 bg-gradient-to-br from-primary-500/10 to-purple-500/10 border-primary-500/20">
             <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Vault Balance</h2>
             <div class="space-y-1">
-                <p class="text-4xl font-extrabold text-white">${{ vault.balance|stringformat:".2f" }}</p>
+                <p class="text-4xl font-extrabold text-white">₱{{ vault.balance|stringformat:".2f" }}</p>
                 <p class="text-xs text-gray-500">Last updated: {{ vault.last_updated|date:"M d, H:i" }}</p>
             </div>
 
@@ -38,7 +38,7 @@
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Amount</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
                             <input type="number" name="amount" step="0.01" min="0.01" required
                                 class="w-full pl-7 pr-4 py-2.5 rounded-xl bg-surface-800 border border-gray-700 text-white focus:ring-2 focus:ring-primary-500 transition-all outline-none"
                                 placeholder="0.00">
@@ -86,8 +86,7 @@
                                     {{ t.transaction_type }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 font-bold {% if t.transaction_type == 'deposit' %}text-emerald-400{% else %}text-red-400{% endif %}">
-                                {% if t.transaction_type == 'deposit' %}+{% else %}-{% endif %}${{ t.amount|stringformat:".2f" }}
+                                {% if t.transaction_type == 'deposit' %}+{% else %}-{% endif %}₱{{ t.amount|stringformat:".2f" }}
                             </td>
                             <td class="px-6 py-4 text-gray-300 text-xs">{{ t.reason }}</td>
                             <td class="px-6 py-4 text-gray-500">{{ t.user.username }}</td>

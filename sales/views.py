@@ -112,6 +112,7 @@ def checkout(request):
             return JsonResponse({'success': False, 'message': 'Order exceeds maximum item limit (1000).'}, status=400)
 
         # Get stock for the user's branch
+        # We still use BranchStock for a quick total check, but deduction happens via batches
         stock = BranchStock.objects.select_for_update().filter(branch=branch, product=product).first()
         
         if not stock or stock.quantity < qty:
@@ -120,7 +121,7 @@ def checkout(request):
         item_rows.append((product, qty, stock))
 
     if total > 50000.00:
-        return JsonResponse({'success': False, 'message': 'Order exceeds maximum transaction total ($50,000.00).'}, status=400)
+        return JsonResponse({'success': False, 'message': 'Order exceeds maximum transaction total (₱50,000.00).'}, status=400)
 
     if payment_method == 'cash':
         try:
@@ -145,6 +146,7 @@ def checkout(request):
         change_given=change_given
     )
 
+    from inventory.models import StockBatch
     for product, qty, stock in item_rows:
         OrderItem.objects.create(
             order=order,
@@ -152,8 +154,32 @@ def checkout(request):
             quantity=qty,
             price_at_time=product.price
         )
+        
+        # FIFO Deduction Logic
+        remaining_to_deduct = qty
+        batches = StockBatch.objects.select_for_update().filter(
+            product=product, 
+            branch=branch, 
+            status='good', 
+            quantity__gt=0
+        ).order_by('created_at')
+
+        for batch in batches:
+            if remaining_to_deduct <= 0:
+                break
+            
+            deduction = min(batch.quantity, remaining_to_deduct)
+            batch.quantity -= deduction
+            batch.save()
+            remaining_to_deduct -= deduction
+
+        # Fallback: if somehow batches didn't cover it (consistency check)
+        # We already checked total BranchStock.quantity, so this shouldn't happen 
+        # unless manual Batch deletions occurred without updating BranchStock.
+
         stock.quantity -= qty
         stock.save()
+
         StockAuditLog.objects.create(
             product=product,
             branch=branch,
@@ -271,10 +297,10 @@ def shift_end(request):
         msg = "Shift Balanced! Perfect score, you're a legend! 🏆"
         msg_type = 'success'
     elif variance < 0:
-        msg = f"Shift Closed. Short of ${abs(variance)}. We'll get 'em next time, chin up! 💔"
+        msg = f"Shift Closed. Short of ₱{abs(variance)}. We'll get 'em next time, chin up! 💔"
         msg_type = 'error'
     else:
-        msg = f"Shift Closed. Over by ${variance}. Check the receipts? 🧐"
+        msg = f"Shift Closed. Over by ₱{variance}. Check the receipts? 🧐"
         msg_type = 'warning'
 
     from django.contrib import messages

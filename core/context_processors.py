@@ -20,7 +20,7 @@ def inventory_alerts_processor(request):
     """
     context = {'low_stock_alerts': []}
     
-    if request.user.is_authenticated and request.user.role in ['admin', 'manager']:
+    if request.user.is_authenticated and request.user.role in ['admin', 'manager', 'accounting']:
         from inventory.models import BranchStock
         from django.db.models import F
         

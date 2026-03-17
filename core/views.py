@@ -47,16 +47,12 @@ def manager_dashboard(request):
         recent_shifts = recent_shifts.filter(branch=request.user.branch)
     recent_shifts = recent_shifts.select_related('user', 'branch').order_by('-start_time')[:5]
 
-    from inventory.models import Product
-    low_stock_count = Product.objects.filter(stock__lte=5).count() # Simple threshold for now
-
     context = {
         'total_sales_today': total_sales_today,
         'transactions_today': transactions_today,
         'recent_transactions': recent_transactions,
         'recent_shifts': recent_shifts,
         'branch_scope': request.user.branch.name if request.user.branch else 'All Branches',
-        'low_stock_count': low_stock_count
     }
     return render(request, 'core/dashboards/manager.html', context)
 
