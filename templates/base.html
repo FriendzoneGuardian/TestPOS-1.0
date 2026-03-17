@@ -41,6 +41,14 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        /* The Digital Brick - Lockdown Styles */
+        .lock-blur {
+            filter: blur(20px) grayscale(80%);
+            pointer-events: none !important;
+            user-select: none !important;
+            transition: filter 0.5s ease;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -52,7 +60,30 @@
     <div class="fixed bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[140px] mix-blend-screen opacity-10 pointer-events-none transition-colors duration-1000" style="background-color: var(--bg-puddle-2);"></div>
 
     {% if user.is_authenticated %}
-    <div class="flex min-h-screen relative z-10">
+    <div id="lock-screen-modal" class="{% if not request.session.is_locked %}hidden{% endif %} fixed inset-0 z-[999] flex items-center justify-center bg-black/98 backdrop-blur-[40px] transition-all duration-500">
+        <div class="glass-card p-16 md:p-20 rounded-[3rem] xl:w-1/3 md:w-1/2 w-[90vw] max-h-[90vh] overflow-y-auto space-y-10 shadow-[0_0_150px_rgba(0,0,0,0.8)] border-white/5 text-center transform scale-105">
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-primary-500/10 mb-2">
+                <i class="fas fa-user-lock text-5xl text-primary-400"></i>
+            </div>
+            <div>
+                <h2 class="text-4xl font-black text-white uppercase tracking-tighter">Terminal Locked</h2>
+                <p class="text-gray-400 text-lg mt-2">"The Cold Shoulder" Active</p>
+                <p class="text-xs text-primary-500/50 uppercase font-black tracking-[0.3em] mt-4">{{ user.username }} · {{ user.role }}</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="password" id="lock-pin-input" maxlength="4" placeholder="Enter 4-Digit PIN" 
+                       class="w-full bg-surface-900 border-gray-700 rounded-xl text-center text-2xl tracking-[1em] font-black focus:ring-primary-500 focus:border-primary-500 py-3 text-white">
+                <button onclick="unlockTerminal()" id="unlock-btn"
+                        class="w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-black uppercase tracking-widest transition-all shadow-lg shadow-primary-500/25">
+                    Unlock Account
+                </button>
+            </div>
+            <p class="text-[10px] text-gray-500 italic">Inactivity guard triggered. Keep the soul alive.</p>
+        </div>
+    </div>
+
+    <div id="main-app-wrapper" class="flex min-h-screen relative z-10 {% if request.session.is_locked %}lock-blur{% endif %}">
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed top-0 left-0 z-[100] w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
             <div class="h-full px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
@@ -340,11 +371,113 @@
 
         // Focus Restoration (BUG-11)
         window.addEventListener('focus', () => {
+            const pinInput = document.getElementById('lock-pin-input');
+            const lockModal = document.getElementById('lock-screen-modal');
+            if (lockModal && !lockModal.classList.contains('hidden')) {
+                pinInput?.focus();
+                return;
+            }
+
             const terminalInput = document.getElementById('product-search');
             if (terminalInput && !document.querySelector('input:focus, textarea:focus')) {
                 terminalInput.focus();
             }
         });
+
+        // The Cold Shoulder (Inactivity Guard) Logic
+        const INACTIVITY_TIME = 90000; // 90 Seconds
+        let idleTimer;
+
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            const lockModal = document.getElementById('lock-screen-modal');
+            if (lockModal && lockModal.classList.contains('hidden')) {
+                idleTimer = setTimeout(lockTerminal, INACTIVITY_TIME);
+            }
+        }
+
+        async function lockTerminal() {
+            try {
+                const response = await fetch("{% url 'core:lock_session' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                if (response.ok) {
+                    const lockModal = document.getElementById('lock-screen-modal');
+                    const wrapper = document.getElementById('main-app-wrapper');
+                    if (lockModal && wrapper) {
+                        lockModal.classList.remove('hidden');
+                        wrapper.classList.add('lock-blur');
+                        const pinInput = document.getElementById('lock-pin-input');
+                        if (pinInput) {
+                            pinInput.value = '';
+                            pinInput.focus();
+                        }
+                    }
+                }
+            } catch (err) { console.error("Lock failed:", err); }
+        }
+
+        async function unlockTerminal() {
+            const pin = document.getElementById('lock-pin-input').value;
+            const btn = document.getElementById('unlock-btn');
+            
+            if (!pin) {
+                showToast("Security", "Please enter your 4-digit PIN.", "warning");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
+
+            try {
+                const formData = new FormData();
+                formData.append('pin', pin);
+                
+                const response = await fetch("{% url 'core:unlock_session' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const lockModal = document.getElementById('lock-screen-modal');
+                    const wrapper = document.getElementById('main-app-wrapper');
+                    if (lockModal && wrapper) {
+                        lockModal.classList.add('hidden');
+                        wrapper.classList.remove('lock-blur');
+                        document.getElementById('lock-pin-input').value = '';
+                        showToast("Access Restored", "Welcome back, {{ user.username }}.", "success");
+                        resetIdleTimer();
+                    }
+                } else {
+                    showToast("Access Denied", "Incorrect Security PIN. Try again.", "error");
+                    document.getElementById('lock-pin-input').value = '';
+                    document.getElementById('lock-pin-input').focus();
+                }
+            } catch (err) { 
+                showToast("System Error", "Could not verify PIN. Please try again.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Unlock Account';
+            }
+        }
+        
+        // Instant Login (Enter Key) support
+        document.getElementById('lock-pin-input')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                unlockTerminal();
+            }
+        });
+
+        {% if user.is_authenticated %}
+        // Listen for activity
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(evt => {
+            window.addEventListener(evt, resetIdleTimer, true);
+        });
+        resetIdleTimer();
+        {% endif %}
     </script>
 
     <!-- Global UI Components (Pinned to Body Root for BUG-01 & BUG-11) -->

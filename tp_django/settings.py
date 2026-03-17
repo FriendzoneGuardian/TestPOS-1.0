@@ -146,7 +146,7 @@ LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:login'
 
 # Session Security
-SESSION_COOKIE_AGE = 300  # 5 minutes in seconds
+SESSION_COOKIE_AGE = 3600  # 1 hour (Increased from 300s to prevent logout mid-edit)
 SESSION_SAVE_EVERY_REQUEST = True  # Rolling session (inactivity based)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

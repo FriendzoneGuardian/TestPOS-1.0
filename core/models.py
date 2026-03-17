@@ -27,6 +27,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='cashier')
     theme_preference = models.CharField(max_length=20, choices=THEME_CHOICES, default='dusk')
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+    terminal_pin = models.CharField(max_length=4, default="0000")
     is_active_account = models.BooleanField(default=True) # Django User already has is_active, but keeping custom just in case
 
     def is_admin(self):

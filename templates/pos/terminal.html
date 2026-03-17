@@ -284,7 +284,10 @@
         });
     }
 
-    document.getElementById('product-search').addEventListener('input', applyFilters);
+    const searchInput = document.getElementById('product-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
 
     const container = document.getElementById('cart-items');
     const btn = document.getElementById('checkout-btn');
@@ -564,14 +567,18 @@
 
     function closeCashModal() {
         const modal = document.getElementById('cash-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
         const statusEl = document.getElementById('cash-status');
         const confirmBtn = document.getElementById('cash-confirm');
         const closeBtn = document.getElementById('cash-close');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        statusEl.textContent = '';
-        confirmBtn.disabled = false;
-        closeBtn.disabled = false;
+        
+        if (statusEl) statusEl.textContent = '';
+        if (confirmBtn) confirmBtn.disabled = false;
+        if (closeBtn) closeBtn.disabled = false;
+        
         if (cashModalTimer) {
             clearInterval(cashModalTimer);
             cashModalTimer = null;
@@ -680,6 +687,7 @@
                         };
                         
                         updateTimerUI(remaining);
+                        if (cashModalTimer) clearInterval(cashModalTimer);
                         cashModalTimer = setInterval(() => {
                             remaining -= 1;
                             updateTimerUI(remaining);

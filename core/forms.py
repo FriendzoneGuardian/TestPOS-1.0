@@ -9,7 +9,7 @@ class UserManagementForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'role', 'branch', 'is_active', 'is_active_account']
+        fields = ['username', 'role', 'branch', 'terminal_pin', 'is_active', 'is_active_account']
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

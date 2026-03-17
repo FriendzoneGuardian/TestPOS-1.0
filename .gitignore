@@ -20,3 +20,6 @@ Legacy/
 
 # Pokemon Filler Assets (Testing Only)
 static/assets/items/
+
+# Reference Credentials
+accounts_reference.csv

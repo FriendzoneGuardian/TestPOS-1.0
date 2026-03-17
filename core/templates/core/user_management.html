@@ -64,7 +64,8 @@
                                 data-role="{{ target_user.role }}"
                                 data-branch="{{ target_user.branch_id|default_if_none:'' }}"
                                 data-active="{{ target_user.is_active|yesno:'true,false' }}"
-                                data-active-account="{{ target_user.is_active_account|yesno:'true,false' }}">
+                                data-active-account="{{ target_user.is_active_account|yesno:'true,false' }}"
+                                data-terminal-pin="{{ target_user.terminal_pin|default:'0000' }}">
                             Edit
                         </button>
                     </td>
@@ -143,6 +144,11 @@
                             </select>
                         </div>
 
+                        <div>
+                            <label for="terminal_pin" class="block mb-2 text-sm font-medium text-gray-300">Terminal Security PIN <span class="text-gray-500 text-xs font-normal">(4 Digits)</span></label>
+                            <input type="text" name="terminal_pin" id="terminal_pin" maxlength="4" pattern="\d{4}" placeholder="0000" class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" required>
+                        </div>
+
                         <div class="flex items-center space-x-4 pt-2">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="is_active" name="is_active" class="sr-only peer" checked>
@@ -184,15 +190,17 @@
             const branch = btn.getAttribute('data-branch');
             const isActive = btn.getAttribute('data-active') === 'true';
             const isActiveAccount = btn.getAttribute('data-active-account') === 'true';
-            openUserModal(id, username, role, branch, isActive, isActiveAccount);
+            const terminalPin = btn.getAttribute('data-terminal-pin') || '0000';
+            openUserModal(id, username, role, branch, isActive, isActiveAccount, terminalPin);
         });
     });
 
-    function openUserModal(id='', username='', role='cashier', branch_id='', is_active=true, is_active_account=true) {
+    function openUserModal(id='', username='', role='cashier', branch_id='', is_active=true, is_active_account=true, terminal_pin='0000') {
         document.getElementById('userId').value = id;
         document.getElementById('username').value = username;
         document.getElementById('role').value = role;
         document.getElementById('branch').value = branch_id;
+        document.getElementById('terminal_pin').value = terminal_pin;
         document.getElementById('is_active').checked = is_active;
         document.getElementById('is_active_account').checked = is_active_account;
         
@@ -241,7 +249,16 @@
             if(response.ok && data.success) {
                 location.reload();
             } else {
-                showToast('Validation Error', data.message || 'Validation failed. Check inputs.', 'error');
+                let errorMsg = data.message || 'Validation failed. Check inputs.';
+                if (data.errors) {
+                    const fields = Object.keys(data.errors);
+                    if (fields.length > 0) {
+                        const firstField = fields[0];
+                        const firstError = data.errors[firstField][0];
+                        errorMsg = `${firstField}: ${firstError}`;
+                    }
+                }
+                showToast('Validation Error', errorMsg, 'error');
                 if(data.errors) console.error(data.errors);
             }
         } catch (err) {

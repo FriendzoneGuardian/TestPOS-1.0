@@ -10,11 +10,11 @@ class BranchAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'role', 'branch', 'is_staff')
+    list_display = ('username', 'email', 'role', 'branch', 'terminal_pin', 'is_staff')
     list_filter = ('role', 'branch', 'is_staff', 'is_superuser', 'is_active')
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('role', 'branch')}),
+        (None, {'fields': ('role', 'branch', 'terminal_pin')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('role', 'branch')}),
+        (None, {'fields': ('role', 'branch', 'terminal_pin')}),
     )

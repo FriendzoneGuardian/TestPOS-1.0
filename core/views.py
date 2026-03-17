@@ -39,11 +39,24 @@ def manager_dashboard(request):
     transactions_today = orders.count()
     recent_transactions = orders.select_related('user', 'branch').order_by('-order_date')[:8]
 
+    from sales.models import Shift
+    recent_shifts = Shift.objects.filter(status='open')
+    if request.user.role != 'admin' and request.user.branch:
+        recent_shifts = recent_shifts.filter(branch=request.user.branch)
+    elif request.user.branch:
+        recent_shifts = recent_shifts.filter(branch=request.user.branch)
+    recent_shifts = recent_shifts.select_related('user', 'branch').order_by('-start_time')[:5]
+
+    from inventory.models import Product
+    low_stock_count = Product.objects.filter(stock__lte=5).count() # Simple threshold for now
+
     context = {
         'total_sales_today': total_sales_today,
         'transactions_today': transactions_today,
         'recent_transactions': recent_transactions,
-        'branch_scope': request.user.branch.name if request.user.branch else 'All Branches'
+        'recent_shifts': recent_shifts,
+        'branch_scope': request.user.branch.name if request.user.branch else 'All Branches',
+        'low_stock_count': low_stock_count
     }
     return render(request, 'core/dashboards/manager.html', context)
 
@@ -139,6 +152,21 @@ def user_save(request, user_id=None):
     else:
         errors = {field: [error for error in field_errors] for field, field_errors in form.errors.items()}
         return JsonResponse({'success': False, 'message': 'Validation failed.', 'errors': errors}, status=400)
+
+@login_required
+@require_POST
+def lock_session(request):
+    request.session['is_locked'] = True
+    return JsonResponse({'success': True})
+
+@login_required
+@require_POST
+def unlock_session(request):
+    pin = request.POST.get('pin')
+    if pin == request.user.terminal_pin:
+        request.session['is_locked'] = False
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'message': 'Invalid PIN.'}, status=400)
 
 @login_required
 @require_POST

@@ -22,11 +22,16 @@ def role_required(allowed_roles):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
+                # print(f"DEBUG: User not authenticated for {request.path}")
                 return redirect_to_login(request.get_full_path())
+            
             user_role = (getattr(request.user, 'role', '') or '').lower()
             allowed = {role.lower() for role in allowed_roles}
+            
             if user_role not in allowed:
+                # print(f"DEBUG: User {request.user.username} role '{user_role}' not in {allowed}")
                 raise PermissionDenied
+            
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
