@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="px-6 py-8">
+    <div class="mb-8">
+        <h1 class="text-4xl font-black text-white tracking-tighter uppercase italic">Ancient <span class="text-rose-500">Aura</span></h1>
+        <p class="text-gray-400 font-medium tracking-wide">Ledger Monitoring & <span class="text-rose-400 font-bold uppercase tracking-widest text-xs ml-1">Debt Aging</span></p>
+    </div>
+
+    <!-- Aging Buckets -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Fresh Aura (0-15 Days) -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <h3 class="text-xs font-black text-emerald-500 uppercase tracking-widest italic">Fresh Aura</h3>
+                <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">{{ fresh|length }} Customers</span>
+            </div>
+            {% for item in fresh %}
+            <div class="glass-card p-5 border-emerald-500/20">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="text-sm font-black text-emerald-400 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black tracking-widest mt-4">
+                    <span>{{ item.days }} Days Stale</span>
+                    <span>Last active: {{ item.last_active|date:"M d" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 glass-card opacity-30 text-xs uppercase tracking-widest font-black">Clean Aura detected.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stale Aura (16-30 Days) -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <h3 class="text-xs font-black text-amber-500 uppercase tracking-widest italic">Stale Aura</h3>
+                <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">{{ stale|length }} Customers</span>
+            </div>
+            {% for item in stale %}
+            <div class="glass-card p-5 border-amber-500/20">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="text-sm font-black text-amber-400 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black tracking-widest mt-4">
+                    <span>{{ item.days }} Days Stale</span>
+                    <span>Last active: {{ item.last_active|date:"M d" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 glass-card opacity-30 text-xs uppercase tracking-widest font-black">No mid-tier debt.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Ancient Aura (31+ Days) -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-2">
+                <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest italic text-rose-500 animate-pulse">Ancient Aura (L)</h3>
+                <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">{{ ancient|length }} Customers</span>
+            </div>
+            {% for item in ancient %}
+            <div class="glass-card p-5 border-rose-500/30 bg-rose-500/5">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="text-sm font-black text-rose-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-rose-500 uppercase font-black tracking-widest mt-4">
+                    <span>{{ item.days }} Days Stale (FATAL)</span>
+                    <span>Last active: {{ item.last_active|date:"M d" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 glass-card opacity-30 text-xs uppercase tracking-widest font-black">Zero Debt Ancient. W Ratio.</div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(23, 23, 23, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1.5rem;
+    }
+</style>
+{% endblock %}

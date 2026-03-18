@@ -86,10 +86,12 @@ def checkout(request):
     if payment_method == 'loan' and not customer_id:
         return JsonResponse({'success': False, 'message': 'Select a customer for loan transactions.'}, status=400)
 
-    customer = None
     if customer_id:
         try:
             customer = Customer.objects.get(id=int(customer_id))
+            if payment_method == 'loan' and (customer.outstanding_balance + items_total_placeholder > 1500):
+                # Placeholder for total check, actual check happens after total calculation
+                pass
         except (Customer.DoesNotExist, ValueError):
             return JsonResponse({'success': False, 'message': 'Customer not found.'}, status=400)
 
@@ -135,6 +137,10 @@ def checkout(request):
         amount_paid = 0.0
         change_given = 0.0
 
+    if payment_method == 'loan' and customer:
+        if customer.outstanding_balance + total > 1500:
+            return JsonResponse({'success': False, 'message': 'Rizz Cap Exceeded! Maximum credit limit is ₱1,500.'}, status=400)
+
     order = Order.objects.create(
         user=request.user,
         branch=branch,
@@ -148,12 +154,6 @@ def checkout(request):
 
     from inventory.models import StockBatch
     for product, qty, stock in item_rows:
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            quantity=qty,
-            price_at_time=product.price
-        )
         
         # FIFO Deduction Logic
         remaining_to_deduct = qty
@@ -169,6 +169,16 @@ def checkout(request):
                 break
             
             deduction = min(batch.quantity, remaining_to_deduct)
+            
+            # Snap COGSchamp: Store the unit cost for this specific item
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=deduction,
+                price_at_time=product.price,
+                cost_at_time=batch.unit_cost
+            )
+
             batch.quantity -= deduction
             batch.save()
             remaining_to_deduct -= deduction

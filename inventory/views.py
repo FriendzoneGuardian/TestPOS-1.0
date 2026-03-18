@@ -109,8 +109,14 @@ def restock_product(request, pk):
         return redirect('inventory:dashboard')
     
     product = get_object_or_404(Product, pk=pk)
-    branch_id = request.POST.get('branch_id')
-    quantity = int(request.POST.get('quantity', 0))
+    try:
+        quantity = int(request.POST.get('quantity'))
+        unit_cost = float(request.POST.get('unit_cost', 0))
+        branch_id = int(request.POST.get('branch'))
+    except (TypeError, ValueError):
+        messages.error(request, 'Invalid input for quantity, cost, or branch.')
+        return redirect('inventory:dashboard')
+
     status = request.POST.get('status', 'good')
     expiry_date = request.POST.get('expiry_date') or None
     reason = request.POST.get('reason', 'Manual Restock')
@@ -127,6 +133,7 @@ def restock_product(request, pk):
         product=product,
         branch=branch,
         quantity=quantity,
+        unit_cost=unit_cost,  # Entry Aura
         status=status,
         expiry_date=expiry_date
     )
