@@ -43,5 +43,12 @@ A premium, dark-mode interface utilizing glassmorphism and modern typography.
 
 ---
 
+## 📖 Key Documentation
+- [Home](Home)
+- [🛠️ Installation Guide](Installation)
+- [📋 System Requirements](Requirements)
+
+---
+
 > [!IMPORTANT]
 > **AESTHETIC RULE**: Every UI update MUST feel premium. Avoid generic colors; use the established HSL tokens and subtle micro-animations.
