@@ -81,6 +81,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
     quantity = models.IntegerField(default=1)
     price_at_time = models.FloatField()
+    cost_at_time = models.FloatField(default=0.0)  # Snapshotted COGSchamp
     status = models.CharField(max_length=20, choices=ITEM_STATUS, default='active')
     void_reason = models.TextField(null=True, blank=True)
 

@@ -40,6 +40,7 @@ class StockBatch(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='good')
     expiry_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    unit_cost = models.FloatField(default=0.0)  # The Batch Aura
     supplier_info = models.TextField(null=True, blank=True)
 
     def __str__(self):
