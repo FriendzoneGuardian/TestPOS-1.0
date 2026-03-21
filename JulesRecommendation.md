@@ -13,3 +13,5 @@
 *   **[UI Scoping / Bug-09 Follow-up]**: In `templates/pos/terminal.html`, appended `relative` to the primary `<div class="flex-col lg:flex-row ...">` wrapper. This ensures the Shift Initialization Overlay (`absolute inset-0 z-[100]`) is properly constrained to the main POS workspace container instead of bleeding into the `<main>` tag's document flow.
 
 *   **[Code Verification]**: Python syntax scan completed on `sales/views.py`. The `@role_required` modification is clean without parsing errors.
+
+*   **[Asset Restoration]**: Noticed missing `404` images on the POS terminal. Wrote and executed a Python scraper (`scrape_images.py`) to fetch original Pokémon item sprites (Poke Ball, Potion, etc.) from Bulbapedia based on database `image_hash` values, restoring the vibrant aesthetic of the UI.
