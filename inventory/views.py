@@ -112,7 +112,7 @@ def restock_product(request, pk):
     try:
         quantity = int(request.POST.get('quantity'))
         unit_cost = float(request.POST.get('unit_cost', 0))
-        branch_id = int(request.POST.get('branch'))
+        branch_id = int(request.POST.get('branch_id'))
     except (TypeError, ValueError):
         messages.error(request, 'Invalid input for quantity, cost, or branch.')
         return redirect('inventory:dashboard')

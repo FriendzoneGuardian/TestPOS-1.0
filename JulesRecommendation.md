@@ -30,3 +30,5 @@
 *   **[Electron Shell Fixes]**: Audited `electron/main.js`. Re-wrote `getPythonPath()` to gracefully detect platform constraints rather than hard-coding Windows `venv` paths. Also corrected the `spawn()` initialization to detach Unix child processes, preventing the Django server from becoming an orphaned ghost process when Electron exits.
 
 *   **[Restoring Aura Features]**: Restored missing `ancient_aura` and `aura_dashboard` routes that I mistakenly removed during debloating. Created stub files `sales/views_ancient.py` and `inventory/views_aura.py` with placeholder templates so the links in the sidebar don't crash the server anymore!
+*   **[Manager Domain Audit]**: Assessed the `core/views.py` `manager_dashboard` and `user_management` routes, finding their logic sound.
+*   **[Inventory Restocking Bug Fix]**: Fixed a crash in the Manager's `restock_product` view (`inventory/views.py`) where the backend was incorrectly looking for a `branch` key in the POST request, but the HTML modal was correctly submitting `branch_id`. Synchronized the backend to match the frontend form data to prevent HTTP 500 errors when managers attempt to restock inventory!
