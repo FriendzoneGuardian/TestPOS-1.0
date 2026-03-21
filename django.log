@@ -1,0 +1,23 @@
+Watching for file changes with StatReloader
+[21/Mar/2026 21:13:06] "GET /login/ HTTP/1.1" 200 28153
+[21/Mar/2026 21:13:06] "GET /static/css/output.css HTTP/1.1" 200 48607
+[21/Mar/2026 21:13:06] "GET /static/django-browser-reload/reload-listener.js HTTP/1.1" 200 623
+[21/Mar/2026 21:13:06] "GET /static/js/flowbite.min.js HTTP/1.1" 200 135824
+[21/Mar/2026 21:13:06] "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 200 14879
+[21/Mar/2026 21:13:06] "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 200 30176
+[21/Mar/2026 21:13:07] "GET /static/debug_toolbar/css/print.css HTTP/1.1" 200 43
+[21/Mar/2026 21:13:07] "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 200 4700
+[21/Mar/2026 21:13:07] "GET /static/django-browser-reload/reload-worker.js HTTP/1.1" 200 2711
+[21/Mar/2026 21:13:10] "POST /login/ HTTP/1.1" 302 0
+[21/Mar/2026 21:13:10] "GET / HTTP/1.1" 302 0
+[21/Mar/2026 21:13:10] "GET /dashboard/manager/ HTTP/1.1" 200 54508
+Performing system checks...
+
+System check identified no issues (0 silenced).
+March 21, 2026 - 21:12:24
+Django version 6.0.3, using settings 'tp_django.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/

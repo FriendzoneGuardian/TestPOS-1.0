@@ -122,7 +122,7 @@
                         Golden Ledger (Audit)
                     </a>
                     <a href="{% url 'sales:ancient_aura' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black italic">
-                        <i class="fas fa-skull mr-2 border-none"></i> Ancient Aura
+                        <i class="fas fa-skull mr-2 border-none"></i> Ledger Monitoring
                     </a>
                     {% endif %}
 
@@ -146,7 +146,7 @@
 
                     {% if user.is_manager or user.is_admin %}
                     <a href="{% url 'inventory:aura_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-black italic">
-                        <i class="fas fa-chart-line mr-2"></i> Aura Dashboard
+                        <i class="fas fa-chart-line mr-2"></i> Inventory Analytics
                     </a>
                     {% endif %}
 
