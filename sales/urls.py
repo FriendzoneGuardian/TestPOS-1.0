@@ -14,5 +14,4 @@ urlpatterns = [
     path('vault/', views.vault_manage, name='vault_manage'),
     path('vault/transaction/', views.vault_transaction, name='vault_transaction'),
     path('periodic-reports/', views.periodic_reports, name='periodic_reports'),
-    path('ancient-aura/', views_ancient.ancient_aura, name='ancient_aura'),
 ]
