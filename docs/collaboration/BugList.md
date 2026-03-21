@@ -21,6 +21,8 @@
 | **BUG-14** | Admin Access to Cashier Shifts | ~~**CRUSHED**~~ | Locked `shift_manage` UI/Backend to `role == 'cashier'` strictly. |
 | **BUG-15** | Dash Crash & Invisible Inputs | ~~**CRUSHED**~~ | Fixed missing `timezone` import; replaced `bg-gray-50` with `bg-surface-900`. |
 | **BUG-17** | Inventory Dashboard Syntax Error | ~~**CRUSHED**~~ | Added missing `{% load static %}` to `dashboard.html` to enable product icons. |
+| **BUG-18** | Checkout UnboundLocalError | ~~**CRUSHED**~~ | Fixed customer initialization for cash checkouts. |
+| **BUG-19** | Missing views_ancient/aura breaking tests | ~~**CRUSHED**~~ | Removed dead routes to restore test suite. |
 | **POLISH** | **Inventory UI & Routing** | ~~Missing active states & fields.~~ | **CRUSHED** | Added Price/Status columns, dynamic sidebar active JS, and Search/Filters. |
 
 ![Inventory Dashboard](/c:/Users/franc/.gemini/antigravity/brain/34f8acdd-73e9-4495-8073-030010908933/inventory_dashboard_full_1773639320081.png)

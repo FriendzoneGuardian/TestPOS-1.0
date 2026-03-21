@@ -86,12 +86,11 @@ def checkout(request):
     if payment_method == 'loan' and not customer_id:
         return JsonResponse({'success': False, 'message': 'Select a customer for loan transactions.'}, status=400)
 
+    customer = None
     if customer_id:
         try:
             customer = Customer.objects.get(id=int(customer_id))
-            if payment_method == 'loan' and (customer.outstanding_balance + items_total_placeholder > 1500):
-                # Placeholder for total check, actual check happens after total calculation
-                pass
+            # The placeholder check for total happens below after total is calculated.
         except (Customer.DoesNotExist, ValueError):
             return JsonResponse({'success': False, 'message': 'Customer not found.'}, status=400)
 
@@ -207,7 +206,7 @@ def checkout(request):
     return JsonResponse({'success': True, 'order_id': order.id, 'total': total, 'change': change_given})
 
 @login_required
-@role_required(['cashier', 'manager', 'admin'])
+@role_required(['cashier'])
 @require_POST
 def shift_start(request):
     branch = resolve_branch(request.user)
@@ -241,7 +240,7 @@ def shift_start(request):
     return redirect('core:manager_dashboard')
 
 @login_required
-@role_required(['cashier', 'manager', 'admin'])
+@role_required(['cashier'])
 def shift_preview(request):
     active_shift = get_active_shift(request.user)
     if not active_shift:

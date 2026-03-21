@@ -31,10 +31,18 @@ function isDev() {
 // --- Django Server Management ---
 function getPythonPath() {
     if (isDev()) {
-        return path.join(__dirname, '..', 'venv', 'Scripts', 'python.exe');
+        const isWin = process.platform === "win32";
+        const venvPath = isWin
+            ? path.join(__dirname, '..', 'venv', 'Scripts', 'python.exe')
+            : path.join(__dirname, '..', 'venv', 'bin', 'python');
+
+        const fs = require('fs');
+        if (fs.existsSync(venvPath)) {
+            return venvPath;
+        }
     }
-    // In a packaged build, python would be bundled or on PATH
-    return 'python';
+    // Fallback if venv doesn't exist or in production
+    return process.platform === 'win32' ? 'python' : 'python3';
 }
 
 function startDjango() {
@@ -45,11 +53,14 @@ function startDjango() {
     console.log(`[Electron] Python: ${pythonPath}`);
     console.log(`[Electron] CWD: ${projectRoot}`);
 
+    const isWin = process.platform === 'win32';
+
     djangoProcess = spawn(pythonPath, ['manage.py', 'runserver', `${DJANGO_HOST}:${DJANGO_PORT}`, '--noreload'], {
         cwd: projectRoot,
         stdio: ['ignore', 'pipe', 'pipe'],
-        // On Windows, detach the process so we can kill the tree
-        detached: false,
+        // Detach on Unix to create a process group so we can kill it all.
+        // On Windows, taskkill works via PID, so we don't need detached.
+        detached: !isWin,
     });
 
     djangoProcess.stdout.on('data', (data) => {
@@ -81,7 +92,7 @@ function killDjango() {
             // Windows: taskkill /T kills the entire process tree
             execSync(`taskkill /PID ${djangoProcess.pid} /T /F`, { stdio: 'ignore' });
         } else {
-            // Unix: kill the process group
+            // Unix: kill the process group (works because we set detached: true)
             process.kill(-djangoProcess.pid, 'SIGTERM');
         }
     } catch (err) {

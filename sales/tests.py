@@ -17,6 +17,14 @@ class POSTerminalAccessTests(TestCase):
         self.accounting = User.objects.create_user(username='accounting_test', password='testpassword', role='accounting', branch=self.branch)
         self.client = Client()
 
+    def _force_auth_token(self):
+        # We must insert the boot token manually because the test client skips the normal login flow.
+        # Otherwise the strict BootFlushMiddleware kicks us out with a 302!
+        from core.middleware import BOOT_TOKEN
+        session = self.client.session
+        session['server_boot_token'] = BOOT_TOKEN
+        session.save()
+
     def test_unauthenticated_user_redirect(self):
         # Unauthenticated users should be redirected to login
         response = self.client.get(reverse('sales:terminal'))
@@ -25,22 +33,26 @@ class POSTerminalAccessTests(TestCase):
 
     def test_admin_access_denied(self):
         self.client.login(username='admin_test', password='testpassword')
+        self._force_auth_token()
         response = self.client.get(reverse('sales:terminal'))
         self.assertEqual(response.status_code, 403)
 
     def test_cashier_access(self):
         self.client.login(username='cashier_test', password='testpassword')
+        self._force_auth_token()
         response = self.client.get(reverse('sales:terminal'))
         self.assertEqual(response.status_code, 200)
 
     def test_manager_access_denied(self):
         self.client.login(username='manager_test', password='testpassword')
+        self._force_auth_token()
         response = self.client.get(reverse('sales:terminal'))
         # Should raise PermissionDenied resulting in 403 status
         self.assertEqual(response.status_code, 403)
 
     def test_accounting_access_denied(self):
         self.client.login(username='accounting_test', password='testpassword')
+        self._force_auth_token()
         response = self.client.get(reverse('sales:terminal'))
         self.assertEqual(response.status_code, 403)
 
@@ -50,6 +62,11 @@ class CheckoutPaymentTests(TestCase):
         self.cashier = User.objects.create_user(username='cashier_pay', password='testpassword', role='cashier', branch=self.branch)
         self.client = Client()
         self.client.login(username='cashier_pay', password='testpassword')
+
+        from core.middleware import BOOT_TOKEN
+        session = self.client.session
+        session['server_boot_token'] = BOOT_TOKEN
+        session.save()
 
         self.product = Product.objects.create(name='Espresso', sku='SKU-001', price=10.00, category='Beverage')
         BranchStock.objects.create(branch=self.branch, product=self.product, quantity=50)

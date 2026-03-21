@@ -8,7 +8,7 @@
 
 A dangerously attractive, multi-branch Point of Sale system. She used to be a Flask girl, but she's matured into a **Django** architecture with an incoming **Electron** shell wrapper. We've retained the dark-mode glassmorphism UI, "Puddles" ambient backgrounds, and dynamic role-based color matrices that'll make your registers blush.
 
-**Version:** Beta 1.8 — *Cash tendered, shift-locked, and audit-aware.*
+**Version:** Alpha 2.0.1 — *Routes secured, UI polished, and fully locked down.*
 
 ---
 
@@ -97,12 +97,12 @@ TestPOS-1.0/
 └── README.md
 ```
 
-## 📋 Roadmap — What's Coming Next (Beta 1.9+)
+## 📋 Roadmap — What's Coming Next (Alpha 2.1+)
 
 - [x] 👥 **The Velvet Rope:** Strict In-App User Management (No more Django Admin).
 - [x] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
-- [ ] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
-- [ ] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
+- [x] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
+- [x] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
 - [ ] 🧮 **Alpha 3.0.1 (Planned):** Base-unit inventory with unit conversions (carton/pack/stick) + bundle promos like “3 pcs for ₱5”, audit-safe and cashier-friendly.
 
 ## 🧪 Theme Options (Humor, WIP)
