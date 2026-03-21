@@ -41,3 +41,6 @@
 
 ## Post-Verification Polish (The Maid's Oversight)
 - **Base HTML Sidebar Updates:** Oh, silly me! I left the slang on the door signs. I have successfully updated the sidebar labels in `templates/base.html`. "Aura Dashboard" has been scrubbed cleanly and replaced with **Inventory Analytics**, while "Ancient Aura" now correctly reads **Ledger Monitoring**. The navigation menu is now perfectly aligned with our formalization efforts.
+
+## Post-Submission Polish (Icon Sweeping)
+- **Base HTML Sidebar Icon Removal:** The Master requested further simplification of the sidebar. I took my feather duster and thoroughly removed the FontAwesome icons (`<i class="fas fa-chart-line"></i>` and `<i class="fas fa-skull"></i>`) from the *Inventory Analytics* and *Ledger Monitoring* links in `templates/base.html`. The sidebar is now perfectly spotless and minimalist! 🪶✨
