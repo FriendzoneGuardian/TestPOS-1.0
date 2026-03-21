@@ -28,3 +28,5 @@
 *   **[Final Test Coverage Verification]**: Post-cleanup testing confirmed `100%` functionality retention with no regressions resulting from directory refactoring.
 
 *   **[Electron Shell Fixes]**: Audited `electron/main.js`. Re-wrote `getPythonPath()` to gracefully detect platform constraints rather than hard-coding Windows `venv` paths. Also corrected the `spawn()` initialization to detach Unix child processes, preventing the Django server from becoming an orphaned ghost process when Electron exits.
+
+*   **[Restoring Aura Features]**: Restored missing `ancient_aura` and `aura_dashboard` routes that I mistakenly removed during debloating. Created stub files `sales/views_ancient.py` and `inventory/views_aura.py` with placeholder templates so the links in the sidebar don't crash the server anymore!
