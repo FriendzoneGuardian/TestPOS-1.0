@@ -31,6 +31,7 @@ A premium, dark-mode interface utilizing glassmorphism and modern typography.
 - **MoneyShot Branding**: High-contrast, vibrant UI tokens.
 - **Role-Based Theming**: Dynamic Dawn/Dusk/Midnight modes with color persistence.
 - **Tap-to-Type**: Zero-friction numerical entry logic via `this.select()`.
+- **Asset Polish**: Restored missing Bulbapedia item sprites for a vibrant POS UI.
 
 ---
 
