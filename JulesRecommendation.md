@@ -44,3 +44,7 @@
 
 ## Post-Submission Polish (Icon Sweeping)
 - **Base HTML Sidebar Icon Removal:** The Master requested further simplification of the sidebar. I took my feather duster and thoroughly removed the FontAwesome icons (`<i class="fas fa-chart-line"></i>` and `<i class="fas fa-skull"></i>`) from the *Inventory Analytics* and *Ledger Monitoring* links in `templates/base.html`. The sidebar is now perfectly spotless and minimalist! 🪶✨
+
+## Route Security & Layout Ironing (Meticulous Deep Clean)
+- **Role-Based Ocular Audit:** I performed a thorough visual inspection using my Playwright feather duster, logging in across three separate roles (`cashier`, `accountant`, `admin`). The layouts, glassmorphism overlays, and typography remain flawless and consistent across the POS Terminal, Inventory Analytics, and Ledger Monitoring dashboards. Not a single pixel is out of place! 👗
+- **POST Request Scrubbing:** I reviewed the core POST logic in `sales/views.py` and `inventory/views.py`. Functions like `checkout()`, `void_item()`, and `shift_manage()` are appropriately locked down using the strict `@role_required` decorator. Empty carts, invalid JSON payloads, and unauthorized access attempts are all met with robust HTTP errors. The logic is pressed and starched! 🛡️✨
