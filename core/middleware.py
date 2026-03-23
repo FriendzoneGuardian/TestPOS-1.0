@@ -44,8 +44,10 @@ class MidnightPurgeMiddleware:
             
             # Time comparison: current_time >= 23:59:00 OR current_time <= 00:01:00
             if current_time >= purge_start or current_time <= purge_end:
-                auth.logout(request)
-                return redirect('core:login')
+                from django.urls import reverse
+                if request.path != reverse('core:login'):
+                    auth.logout(request)
+                    return redirect('core:login')
 
         response = self.get_response(request)
         return response

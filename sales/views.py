@@ -31,17 +31,30 @@ def get_active_shift(user):
 @login_required
 @role_required(['cashier'])
 def terminal(request):
-    products = Product.objects.filter(is_active=True).prefetch_related('stock', 'units').order_by('category', 'name')
-    customers = Customer.objects.order_by('name')
     branch = resolve_branch(request.user)
+    
+    # Optimize with Prefetch (BUG-10: N+1 Fix)
+    from django.db.models import Prefetch
+    branch_stock_prefetch = Prefetch(
+        'stock',
+        queryset=BranchStock.objects.filter(branch=branch),
+        to_attr='current_branch_stock'
+    )
+
+    products = Product.objects.filter(is_active=True).prefetch_related(
+        branch_stock_prefetch, 
+        'units'
+    ).order_by('category', 'name')
+    
+    customers = Customer.objects.order_by('name')
     
     categories = []
     for product in products:
         if product.category and product.category not in categories:
             categories.append(product.category)
             
-        # Get stock for current user branch
-        branch_stock = product.stock.filter(branch=branch).first() if branch else None
+        # Optimization: Use pre-fetched branch stock
+        branch_stock = product.current_branch_stock[0] if product.current_branch_stock else None
         product.current_stock = branch_stock.quantity if branch_stock else 0
         product.is_out_of_stock = product.current_stock <= 0
         product.is_low_stock = product.current_stock <= product.reorder_level
