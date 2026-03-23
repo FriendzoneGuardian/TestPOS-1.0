@@ -13,6 +13,9 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 const http = require('http');
 
+// Fixed: Prevent vs-code terminal from forcing Electron into node-only mode
+delete process.env.ELECTRON_RUN_AS_NODE;
+
 // --- Configuration ---
 const DJANGO_HOST = '127.0.0.1';
 const DJANGO_PORT = 8000;

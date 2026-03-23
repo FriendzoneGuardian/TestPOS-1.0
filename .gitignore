@@ -43,3 +43,4 @@ accounts_reference.csv
 tmp/
 !tmp/.gitkeep
 django.log
+material_test/

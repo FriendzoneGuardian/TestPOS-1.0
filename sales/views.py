@@ -5,8 +5,8 @@ from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog, BranchVault, VaultTransaction
-from inventory.models import Product, BranchStock
+from .models import Order, OrderItem, Customer, Shift, VoidLog, StockAuditLog, BranchVault, VaultTransaction, BundlePromotion
+from inventory.models import Product, BranchStock, ProductUnit, StockBatch
 from core.mixins import role_required
 from core.models import Branch
 import json
@@ -31,7 +31,7 @@ def get_active_shift(user):
 @login_required
 @role_required(['cashier'])
 def terminal(request):
-    products = Product.objects.filter(is_active=True).prefetch_related('stock').order_by('category', 'name')
+    products = Product.objects.filter(is_active=True).prefetch_related('stock', 'units').order_by('category', 'name')
     customers = Customer.objects.order_by('name')
     branch = resolve_branch(request.user)
     
@@ -97,7 +97,8 @@ def checkout(request):
     total = 0.0
     total_qty = 0
     item_rows = []
-    
+    product_totals = {}  # Tracking base units for promo triggers
+
     for item in items_data:
         try:
             product = Product.objects.get(id=int(item['product_id']))
@@ -105,21 +106,67 @@ def checkout(request):
             return JsonResponse({'success': False, 'message': f'Product not found.'}, status=400)
         
         qty = int(item['quantity'])
+        unit_id = item.get('unit_id')
+        multiplier = 1
+        unit_price = product.price
+        unit = None # Default to no packaging (base unit)
+
+        if unit_id and unit_id != 'base':
+            try:
+                unit = ProductUnit.objects.get(id=int(unit_id), product=product)
+                multiplier = unit.multiplier
+                unit_price = unit.get_price()
+            except (ProductUnit.DoesNotExist, ValueError, TypeError):
+                unit = None
+
         if qty <= 0:
             return JsonResponse({'success': False, 'message': f'Invalid quantity for {product.name}.'}, status=400)
             
-        total_qty += qty
+        deduction_qty = qty * multiplier
+        total_qty += deduction_qty
         if total_qty > 1000:
             return JsonResponse({'success': False, 'message': 'Order exceeds maximum item limit (1000).'}, status=400)
 
+        # Track product totals for promo triggers (base units)
+        product_totals[product.id] = product_totals.get(product.id, 0) + deduction_qty
+
         # Get stock for the user's branch
-        # We still use BranchStock for a quick total check, but deduction happens via batches
         stock = BranchStock.objects.select_for_update().filter(branch=branch, product=product).first()
         
-        if not stock or stock.quantity < qty:
+        if not stock or stock.quantity < deduction_qty:
             return JsonResponse({'success': False, 'message': f'Insufficient stock for {product.name}.'}, status=400)
-        total += product.price * qty
-        item_rows.append((product, qty, stock))
+        
+        total += unit_price * qty
+        item_rows.append({
+            'product': product, 
+            'base_qty': deduction_qty, 
+            'unit_price': unit_price, 
+            'unit_count': qty,
+            'multiplier': multiplier,
+            'stock': stock,
+            'unit': unit, 
+        })
+
+    # PROMO CHECK: Automate Freebie Rewards (Poké Mart Rules)
+    for p_id, p_qty in product_totals.items():
+        promos = BundlePromotion.objects.filter(trigger_product_id=p_id, promo_type='freebie', is_active=True)
+        for promo in promos:
+            if p_qty >= promo.trigger_quantity:
+                bonus_count = (p_qty // promo.trigger_quantity) * promo.bonus_qty
+                bonus_product = promo.bonus_product
+                
+                # Verify freebie exists and has stock
+                b_stock = BranchStock.objects.select_for_update().filter(branch=branch, product=bonus_product).first()
+                if b_stock and b_stock.quantity >= bonus_count:
+                    item_rows.append({
+                        'product': bonus_product, 
+                        'base_qty': bonus_count, 
+                        'unit_price': 0.0, 
+                        'unit_count': bonus_count,
+                        'multiplier': 1,
+                        'stock': b_stock,
+                        'unit': None
+                    })
 
     if total > 50000.00:
         return JsonResponse({'success': False, 'message': 'Order exceeds maximum transaction total (₱50,000.00).'}, status=400)
@@ -151,11 +198,19 @@ def checkout(request):
         change_given=change_given
     )
 
-    from inventory.models import StockBatch
-    for product, qty, stock in item_rows:
+    for row in item_rows:
+        product = row['product']
+        base_qty = row['base_qty']
+        unit_price = row['unit_price']
+        multiplier = row['multiplier']
+        stock = row['stock']
+        unit = row['unit']
         
+        # Calculate price per base unit for snapping
+        price_per_piece = unit_price / multiplier if multiplier > 0 else 0
+
         # FIFO Deduction Logic
-        remaining_to_deduct = qty
+        remaining_to_deduct = base_qty
         batches = StockBatch.objects.select_for_update().filter(
             product=product, 
             branch=branch, 
@@ -169,31 +224,27 @@ def checkout(request):
             
             deduction = min(batch.quantity, remaining_to_deduct)
             
-            # Snap COGSchamp: Store the unit cost for this specific item
             OrderItem.objects.create(
                 order=order,
                 product=product,
+                unit=unit,
                 quantity=deduction,
-                price_at_time=product.price,
+                price_at_time=price_per_piece,
                 cost_at_time=batch.unit_cost
             )
-
+            
             batch.quantity -= deduction
             batch.save()
             remaining_to_deduct -= deduction
 
-        # Fallback: if somehow batches didn't cover it (consistency check)
-        # We already checked total BranchStock.quantity, so this shouldn't happen 
-        # unless manual Batch deletions occurred without updating BranchStock.
-
-        stock.quantity -= qty
+        stock.quantity -= base_qty
         stock.save()
 
         StockAuditLog.objects.create(
             product=product,
             branch=branch,
             user=request.user,
-            quantity_change=-qty,
+            quantity_change=-base_qty,
             reason='sale',
             order=order
         )

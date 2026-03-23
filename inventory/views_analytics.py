@@ -7,8 +7,15 @@ from sales.models import OrderItem, Order
 @login_required
 @role_required(['admin', 'manager'])
 def analytics_dashboard(request):
+    # Resolve branch and filter by it if not admin
+    from sales.views import resolve_branch
+    branch = resolve_branch(request.user)
+    
     # Only calculate from completed orders
     completed_orders = Order.objects.filter(status='completed')
+    
+    if not request.user.is_superuser:
+        completed_orders = completed_orders.filter(branch=branch)
 
     # Calculate Total Revenue
     total_revenue = completed_orders.aggregate(
@@ -16,10 +23,15 @@ def analytics_dashboard(request):
     )['total'] or 0.0
 
     # Calculate Total COGS from active items in completed orders
-    total_cost = OrderItem.objects.filter(
+    items_query = OrderItem.objects.filter(
         order__status='completed',
         status='active'
-    ).aggregate(
+    )
+    
+    if not request.user.is_superuser:
+        items_query = items_query.filter(order__branch=branch)
+
+    total_cost = items_query.aggregate(
         total=Sum(F('cost_at_time') * F('quantity'))
     )['total'] or 0.0
 

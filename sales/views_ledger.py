@@ -8,11 +8,16 @@ from django.db.models import Max
 @login_required
 @role_required(['admin', 'accounting'])
 def ledger_monitoring(request):
-    # Replaced slang with professional view names
+    # Resolve branch and filter by it if not admin
+    from sales.views import resolve_branch
+    branch = resolve_branch(request.user)
 
     customers_with_debt = Customer.objects.filter(outstanding_balance__gt=0).annotate(
         last_active=Max('orders__order_date')
     )
+    
+    if not request.user.is_superuser:
+        customers_with_debt = customers_with_debt.filter(orders__branch=branch).distinct()
 
     now = timezone.now()
     fresh = []

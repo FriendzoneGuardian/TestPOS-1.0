@@ -76,7 +76,28 @@
 
                 <p class="text-sm font-medium text-gray-200 truncate">{{ product.name }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">{{ product.category|default:"General" }}</p>
-                <p class="text-sm font-bold text-primary-400 mt-2">₱{{ product.price|stringformat:".2f" }}</p>
+                
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-sm font-bold text-primary-400">₱{{ product.price|stringformat:".2f" }}</p>
+                    {% if not product.units.all %}
+                    <div class="px-2 py-0.5 rounded bg-surface-700 text-[10px] text-gray-400 border border-gray-600">Base</div>
+                    {% endif %}
+                </div>
+
+                {% if product.units.all %}
+                <div class="mt-3 flex flex-wrap gap-1">
+                    <button onclick="event.stopPropagation(); addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.current_stock }})"
+                        class="flex-1 px-2 py-1 rounded bg-surface-700 text-[10px] text-white hover:bg-primary-500 transition-all border border-gray-600">
+                        Base
+                    </button>
+                    {% for unit in product.units.all %}
+                    <button onclick="event.stopPropagation(); addToCart({{ product.id }}, '{{ product.name }} ({{ unit.unit_name }})', {{ unit.get_price }}, {{ product.current_stock }}, {{ unit.id }}, {{ unit.multiplier }})"
+                        class="flex-1 px-2 py-1 rounded bg-primary-500/20 text-[10px] text-primary-400 border border-primary-500/30 hover:bg-primary-500 hover:text-white transition-all">
+                        {{ unit.unit_name }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </button>
             {% endfor %}
         </div>
@@ -298,21 +319,34 @@
     const container = document.getElementById('cart-items');
     const btn = document.getElementById('checkout-btn');
 
-    function addToCart(productId, name, price, stock) {
+    function addToCart(productId, name, price, stock, unitId = null, multiplier = 1) {
         if (stock <= 0) {
             showToast('Inventory Alert', 'Cannot add out-of-stock item.', 'warning');
             return;
         }
 
-        const existing = cart.find(i => i.product_id === productId);
+        const existing = cart.find(i => i.product_id === productId && i.unit_id === unitId);
         if (existing) {
-            if (existing.quantity >= stock) {
+            const totalBaseQty = (existing.quantity + 1) * multiplier;
+            if (totalBaseQty > stock) {
                 showToast('Inventory Alert', 'Maximum available stock reached.', 'warning');
                 return;
             }
             existing.quantity++;
         } else {
-            cart.push({ product_id: productId, name: name, price: price, quantity: 1, stock: stock });
+            if (multiplier > stock) {
+                showToast('Inventory Alert', 'Insufficient stock for this unit.', 'warning');
+                return;
+            }
+            cart.push({ 
+                product_id: productId, 
+                name: name, 
+                price: price, 
+                quantity: 1, 
+                stock: stock,
+                unit_id: unitId,
+                multiplier: multiplier
+            });
         }
         renderCart();
     }
@@ -325,8 +359,9 @@
     function updateQty(index, delta) {
         const item = cart[index];
         const newQty = item.quantity + delta;
+        const multiplier = item.multiplier || 1;
         
-        if (newQty > item.stock) {
+        if (newQty * multiplier > item.stock) {
             showToast('Inventory Alert', 'Maximum available stock reached.', 'warning');
             return;
         }

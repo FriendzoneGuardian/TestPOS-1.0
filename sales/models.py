@@ -79,6 +79,7 @@ class OrderItem(models.Model):
     ]
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
+    unit = models.ForeignKey('inventory.ProductUnit', on_delete=models.SET_NULL, null=True, blank=True) # Selected packaging (Box/Pack)
     quantity = models.IntegerField(default=1)
     price_at_time = models.FloatField()
     cost_at_time = models.FloatField(default=0.0)  # Snapshotted COGSchamp
@@ -133,3 +134,25 @@ class VaultTransaction(models.Model):
 
     def __str__(self):
         return f'{self.transaction_type}  ({self.reason})'
+
+
+class BundlePromotion(models.Model):
+    PROMO_TYPES = [
+        ('discount', 'Discounted Price'),
+        ('freebie', 'Free Product Bonus'),
+    ]
+    trigger_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='promotions')
+    trigger_quantity = models.PositiveIntegerField(default=1)
+    promo_type = models.CharField(max_length=20, choices=PROMO_TYPES, default='discount')
+    
+    # For 'discount' type
+    promo_price = models.FloatField(null=True, blank=True)
+    
+    # For 'freebie' type
+    bonus_product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='bonus_promos')
+    bonus_qty = models.PositiveIntegerField(default=1)
+    
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Promo: {self.trigger_product.name} ({self.promo_type})"
