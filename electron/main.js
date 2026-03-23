@@ -134,10 +134,10 @@ function waitForServer(attempt = 0) {
 // --- Window Creation ---
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 1280,
-        height: 860,
-        minWidth: 1024,
-        minHeight: 700,
+        width: 1440,
+        height: 810, // Strict 16:9 ratio
+        resizable: false, // Locked Resolution
+        fullscreenable: false, // Prevent OS-level maximizing
         backgroundColor: '#020617', // Slate 950
         show: false, // Don't show until content is loaded
         webPreferences: {

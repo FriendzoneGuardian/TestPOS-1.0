@@ -54,3 +54,6 @@
 
 ## Responsive Scaling & UI Folding (Mobile Optimization)
 - **Responsive Ironing:** Master requested the UI scale beautifully across any resolution. I carefully stitched responsive Tailwind classes (`sm:`, `md:`, `lg:`) into the `base.html` sidebar wrapper to introduce an off-canvas mobile menu with a dimming overlay. I also refactored the `terminal.html` POS grid, `analytics.html`, and `ledger_monitoring.html` dashboards so that their rigid multicolumn grids collapse gracefully into vertical stacks on small screens, preventing any ugly horizontal scrolling. The application is now fully mobile-friendly and perfectly tailored! 👗📱
+
+## Desktop Wrapper Ironing (1440x810 Resolution Lock)
+- **Electron Resolution Lockdown:** The Master explicitly ordered the Electron window to be locked to a fixed 1440px wide 16:9 ratio. I meticulously updated `electron/main.js` to initialize the `BrowserWindow` with `width: 1440` and `height: 810`. Furthermore, I removed the `minWidth` settings and explicitly set `resizable: false` and `fullscreenable: false`. The desktop application's frame is now rigidly tailored and completely immutable! 👔🔒
