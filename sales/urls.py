@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from . import views_ancient
+from . import views_ledger
 
 app_name = 'sales'
 
@@ -15,5 +15,5 @@ urlpatterns = [
     path('vault/', views.vault_manage, name='vault_manage'),
     path('vault/transaction/', views.vault_transaction, name='vault_transaction'),
     path('periodic-reports/', views.periodic_reports, name='periodic_reports'),
-    path('ancient-aura/', views_ancient.ancient_aura, name='ancient_aura'),
+    path('ledger-monitoring/', views_ledger.ledger_monitoring, name='ledger_monitoring'),
 ]

@@ -3,8 +3,8 @@
 {% block content %}
 <div class="px-6 py-8">
     <div class="mb-8">
-        <h1 class="text-4xl font-black text-white tracking-tighter uppercase italic">Ledger <span class="text-rose-500">Monitoring</span></h1>
-        <p class="text-gray-400 font-medium tracking-wide">Customer Liability & <span class="text-rose-400 font-bold uppercase tracking-widest text-xs ml-1">Debt Aging</span></p>
+        <h1 class="text-4xl font-black tracking-tighter uppercase italic card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
+        <p class="font-medium tracking-wide opacity-80 card-value">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-xs ml-1">Debt Aging</span></p>
     </div>
 
     <!-- Aging Buckets -->
@@ -19,10 +19,10 @@
             {% for item in fresh %}
             <div class="glass-card p-5 border-emerald-500/20">
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
-                    <span class="text-sm font-black text-emerald-400 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                    <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="text-sm font-black text-emerald-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
-                <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black tracking-widest mt-4">
+                <div class="flex justify-between text-[10px] opacity-70 uppercase font-black tracking-widest mt-4">
                     <span>{{ item.days }} Days Active</span>
                     <span>Last active: {{ item.last_active|date:"M d" }}</span>
                 </div>
@@ -41,10 +41,10 @@
             {% for item in stale %}
             <div class="glass-card p-5 border-amber-500/20">
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
-                    <span class="text-sm font-black text-amber-400 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                    <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="text-sm font-black text-amber-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
-                <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black tracking-widest mt-4">
+                <div class="flex justify-between text-[10px] opacity-70 uppercase font-black tracking-widest mt-4">
                     <span>{{ item.days }} Days Past Due</span>
                     <span>Last active: {{ item.last_active|date:"M d" }}</span>
                 </div>
@@ -63,7 +63,7 @@
             {% for item in ancient %}
             <div class="glass-card p-5 border-rose-500/30 bg-rose-500/5">
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-black text-white uppercase tracking-tight">{{ item.name }}</span>
+                    <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
                     <span class="text-sm font-black text-rose-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] text-rose-500 uppercase font-black tracking-widest mt-4">
@@ -80,11 +80,28 @@
 </div>
 
 <style>
+    /* Light Mode Basics */
     .glass-card {
-        background: rgba(23, 23, 23, 0.6);
+        background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         border-radius: 1.5rem;
+        color: #111827;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .card-value { color: #111827; }
+
+    /* Implicit Dark Mode Targeting for The MoneyShot app styling */
+    body[data-theme="dark"] .glass-card,
+    .dark .glass-card,
+    @media (prefers-color-scheme: dark) {
+        .glass-card {
+            background: rgba(23, 23, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            box-shadow: none;
+        }
+        .card-value { color: #ffffff; }
     }
 </style>
 {% endblock %}

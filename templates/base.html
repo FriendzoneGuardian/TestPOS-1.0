@@ -113,7 +113,13 @@
 
                     {% if user.role == 'admin' or user.role == 'manager' or user.role == 'accounting' %}
                     <a href="{% url 'inventory:dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
-                        Inventory Dashboard
+                        Inventory Management
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_manager or user.is_admin %}
+                    <a href="{% url 'inventory:analytics' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold ml-4">
+                        ↳ Inventory Analytics
                     </a>
                     {% endif %}
 
@@ -121,8 +127,8 @@
                     <a href="{% url 'core:accounting_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400">
                         Golden Ledger (Audit)
                     </a>
-                    <a href="{% url 'sales:ancient_aura' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black italic">
-                        Ledger Monitoring
+                    <a href="{% url 'sales:ledger_monitoring' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black italic">
+                        ↳ Ledger Monitoring
                     </a>
                     {% endif %}
 
@@ -141,12 +147,6 @@
                     {% if user.is_accounting or user.is_admin %}
                     <a href="{% url 'sales:periodic_reports' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
                         Periodic Reports
-                    </a>
-                    {% endif %}
-
-                    {% if user.is_manager or user.is_admin %}
-                    <a href="{% url 'inventory:aura_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-black italic">
-                        Inventory Analytics
                     </a>
                     {% endif %}
 

@@ -6,7 +6,7 @@ from sales.models import OrderItem, Order
 
 @login_required
 @role_required(['admin', 'manager'])
-def aura_dashboard(request):
+def analytics_dashboard(request):
     # Only calculate from completed orders
     completed_orders = Order.objects.filter(status='completed')
 
@@ -38,4 +38,4 @@ def aura_dashboard(request):
         'profit_margin': profit_margin,
     }
 
-    return render(request, 'inventory/aura_dashboard.html', context)
+    return render(request, 'inventory/analytics.html', context)

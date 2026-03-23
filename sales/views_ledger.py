@@ -7,8 +7,8 @@ from django.db.models import Max
 
 @login_required
 @role_required(['admin', 'accounting'])
-def ancient_aura(request):
-    # Rename variables in python context, but keep function signature for now so URL routing doesn't break entirely if someone has a bookmark
+def ledger_monitoring(request):
+    # Replaced slang with professional view names
 
     customers_with_debt = Customer.objects.filter(outstanding_balance__gt=0).annotate(
         last_active=Max('orders__order_date')
@@ -48,4 +48,4 @@ def ancient_aura(request):
         'ancient': ancient
     }
 
-    return render(request, 'sales/ancient_aura.html', context)
+    return render(request, 'sales/ledger_monitoring.html', context)
