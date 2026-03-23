@@ -354,6 +354,33 @@
     {% endif %}
     <script src="{% static 'js/flowbite.min.js' %}"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile Sidebar Toggle Logic
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+
+            if (mobileMenuBtn && sidebar && mobileOverlay) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    mobileOverlay.classList.remove('hidden');
+                    setTimeout(() => mobileOverlay.classList.remove('opacity-0'), 10);
+                });
+            }
+
+            function closeSidebar() {
+                if (sidebar && mobileOverlay) {
+                    sidebar.classList.add('-translate-x-full');
+                    mobileOverlay.classList.add('opacity-0');
+                    setTimeout(() => mobileOverlay.classList.add('hidden'), 300);
+                }
+            }
+
+            if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+            if (mobileOverlay) mobileOverlay.addEventListener('click', closeSidebar);
+        });
+
         (function initLowStockModal() {
             const lowStockCount = {{ low_stock_count|default:0 }};
             const userId = "{{ user.id|default:'' }}";

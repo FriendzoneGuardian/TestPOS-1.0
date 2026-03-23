@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="px-6 py-8">
-    <div class="mb-8">
-        <h1 class="text-4xl font-black tracking-tighter uppercase italic card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
-        <p class="font-medium tracking-wide opacity-80 card-value">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-xs ml-1">Debt Aging</span></p>
+<div class="px-4 sm:px-6 py-6 sm:py-8">
+    <div class="mb-6 sm:mb-8 text-center sm:text-left">
+        <h1 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase italic card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
+        <p class="font-medium tracking-wide opacity-80 card-value text-sm sm:text-base mt-1 sm:mt-0">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs ml-1">Debt Aging</span></p>
     </div>
 
     <!-- Aging Buckets -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         
         <!-- Current (0-15 Days) -->
         <div class="space-y-4">
