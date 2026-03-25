@@ -16,16 +16,30 @@
     {% endif %}
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 fade-in">
+<div class="grid grid-cols-4 gap-6 mb-8 fade-in">
     <!-- Stat Cards -->
-    <div class="glass-card rounded-xl p-6 border-t-4 border-primary-500">
-        <h3 class="text-gray-400 text-sm font-medium mb-1">Total Unique SKUs</h3>
-        <p class="text-3xl font-bold text-gray-100">{{ products|length }}</p>
+    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card rounded-2xl p-6 border-t-4 border-indigo-500 shadow-xl">
+        <div class="flex items-center justify-between mb-2 text-indigo-400">
+            <h3 class="text-[10px] font-black uppercase tracking-widest">Active SKUs</h3>
+            <i class="fas fa-barcode text-lg"></i>
+        </div>
+        <p class="text-3xl font-black text-white tracking-tighter">{{ products|length }}</p>
     </div>
     
-    <div class="glass-card rounded-xl p-6 border-t-4 border-amber-500">
-        <h3 class="text-gray-400 text-sm font-medium mb-1">Low Stock Alerts</h3>
-        <p class="text-3xl font-bold text-gray-100">{{ low_stock_count|default:0 }}</p>
+    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card rounded-2xl p-6 border-t-4 border-red-500 shadow-xl">
+        <div class="flex items-center justify-between mb-2 text-red-400">
+            <h3 class="text-[10px] font-black uppercase tracking-widest">Critical Stock</h3>
+            <i class="fas fa-exclamation-circle text-lg"></i>
+        </div>
+        <p class="text-3xl font-black text-white tracking-tighter">{{ low_stock_count|default:0 }}</p>
+    </div>
+
+    <!-- Reserved slots for future cross-branch metrics -->
+    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card rounded-2xl p-6 border-t-4 border-gray-800 opacity-50 flex items-center justify-center">
+        <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest italic">Branch Analysis</span>
+    </div>
+    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card rounded-2xl p-6 border-t-4 border-gray-800 opacity-50 flex items-center justify-center">
+        <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest italic">Inventory Velocity</span>
     </div>
 </div>
 
@@ -106,7 +120,7 @@
                     </td>
                     <td class="px-6 py-4 text-right space-x-4">
                         {% if user.role == 'admin' or user.role == 'manager' %}
-                        <button onclick="openRestockModal({{ product.id }}, '{{ product.name }}')" class="text-emerald-400 hover:text-emerald-300 transition-colors" title="Restock">
+                        <button onclick="openRestockModal({{ product.id }}, '{{ product.name|escapejs }}')" class="text-emerald-400 hover:text-emerald-300 transition-colors" title="Restock">
                             <i class="fas fa-plus-circle"></i> Restock
                         </button>
                         <a href="{% url 'inventory:edit_product' product.pk %}" class="text-primary-400 hover:text-primary-300 transition-colors" title="Edit">

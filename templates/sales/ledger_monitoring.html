@@ -3,7 +3,7 @@
 {% block content %}
 <div class="px-4 sm:px-6 py-6 sm:py-8">
     <div class="mb-6 sm:mb-8 text-center sm:text-left">
-        <h1 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase italic card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
+        <h1 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
         <p class="font-medium tracking-wide opacity-80 card-value text-sm sm:text-base mt-1 sm:mt-0">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs ml-1">Debt Aging</span></p>
     </div>
 
@@ -13,14 +13,14 @@
         <!-- Current (0-15 Days) -->
         <div class="space-y-4">
             <div class="flex justify-between items-center px-2">
-                <h3 class="text-xs font-black text-emerald-500 uppercase tracking-widest italic">Current (0-15 Days)</h3>
+                <h3 class="text-xs font-black text-emerald-500 uppercase tracking-widest">Current (0-15 Days)</h3>
                 <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">{{ fresh|length }} Customers</span>
             </div>
             {% for item in fresh %}
             <div class="glass-card p-5 border-emerald-500/20">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
-                    <span class="text-sm font-black text-emerald-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                    <span class="text-sm font-black text-emerald-500 font-mono">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] opacity-70 uppercase font-black tracking-widest mt-4">
                     <span>{{ item.days }} Days Active</span>
@@ -35,14 +35,14 @@
         <!-- Past Due (16-30 Days) -->
         <div class="space-y-4">
             <div class="flex justify-between items-center px-2">
-                <h3 class="text-xs font-black text-amber-500 uppercase tracking-widest italic">Past Due (16-30 Days)</h3>
+                <h3 class="text-xs font-black text-amber-500 uppercase tracking-widest">Past Due (16-30 Days)</h3>
                 <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">{{ stale|length }} Customers</span>
             </div>
             {% for item in stale %}
             <div class="glass-card p-5 border-amber-500/20">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
-                    <span class="text-sm font-black text-amber-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                    <span class="text-sm font-black text-amber-500 font-mono">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] opacity-70 uppercase font-black tracking-widest mt-4">
                     <span>{{ item.days }} Days Past Due</span>
@@ -57,14 +57,14 @@
         <!-- Delinquent (31+ Days) -->
         <div class="space-y-4">
             <div class="flex justify-between items-center px-2">
-                <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest italic text-rose-500 animate-pulse">Delinquent (31+ Days)</h3>
+                <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest text-rose-500 animate-pulse">Delinquent (31+ Days)</h3>
                 <span class="text-[10px] text-gray-500 font-bold px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">{{ ancient|length }} Customers</span>
             </div>
             {% for item in ancient %}
             <div class="glass-card p-5 border-rose-500/30 bg-rose-500/5">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-black card-value uppercase tracking-tight">{{ item.name }}</span>
-                    <span class="text-sm font-black text-rose-500 font-mono italic">₱{{ item.balance|floatformat:2 }}</span>
+                    <span class="text-sm font-black text-rose-500 font-mono">₱{{ item.balance|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between text-[10px] text-rose-500 uppercase font-black tracking-widest mt-4">
                     <span>{{ item.days }} Days Delinquent (CRITICAL)</span>

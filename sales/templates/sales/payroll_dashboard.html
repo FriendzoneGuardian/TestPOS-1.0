@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Payroll Forensics - TheMoneyShot{% endblock %}
+
+{% block content %}
+<div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div>
+        <h1 class="text-4xl font-black text-white uppercase tracking-tighter mb-2">Payroll <span class="text-primary-500">Forensics</span></h1>
+        <p class="text-gray-400 text-sm font-medium flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
+            Internal Debt Settlement Engine — <span class="text-gray-200">The Salary Squeeze</span>
+        </p>
+    </div>
+    <div class="flex items-center gap-4">
+        <button onclick="bulkSettle()" class="px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-red-500/20 active:scale-95">
+            Bulk Settlement (Clear All)
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-4 gap-6 mb-10">
+    <!-- Row 1: Employee Debt Grid -->
+    {% for emp in employees %}
+    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card rounded-[2rem] p-6 relative overflow-hidden group hover:border-primary-500/30 transition-all duration-500">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        
+        <div class="relative z-10">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-surface-900 rounded-2xl flex items-center justify-center text-gray-400 border border-gray-800">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-white uppercase">{{ emp.username }}</h3>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ emp.role|default:"Personnel" }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-surface-900/50 rounded-2xl border border-gray-800/50">
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Outstanding Debt</span>
+                    <p class="text-2xl font-black text-white tracking-tighter">₱{{ emp.linked_customer.outstanding_balance|stringformat:".2f" }}</p>
+                </div>
+
+                <button onclick="settleDebt({{ emp.id }}, '{{ emp.username }}', {{ emp.linked_customer.outstanding_balance }})" 
+                    class="w-full py-3 rounded-xl bg-primary-500/10 hover:bg-primary-500 text-primary-400 hover:text-white border border-primary-500/20 text-[10px] font-black uppercase tracking-widest transition-all
+                    {% if emp.linked_customer.outstanding_balance <= 0 %}opacity-30 cursor-not-allowed grayscale{% endif %}"
+                    {% if emp.linked_customer.outstanding_balance <= 0 %}disabled{% endif %}>
+                    Settle Account
+                </button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-4 py-20 text-center">
+        <div class="w-20 h-20 bg-surface-800 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-gray-700 opacity-20">
+            <i class="fas fa-ghost text-3xl text-gray-400"></i>
+        </div>
+        <p class="text-gray-500 font-bold uppercase text-xs tracking-[0.3em]">No linked internal accounts found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Settle Confirmation Modal -->
+<div id="settle-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-slate-950/90 backdrop-blur-md">
+    <div class="glass-card p-10 rounded-3xl max-w-md w-full mx-4 space-y-8 border-primary-500/30 shadow-2xl">
+        <div class="text-center">
+            <h2 class="text-3xl font-black text-white uppercase tracking-tight">Confirm Squeeze</h2>
+            <p id="modal-desc" class="text-gray-400 mt-2 text-sm italic">This action will deduct from the employee's payroll.</p>
+        </div>
+
+        <div class="p-6 bg-surface-900 border border-gray-800 rounded-2xl text-center">
+            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Settlement Amount</span>
+            <p id="modal-amount" class="text-4xl font-black text-primary-400 tracking-tighter mt-1">₱0.00</p>
+        </div>
+
+        <div class="flex gap-4">
+            <button onclick="closeModal()" class="flex-1 py-4 rounded-2xl bg-surface-800 hover:bg-surface-700 text-gray-400 font-bold uppercase tracking-widest text-xs transition-all">
+                Abort
+            </button>
+            <button id="confirm-btn" onclick="executeSettle()" class="flex-1 py-4 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary-500/20">
+                Execute
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activeUser = null;
+
+    function settleDebt(userId, name, amount) {
+        activeUser = userId;
+        document.getElementById('modal-amount').textContent = '₱' + amount.toFixed(2);
+        document.getElementById('modal-desc').textContent = `Settling outstanding balance for ${name} via internal payroll deduction.`;
+        document.getElementById('settle-modal').classList.remove('hidden');
+        document.getElementById('settle-modal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('settle-modal').classList.add('hidden');
+        document.getElementById('settle-modal').classList.remove('flex');
+    }
+
+    function executeSettle() {
+        if (!activeUser) return;
+        
+        fetch(`/sales/payroll/settle/${activeUser}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function bulkSettle() {
+        if (!confirm('CAUTION: This will clear ALL internal outstanding debts via bulk payroll deduction. Proceed?')) return;
+        
+        fetch('/sales/payroll/bulk-settle/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

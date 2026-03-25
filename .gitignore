@@ -40,6 +40,7 @@ static/assets/items/
 
 # Local Reference Data
 accounts_reference.csv
+credentials.csv
 tmp/
 !tmp/.gitkeep
 django.log

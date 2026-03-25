@@ -7,6 +7,7 @@ class Customer(models.Model):
     name = models.CharField(max_length=150)
     contact = models.CharField(max_length=150, null=True, blank=True)
     outstanding_balance = models.FloatField(default=0.0)
+    credit_limit = models.FloatField(default=1500.0) # "The Rizz Limit"
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -156,3 +157,15 @@ class BundlePromotion(models.Model):
 
     def __str__(self):
         return f"Promo: {self.trigger_product.name} ({self.promo_type})"
+
+class PayrollDeduction(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payroll_deductions')
+    amount = models.FloatField()
+    deduction_date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(default="Monthly Internal Debt Settlement")
+    
+    # Links back to the customer profile that was settled
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Deduction for {self.user.username} - ₱{self.amount:.2f}"

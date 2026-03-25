@@ -2,6 +2,9 @@
 module.exports = {
   content: [
     './templates/**/*.html',
+    './core/templates/**/*.html',
+    './inventory/templates/**/*.html',
+    './sales/templates/**/*.html',
     './node_modules/flowbite/**/*.js',
   ],
   darkMode: 'class',

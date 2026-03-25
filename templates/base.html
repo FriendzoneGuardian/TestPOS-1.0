@@ -125,9 +125,9 @@
 
                     {% if user.is_accounting or user.is_admin %}
                     <a href="{% url 'core:accounting_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400">
-                        Golden Ledger (Audit)
+                        Financial Forensics
                     </a>
-                    <a href="{% url 'sales:ledger_monitoring' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black italic">
+                    <a href="{% url 'sales:ledger_monitoring' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black">
                         ↳ Ledger Monitoring
                     </a>
                     {% endif %}
@@ -153,6 +153,11 @@
                     {% if user.role|lower == 'cashier' %}
                     <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
                         POS Terminal
+                    </a>
+                    {% endif %}
+                    {% if user.role == 'admin' or user.role == 'manager' %}
+                    <a href="{% url 'sales:payroll_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold">
+                        Payroll Forensics
                     </a>
                     {% endif %}
                 </nav>

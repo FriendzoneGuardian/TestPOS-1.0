@@ -18,11 +18,10 @@
     </div>
 </div>
 
-<!-- 1x4 Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+<div class="grid grid-cols-4 gap-6 mb-10">
     
-    <!-- Sales Card -->
-    <div class="glass-card rounded-[2rem] p-5 relative overflow-hidden group hover:border-primary-400/50 transition-all duration-500 fade-in shadow-xl hover:shadow-primary-500/10" style="animation-delay: 0.1s;">
+    <!-- Row 1: Primary Stats (1x1 each at lg) -->
+    <div class="col-span-4 md:col-span-2 lg:col-span-1 glass-card rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-primary-400/50 transition-all duration-500 shadow-xl">
         <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="flex items-center gap-4 relative z-10">
             <div class="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-400 border border-primary-500/20 group-hover:scale-110 transition-transform">
@@ -36,8 +35,7 @@
         </div>
     </div>
 
-    <!-- Transactions Card -->
-    <div class="glass-card rounded-[2rem] p-5 relative overflow-hidden group hover:border-indigo-400/50 transition-all duration-500 fade-in shadow-xl hover:shadow-indigo-500/10" style="animation-delay: 0.2s;">
+    <div class="col-span-4 md:col-span-2 lg:col-span-1 glass-card rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-indigo-400/50 transition-all duration-500 shadow-xl">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="flex items-center gap-4 relative z-10">
             <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/20 group-hover:scale-110 transition-transform">
@@ -46,13 +44,12 @@
             <div class="min-w-0">
                 <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-0.5 truncate">Volume</h3>
                 <p class="text-2xl font-black text-white tracking-tighter truncate">{{ transactions_today }}</p>
-                <span class="text-[9px] font-bold text-indigo-400/80 uppercase">Live Syncing</span>
+                <span class="text-[9px] font-bold text-indigo-400/80 uppercase tracking-widest">Tracking</span>
             </div>
         </div>
     </div>
 
-    <!-- Personnel Card -->
-    <div class="glass-card rounded-[2rem] p-5 relative overflow-hidden group hover:border-emerald-400/50 transition-all duration-500 fade-in shadow-xl hover:shadow-emerald-500/10" style="animation-delay: 0.3s;">
+    <div class="col-span-4 md:col-span-2 lg:col-span-1 glass-card rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-emerald-400/50 transition-all duration-500 shadow-xl">
         <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="flex items-center gap-4 relative z-10">
             <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform">
@@ -61,19 +58,12 @@
             <div class="min-w-0">
                 <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-0.5 truncate">Personnel</h3>
                 <p class="text-2xl font-black text-white tracking-tighter truncate">{{ recent_shifts|length }}</p>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                    <span class="flex h-2 w-2 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-[9px] font-bold text-emerald-400 uppercase">Live</span>
-                </div>
+                <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
             </div>
         </div>
     </div>
 
-    <!-- Inventory Card -->
-    <div class="glass-card rounded-[2rem] p-5 relative overflow-hidden group hover:border-amber-400/50 transition-all duration-500 fade-in shadow-xl hover:shadow-amber-500/10" style="animation-delay: 0.4s;">
+    <div class="col-span-4 md:col-span-2 lg:col-span-1 glass-card rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-amber-400/50 transition-all duration-500 shadow-xl">
         <div class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="flex items-center gap-4 relative z-10">
             <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
@@ -82,37 +72,34 @@
             <div class="min-w-0">
                 <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-0.5 truncate">Stock Alert</h3>
                 <p class="text-2xl font-black text-white tracking-tighter truncate">{{ low_stock_count|default:0 }}</p>
-                <a href="{% url 'inventory:dashboard' %}" class="text-[9px] font-black text-amber-400 uppercase underline decoration-amber-500/30 hover:decoration-amber-400 transition-all">Stock View</a>
+                <a href="{% url 'inventory:dashboard' %}" class="text-[9px] font-black text-amber-400 uppercase">View Items</a>
             </div>
         </div>
     </div>
 
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Recent Transactions -->
-    <div class="lg:col-span-2 space-y-4">
+    <!-- Row 2: Transactions + Sidebar -->
+    <div class="col-span-1 lg:col-span-3 space-y-4">
         <div class="flex items-center justify-between px-2">
             <h2 class="text-xl font-black text-white uppercase tracking-tight">Recent Transactions</h2>
-            <button class="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors uppercase tracking-widest">View All</button>
+            <button class="text-[10px] font-black text-primary-400 hover:text-primary-300 transition-colors uppercase tracking-[0.2em]">View All</button>
         </div>
-        <div class="glass-card rounded-3xl overflow-hidden border-gray-800/50 shadow-2xl">
+        <div class="glass-card rounded-[2rem] overflow-hidden border-gray-800/50 shadow-2xl">
             {% if recent_transactions %}
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest bg-surface-900/50 border-b border-gray-800/50">
+                    <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest bg-surface-950/50 border-b border-gray-800/50">
                         <tr>
-                            <th class="px-6 py-4">Transaction ID</th>
+                            <th class="px-6 py-4">Ref ID</th>
                             <th class="px-6 py-4">Cashier</th>
                             <th class="px-6 py-4">Amount</th>
-                            <th class="px-6 py-4 text-right">Timestamp</th>
+                            <th class="px-6 py-4 text-right">Time</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-800/50">
                         {% for order in recent_transactions %}
                         <tr class="hover:bg-primary-500/5 transition-colors group">
                             <td class="px-6 py-4">
-                                <span class="font-bold text-gray-200 group-hover:text-primary-400 transition-colors">#{{ order.id }}</span>
+                                <span class="font-bold text-gray-200 group-hover:text-primary-400 transition-colors">#TRAN-{{ order.id }}</span>
                             </td>
                             <td class="px-6 py-4 text-gray-400 font-medium">{{ order.user.username }}</td>
                             <td class="px-6 py-4">
@@ -128,59 +115,51 @@
             </div>
             {% else %}
             <div class="py-16 text-center space-y-3">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-surface-900 border border-gray-800 text-gray-700">
-                    <i class="fas fa-ghost text-2xl"></i>
-                </div>
-                <p class="text-gray-500 font-bold uppercase text-xs tracking-widest">The ledger is quiet today.</p>
+                <i class="fas fa-ghost text-4xl text-gray-800"></i>
+                <p class="text-gray-500 font-bold uppercase text-[9px] tracking-[0.3em]">No Activity Recorded</p>
             </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Sidebar Info -->
-    <div class="space-y-8">
-        <!-- Active Shifts -->
+    <div class="col-span-1 space-y-6">
         <div class="space-y-4">
             <div class="flex items-center justify-between px-2">
-                <h2 class="text-xl font-black text-white uppercase tracking-tight">Active Shifts</h2>
-                <i class="fas fa-circle text-[8px] text-emerald-500 animate-pulse"></i>
+                <h2 class="text-lg font-black text-white uppercase tracking-tight">Live Shifts</h2>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
             <div class="space-y-3">
                 {% for shift in recent_shifts %}
                 <div class="glass-card p-4 rounded-2xl flex items-center justify-between border-gray-800/50 hover:border-emerald-500/30 transition-all group">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-gray-400 border border-gray-800 group-hover:border-emerald-500/20 px-4">
-                            <i class="fas fa-user-tie text-lg"></i>
+                        <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-gray-400 border border-gray-800">
+                            <i class="fas fa-user-tie text-sm"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-black text-gray-200">{{ shift.user.username }}</p>
-                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ shift.branch.name }}</p>
+                            <p class="text-sm font-black text-gray-200 uppercase">{{ shift.user.username }}</p>
+                            <p class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{{ shift.branch.name|default:"Main Office" }}</p>
                         </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs font-black text-white">₱{{ shift.starting_cash|stringformat:".2f" }}</p>
-                        <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Since {{ shift.start_time|date:"H:i" }}</p>
                     </div>
                 </div>
                 {% empty %}
-                <div class="glass-card p-8 rounded-2xl text-center border-dashed border-gray-800">
-                    <p class="text-[10px] font-black text-gray-600 uppercase tracking-widest">No active personnel</p>
+                <div class="glass-card p-6 rounded-2xl text-center border-dashed border-gray-800 opacity-30">
+                    <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Quiet Period</p>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Quick Actions -->
+        <!-- Quick Ops expanded to be more "Master Grid" -->
         <div class="space-y-4">
-            <h2 class="text-xl font-black text-white uppercase tracking-tight px-2">Quick Ops</h2>
+            <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] px-2 mb-2">Systems Hub</h2>
             <div class="grid grid-cols-2 gap-3">
-                <a href="{% url 'inventory:dashboard' %}" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-primary-500/10 border-gray-800/50 transition-all group px-4">
-                    <i class="fas fa-warehouse text-primary-400 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Inventory</span>
+                <a href="{% url 'inventory:dashboard' %}" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-primary-500/10 border-gray-800/50 transition-all group">
+                    <i class="fas fa-warehouse text-primary-400 text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">S-Vault</span>
                 </a>
-                <a href="{% url 'core:user_management' %}" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-indigo-500/10 border-gray-800/50 transition-all group px-4">
-                    <i class="fas fa-users-cog text-indigo-400 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Employees</span>
+                <a href="{% url 'core:user_management' %}" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-indigo-500/10 border-gray-800/50 transition-all group">
+                    <i class="fas fa-users-cog text-indigo-400 text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">HR-Ops</span>
                 </a>
             </div>
         </div>
