@@ -3,7 +3,7 @@
 {% block title %}POS Terminal · Django POS{% endblock %}
 
 {% block content %}
-<div class="flex flex-col lg:flex-row gap-6 h-full lg:h-[calc(100vh-8rem)] overflow-hidden">
+<div class="flex flex-col lg:flex-row gap-6 h-auto lg:h-[calc(100vh-8rem)] pb-24 lg:pb-0 overflow-y-auto lg:overflow-hidden">
 
     <!-- Product Grid (Flex-grow to take most space) -->
     <div class="flex-1 min-w-0 flex flex-col bg-surface-900/30 rounded-[2.5rem] p-6 border border-white/5 shadow-inner overflow-hidden">
@@ -24,7 +24,7 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <div class="relative group">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm group-focus-within:text-primary-400 transition-colors"></i>
                     <input type="text" id="product-search" placeholder="Quick Search (F2)..."
@@ -68,7 +68,7 @@
                         {{ product.current_stock|default:0 }} Available
                     </p>
                 </div>
-                
+
                 <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-800/50">
                     <p class="text-lg font-black text-white tracking-widest">₱{{ product.price|default:0|stringformat:".2f" }}</p>
                     <div class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-400 group-hover:bg-primary-500 group-hover:text-white transition-all">
@@ -81,9 +81,9 @@
     </div>
 
     <!-- Right Panel: The Locked Cart Sidebar -->
-    <div class="w-full lg:w-96 glass-card rounded-[2.5rem] p-6 flex flex-col border-primary-500/20 shadow-2xl relative overflow-hidden">
+    <div class="w-full lg:w-96 glass-card rounded-[2.5rem] p-6 flex flex-col border-primary-500/20 shadow-2xl relative overflow-hidden min-h-[400px] lg:min-h-0 mt-4 lg:mt-0 flex-shrink-0">
         <div class="absolute inset-0 bg-primary-500/5 pointer-events-none"></div>
-        
+
         <div class="relative z-10 flex flex-col h-full">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-[10px] font-black text-gray-400 flex items-center uppercase tracking-[0.3em]">
@@ -325,11 +325,11 @@
                 showToast('Inventory Alert', 'Insufficient stock for this unit.', 'warning');
                 return;
             }
-            cart.push({ 
-                product_id: productId, 
-                name: name, 
-                price: price, 
-                quantity: 1, 
+            cart.push({
+                product_id: productId,
+                name: name,
+                price: price,
+                quantity: 1,
                 stock: stock,
                 unit_id: unitId,
                 multiplier: multiplier

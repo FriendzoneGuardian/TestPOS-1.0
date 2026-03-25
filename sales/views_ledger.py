@@ -15,7 +15,7 @@ def ledger_monitoring(request):
     customers_with_debt = Customer.objects.filter(outstanding_balance__gt=0).annotate(
         last_active=Max('orders__order_date')
     )
-    
+
     if not request.user.is_superuser:
         customers_with_debt = customers_with_debt.filter(orders__branch=branch).distinct()
 

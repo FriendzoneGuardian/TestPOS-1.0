@@ -42,12 +42,12 @@ def terminal(request):
     )
 
     products = Product.objects.filter(is_active=True).prefetch_related(
-        branch_stock_prefetch, 
+        branch_stock_prefetch,
         'units'
     ).order_by('category', 'name')
-    
+
     customers = Customer.objects.order_by('name')
-    
+
     categories = []
     for product in products:
         if product.category and product.category not in categories:
@@ -148,16 +148,16 @@ def checkout(request):
         
         if not stock or stock.quantity < deduction_qty:
             return JsonResponse({'success': False, 'message': f'Insufficient stock for {product.name}.'}, status=400)
-        
+
         total += unit_price * qty
         item_rows.append({
-            'product': product, 
-            'base_qty': deduction_qty, 
-            'unit_price': unit_price, 
+            'product': product,
+            'base_qty': deduction_qty,
+            'unit_price': unit_price,
             'unit_count': qty,
             'multiplier': multiplier,
             'stock': stock,
-            'unit': unit, 
+            'unit': unit,
         })
 
     # PROMO CHECK: Automate Freebie Rewards (Poké Mart Rules)
@@ -167,14 +167,14 @@ def checkout(request):
             if p_qty >= promo.trigger_quantity:
                 bonus_count = (p_qty // promo.trigger_quantity) * promo.bonus_qty
                 bonus_product = promo.bonus_product
-                
+
                 # Verify freebie exists and has stock
                 b_stock = BranchStock.objects.select_for_update().filter(branch=branch, product=bonus_product).first()
                 if b_stock and b_stock.quantity >= bonus_count:
                     item_rows.append({
-                        'product': bonus_product, 
-                        'base_qty': bonus_count, 
-                        'unit_price': 0.0, 
+                        'product': bonus_product,
+                        'base_qty': bonus_count,
+                        'unit_price': 0.0,
                         'unit_count': bonus_count,
                         'multiplier': 1,
                         'stock': b_stock,
@@ -245,7 +245,7 @@ def checkout(request):
                 price_at_time=price_per_piece,
                 cost_at_time=batch.unit_cost
             )
-            
+
             batch.quantity -= deduction
             batch.save()
             remaining_to_deduct -= deduction

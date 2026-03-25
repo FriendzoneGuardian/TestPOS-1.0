@@ -21,6 +21,7 @@
             background-color: color-mix(in srgb, var(--color-surface-800, #1e293b) 60%, transparent);
             backdrop-filter: blur(16px);
             border: 1px solid var(--color-primary-500);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05); /* Inner-glow 1px equivalent requested by Master */
         }
         .gradient-text {
             background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 50%, #a78bfa 100%);
@@ -78,7 +79,7 @@
                     Unlock Account
                 </button>
             </div>
-            <p class="text-[10px] text-gray-500 italic">Inactivity guard triggered. Keep the soul alive.</p>
+            <p class="text-[10px] text-gray-500">Inactivity guard triggered. Keep the soul alive.</p>
         </div>
     </div>
 

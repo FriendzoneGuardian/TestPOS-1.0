@@ -4,7 +4,7 @@ import sys
 
 # Setup Django environment
 sys.path.append(os.getcwd())
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tp_django.settings') 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tp_django.settings')
 django.setup()
 
 from inventory.models import Product, BranchStock, ProductUnit, StockBatch
@@ -13,7 +13,7 @@ from core.models import Branch
 
 def seed():
     print("Seeding Pokemon Mart special rules...")
-    
+
     # Get a branch
     branch = Branch.objects.first()
     if not branch:
@@ -22,11 +22,11 @@ def seed():
 
     # 1. Create Products
     pk_ball, _ = Product.objects.get_or_create(
-        sku='PK-001', 
+        sku='PK-001',
         defaults={'name': 'Poke Ball', 'price': 200.0, 'category': 'Items'}
     )
     lux_ball, _ = Product.objects.get_or_create(
-        sku='PK-002', 
+        sku='PK-002',
         defaults={'name': 'Luxury Ball', 'price': 1000.0, 'category': 'Items'}
     )
 

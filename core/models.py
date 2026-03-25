@@ -29,10 +29,10 @@ class User(AbstractUser):
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     terminal_pin = models.CharField(max_length=4, default="0000")
     is_active_account = models.BooleanField(default=True)
-    
+
     # "The Inside Job": Financial Linking
     linked_customer = models.ForeignKey('sales.Customer', on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_users', help_text="Links this user to a customer profile for internal debt tracking.")
-    
+
     # "The Salary Squeeze": Payroll Baseline
     base_daily_rate = models.FloatField(default=0.0)
     monthly_salary = models.FloatField(default=0.0)

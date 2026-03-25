@@ -145,14 +145,14 @@ class BundlePromotion(models.Model):
     trigger_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='promotions')
     trigger_quantity = models.PositiveIntegerField(default=1)
     promo_type = models.CharField(max_length=20, choices=PROMO_TYPES, default='discount')
-    
+
     # For 'discount' type
     promo_price = models.FloatField(null=True, blank=True)
-    
+
     # For 'freebie' type
     bonus_product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='bonus_promos')
     bonus_qty = models.PositiveIntegerField(default=1)
-    
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -163,7 +163,7 @@ class PayrollDeduction(models.Model):
     amount = models.FloatField()
     deduction_date = models.DateTimeField(auto_now_add=True)
     description = models.TextField(default="Monthly Internal Debt Settlement")
-    
+
     # Links back to the customer profile that was settled
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
 

@@ -3,6 +3,7 @@ module.exports = {
   content: [
     './templates/**/*.html',
     './core/templates/**/*.html',
+    './core/templates/**/*.js',
     './inventory/templates/**/*.html',
     './sales/templates/**/*.html',
     './node_modules/flowbite/**/*.js',

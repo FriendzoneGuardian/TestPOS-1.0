@@ -6,7 +6,7 @@
 > PASS THE INSTRUCTIONS AS-IS, NO WARPING.
 
 ## Context of the Failure:
-The previous attempt at the 4x4 Grid master overhaul for Alpha 3.0 ("Auditor's Revenge") resulted in layout regressions. 
+The previous attempt at the 4x4 Grid master overhaul for Alpha 3.0 ("Auditor's Revenge") resulted in layout regressions.
 - **Manager Dashboard**: The `lg:col-span-3` for Recent Transactions is failing to expand, squashing the layout.
 - **POS Terminal**: Layout is reported as "screwed" by the user.
 - **Technical Cause Found**: `tailwind.config.js` was missing the `./core/templates/**/*.html` and `./inventory/templates/**/*.html` paths, causing most grid utility classes to be purged from the final CSS.

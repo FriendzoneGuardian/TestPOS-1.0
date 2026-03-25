@@ -10,10 +10,10 @@ def analytics_dashboard(request):
     # Resolve branch and filter by it if not admin
     from sales.views import resolve_branch
     branch = resolve_branch(request.user)
-    
+
     # Only calculate from completed orders
     completed_orders = Order.objects.filter(status='completed')
-    
+
     if not request.user.is_superuser:
         completed_orders = completed_orders.filter(branch=branch)
 
@@ -27,7 +27,7 @@ def analytics_dashboard(request):
         order__status='completed',
         status='active'
     )
-    
+
     if not request.user.is_superuser:
         items_query = items_query.filter(order__branch=branch)
 
