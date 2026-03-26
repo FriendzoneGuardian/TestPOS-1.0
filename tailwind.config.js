@@ -1,11 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    // Root templates (base.html, auth, dashboard, pos, valuting, financials, ledger, payroll, branches, core feature pages)
     './templates/**/*.html',
+    // App-level templates (inventory, core)
     './core/templates/**/*.html',
-    './core/templates/**/*.js',
     './inventory/templates/**/*.html',
-    './sales/templates/**/*.html',
+    // Static JS files may contain inline class references
+    './static/js/**/*.js',
+    // Flowbite component classes
     './node_modules/flowbite/**/*.js',
   ],
   darkMode: 'class',

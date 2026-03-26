@@ -1,0 +1,35 @@
+/* Windows-style system font stack — Segoe UI (primary), Tahoma, Arial */
+body, html {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Monospace for IDs, codes, amounts */
+.font-mono {
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+/* Remove default browser scrollbar styling for Windows look */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-left: 1px solid #d0d0d0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #b0b8c0;
+  border: 1px solid #9aaabb;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8090a0;
+}
+
+::-webkit-scrollbar-corner {
+  background: #f0f0f0;
+}

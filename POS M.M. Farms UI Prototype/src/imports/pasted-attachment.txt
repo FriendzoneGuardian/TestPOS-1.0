@@ -1,0 +1,313 @@
+You are a Senior UI/UX Designer specializing in desktop enterprise systems and financial transaction software.
+
+Design a Desktop-Based Point of Sale (POS) System UI/UX with a Windows application bias (VB.NET WinForms / WPF style). The system is rule-based, structured, and used in a small-to-medium retail business.
+
+The interface must look like a professional Windows desktop application — not a web or mobile app.
+
+Design the complete UI structure for the following modules:
+
+SYSTEM MODULES
+
+Cash Sales
+
+Credit Sales (₱1,500 limit, 15-day cooldown validation)
+
+Employee Masterlist (Role-based access)
+
+Inventory (Stocks Management)
+
+Goods Sold (Transaction Records & Reports)
+
+Financial Statements (Income Statement, Balance Sheet, Aging Report)
+
+GLOBAL DESIGN REQUIREMENTS
+
+Desktop resolution: 1366x768 and 1920x1080 support
+
+Left vertical navigation panel (persistent)
+
+Top header with:
+
+Logged-in user
+
+Role
+
+Date & Time
+
+Logout button
+
+Main workspace panel for module content
+
+Use structured DataGrid-style tables
+
+Modal dialog forms for add/edit operations
+
+Professional business color palette:
+
+Dark blue / charcoal primary
+
+Light gray backgrounds
+
+Green for success
+
+Red for alerts/errors
+
+Avoid overly modern rounded mobile UI
+
+Use structured, grid-based alignment
+
+Clear hierarchy and spacing
+
+Functional, not decorative
+
+MODULE UI SPECIFICATIONS
+1. Dashboard
+
+KPI cards:
+
+Today’s Sales
+
+Credit Outstanding
+
+Low Stock Items
+
+Total Transactions Today
+
+Quick action buttons:
+
+New Cash Sale
+
+New Credit Sale
+
+Sales chart (bar or line)
+
+Low stock alert panel
+
+2. Cash Sales Screen
+
+Layout:
+
+Left panel: Product search + category filter
+
+Center: DataGrid for cart items:
+
+Product Code
+
+Product Name
+
+Quantity
+
+Unit Price
+
+Subtotal
+
+Right panel:
+
+Subtotal
+
+Tax (if applicable)
+
+Grand Total
+
+Payment Input
+
+Change Display
+
+Bottom buttons:
+
+Save
+
+Cancel
+
+Print Receipt
+
+Must visually indicate:
+
+Out of stock (red highlight)
+
+Successful payment confirmation
+
+3. Credit Sales Screen
+
+Similar to Cash Sales but with additional:
+
+Customer selection dropdown/search
+
+Credit eligibility status panel:
+
+Current Balance
+
+Credit Limit
+
+Days Remaining (Cooldown)
+
+Visual warning if:
+
+Limit exceeded
+
+Cooldown not completed
+
+Block transaction button if invalid
+
+4. Employee Masterlist
+
+Table columns:
+
+Employee ID
+
+Full Name
+
+Username
+
+Role
+
+Status
+
+Actions (Edit / Deactivate)
+
+Add/Edit Modal Form:
+
+Input fields
+
+Role dropdown (Admin / Manager / Cashier)
+
+Toggle Active/Inactive
+
+Password field (masked)
+
+Include role badge color indicators.
+
+5. Inventory Management
+
+Main table:
+
+Product ID
+
+Product Name
+
+Category
+
+Unit Price
+
+Cost Price
+
+Quantity On Hand
+
+Reorder Level
+
+Status Indicator
+
+Include:
+
+Low stock highlighted in red or orange
+
+Add Product button
+
+Adjust Stock modal
+
+Stock history side panel (optional)
+
+6. Goods Sold / Reports
+
+Filters section at top:
+
+Date Range picker
+
+Transaction Type (Cash / Credit)
+
+Employee filter
+
+Main DataGrid:
+
+Transaction ID
+
+Date
+
+Type
+
+Total Amount
+
+Employee
+
+Include:
+
+Summary panel:
+
+Total Sales
+
+Total Transactions
+
+Export button
+
+Generate Report button
+
+7. Financial Statements Module
+
+Tabbed layout:
+
+Income Statement
+
+Balance Sheet
+
+Aging Report
+
+Income Statement:
+
+Revenue
+
+Cost of Goods Sold
+
+Gross Profit
+
+Balance Sheet:
+
+Assets
+
+Liabilities
+
+Owner’s Equity
+
+Aging Report:
+
+0–15 days
+
+16–30 days
+
+31+ days
+
+Must look structured like accounting software.
+
+UX REQUIREMENTS
+
+Confirmation modal before saving transactions
+
+Error dialogs styled as Windows alerts
+
+Disabled buttons when validation fails
+
+Visual feedback for:
+
+Successful save
+
+Blocked credit transaction
+
+Clean tab order for keyboard navigation
+
+Desktop usability priority (mouse + keyboard)
+
+DELIVERABLE FORMAT
+
+Generate:
+
+Complete screen wireframes for all modules
+
+Desktop layout only (no mobile)
+
+Component suggestions
+
+Clear layout grid structure
+
+Reusable UI component system (buttons, grids, modals)
+
+Do not create overly modern SaaS UI.
+Focus on structured, financial-software-like design similar to accounting desktop applications.

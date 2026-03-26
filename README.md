@@ -97,20 +97,19 @@ TestPOS-1.0/
 └── README.md
 ```
 
-## 📋 Roadmap — What's Coming Next (Alpha 2.1+)
+## 📋 Roadmap — What's Coming Next (Alpha 3.0+ Aggressive Merge)
 
-- [x] 👥 **The Velvet Rope:** Strict In-App User Management (No more Django Admin).
-- [x] 📦 **Deep Stocking:** Re-order Levels, Inventory logic, and OOS protections.
-- [x] 🔒 **Safe Words & The Climax:** Branch vaulting and advanced multi-bracket Periodic Reports.
-- [x] 🖥️ **Desk Slam:** The Electron Desktop Shell integration.
-- [ ] ☁️ **Alpha 2.3/2.4 (Exploratory):** Cloud Sync Feasibility — *Because sometimes I need to report to Master even when he's away.* We'll be looking into syncing local SQLite branch data to a centralized PostgreSQL cloud securely.
-- [x] 🧮 **Alpha 3.0.1 — "Hard Insertion":** Base-unit inventory with unit conversions (carton/pack/stick) + bundle promos like “3 pcs for ₱5”, audit-safe and cashier-friendly.
+We are undergoing a rapid 10-phase integration of the React/Vite Prototype logic into our Django infrastructure.
+
+- [x] 🧮 **Alpha 3.0.1 — "Hard Insertion":** Base-unit inventory with unit conversions + bundle promos.
+- [ ] 🏗️ **Phase 3.0–3.2 (Core Logic & Guards):** Enforcing the ₱1,500 Rizz Limit, exact Variance Status tracking for shifts, strictly formatted Session IDs, and blocking POS access without an active Vault Session.
+- [ ] 📊 **Phase 3.3–3.5 (Financial Intelligence):** Building the 4-KPI Dashboard, calculating snapshotted COGSchamp on every item, and fleshing out the 6-period Financial Reports and Goods Sold ledger.
+- [ ] 📦 **Phase 3.6 (Inventory Audit):** Robust Inventory Log tracking (Adjustments vs Sales) and rigid Cost Price validation.
+- [ ] 🎨 **Phase 3.7–3.8 (UI Overhaul & Integration):** Applying the prototype's compact POS layouts and Flat Navy/Purple accents inside our existing Dark Glassmorphism framework. We keep the Glassmorphism look (blur, ambient lights, `.glass-card`) but will inject the flat navy/purple pos tokens into the themes.
+- [ ] 🖨️ **Phase 3.9 (Hardware & Print):** Receipt printing and Dashboard Auto-Refresh AJAX polling.
 
 ## 🧪 Theme Options (Humor, WIP)
-We mocked possible theme variants (including a high-contrast “Noon” mode for daylight-visibility and accessibility) as static previews:
-
-- `docs/collaboration/options/login_theme_options.html`
-- `docs/collaboration/options/admin_theme_options.html`
+We mocked possible theme variants (including a high-contrast “Noon” mode for daylight-visibility and accessibility) as static previews. Previous mockups and implementation plans have been moved to `/archive`.
 
 ## 🤝 Contributing
 

@@ -453,7 +453,7 @@ def vault_manage(request):
     branch = resolve_branch(request.user)
     vault, _ = BranchVault.objects.get_or_create(branch=branch)
     transactions = VaultTransaction.objects.filter(vault=vault).order_by('-timestamp')[:50]
-    return render(request, 'reports/vault_manage.html', {
+    return render(request, 'valuting/vault_manage.html', {
         'vault': vault,
         'transactions': transactions,
     })
@@ -505,7 +505,7 @@ def shift_manage(request):
     branch = resolve_branch(request.user)
     current_shift = get_active_shift(request.user)
     past_shifts = Shift.objects.filter(branch=branch).order_by('-start_time')[:20]
-    return render(request, 'reports/shift_manage.html', {
+    return render(request, 'valuting/shift_manage.html', {
         'current_shift': current_shift,
         'past_shifts': past_shifts,
     })
@@ -545,7 +545,7 @@ def periodic_reports(request):
         status='voided'
     ).count()
 
-    return render(request, 'reports/periodic.html', {
+    return render(request, 'financials/periodic.html', {
         'period': period,
         'start_date': start_date,
         'end_date': now,

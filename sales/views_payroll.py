@@ -98,7 +98,7 @@ def payroll_dashboard(request):
 
     employees = User.objects.filter(linked_customer__isnull=False).select_related('linked_customer')
 
-    return render(request, 'sales/payroll_dashboard.html', {
+    return render(request, 'payroll/payroll_dashboard.html', {
         'employees': employees,
         'title': 'Salary Squeeze · Payroll Forensics'
     })

@@ -51,5 +51,14 @@ A premium, dark-mode interface utilizing glassmorphism and modern typography.
 
 ---
 
+## 🗺️ Active Roadmap: The Prototype Merge (v3.0 - v3.9)
+We are currently executing a 10-phase aggressive extraction of logic from our React/Vite Prototype into the core Django shell:
+1. **v3.0 - v3.2 (The Core Base):** Credit Limits (Rizz Cap), Variance Status generation, POS block-without-shift logic.
+2. **v3.3 - v3.5 (The Books):** React-style Dashboards, Financial Period statements, Goods Sold ledger, and snapshotted COGSchamp execution.
+3. **v3.6 - v3.8 (The Operations & The Look):** Stock adjustment logs, compact React-table layouts embedded inside our native `.glass-card` elements, and Hybrid Color Mapping (Navy/Purple prototype tokens injected into our Dusk/Midnight matrices).
+4. **v3.9 (Edge Cases):** Receipt printing and live AJAX polling.
+
+---
+
 > [!IMPORTANT]
 > **AESTHETIC RULE**: Every UI update MUST feel premium. Avoid generic colors; use the established HSL tokens and subtle micro-animations.

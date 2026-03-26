@@ -53,4 +53,4 @@ def ledger_monitoring(request):
         'ancient': ancient
     }
 
-    return render(request, 'sales/ledger_monitoring.html', context)
+    return render(request, 'ledger/ledger_monitoring.html', context)
