@@ -50,6 +50,7 @@ class Shift(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='shifts')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shifts')
+    variance_notes = models.TextField(null=True, blank=True)  # Phase 3.2: Required on closure
 
     @property
     def variance(self):

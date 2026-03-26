@@ -197,8 +197,8 @@ def checkout(request):
         change_given = 0.0
 
     if payment_method == 'loan' and customer:
-        if customer.outstanding_balance + total > 1500:
-            return JsonResponse({'success': False, 'message': 'Rizz Cap Exceeded! Maximum credit limit is ₱1,500.'}, status=400)
+        if customer.outstanding_balance + total > customer.credit_limit:
+            return JsonResponse({'success': False, 'message': f'Rizz Cap Exceeded! Credit limit is ₱{customer.credit_limit:,.2f}. Current balance: ₱{customer.outstanding_balance:,.2f}.'}, status=400)
 
     order = Order.objects.create(
         user=request.user,
@@ -284,20 +284,20 @@ def shift_start(request):
         return JsonResponse({'success': False, 'message': 'Invalid starting amount.'}, status=400)
     if amount < 0:
         return JsonResponse({'success': False, 'message': 'Invalid starting amount.'}, status=400)
-    Shift.objects.create(
+    shift = Shift.objects.create(
         user=request.user,
         branch=branch,
         starting_cash=amount,
         expected_cash=amount,
         status='open'
     )
-    msg = "Shift Started! Target locked, let's get those sales! 🎯"
+    msg = f"Shift Started! Session {shift.session_code} — Target locked, let's get those sales! 🎯"
     from django.contrib import messages
     messages.success(request, msg)
 
     # AJAX gets JSON, form POST gets redirect
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/x-www-form-urlencoded' and request.headers.get('X-CSRFToken'):
-        return JsonResponse({'success': True, 'message': msg})
+        return JsonResponse({'success': True, 'message': msg, 'session_code': shift.session_code})
     
     if request.user.role == 'cashier':
         return redirect('sales:shift_manage')
@@ -347,11 +347,15 @@ def shift_end(request):
     cash_sales = orders.filter(payment_method='cash').aggregate(total=Sum('total_amount'))['total'] or 0.0
     expected_cash = round(active_shift.starting_cash + cash_sales, 2)
 
+    # Phase 3.2: Capture variance notes
+    variance_notes = (request.POST.get('variance_notes') or '').strip()
+
     active_shift.expected_cash = expected_cash
     active_shift.actual_cash = amount
     active_shift.end_time = timezone.now()
     active_shift.status = 'closed'
-    active_shift.save(update_fields=['expected_cash', 'actual_cash', 'end_time', 'status'])
+    active_shift.variance_notes = variance_notes
+    active_shift.save(update_fields=['expected_cash', 'actual_cash', 'end_time', 'status', 'variance_notes'])
 
     # Auto-deposit to vault
     vault, _ = BranchVault.objects.get_or_create(branch=resolve_branch(request.user))
@@ -366,21 +370,22 @@ def shift_end(request):
     vault.save()
 
     variance = active_shift.variance
-    if variance == 0:
-        msg = "Shift Balanced! Perfect score, you're a legend! 🏆"
+    v_status = active_shift.variance_status
+    if v_status == 'Balanced':
+        msg = f"Session {active_shift.session_code} Balanced! Perfect score, you're a legend! 🏆"
         msg_type = 'success'
-    elif variance < 0:
-        msg = f"Shift Closed. Short of ₱{abs(variance)}. We'll get 'em next time, chin up! 💔"
+    elif v_status == 'Shortage':
+        msg = f"Session {active_shift.session_code} Closed. Short of ₱{abs(variance):,.2f}. We'll get 'em next time! 💔"
         msg_type = 'error'
     else:
-        msg = f"Shift Closed. Over by ₱{variance}. Check the receipts? 🧐"
+        msg = f"Session {active_shift.session_code} Closed. Over by ₱{variance:,.2f}. Check the receipts? 🧐"
         msg_type = 'warning'
 
     from django.contrib import messages
     getattr(messages, msg_type)(request, msg)
 
     if request.headers.get('X-CSRFToken'):
-        return JsonResponse({'success': True, 'message': msg, 'type': msg_type, 'variance': variance})
+        return JsonResponse({'success': True, 'message': msg, 'type': msg_type, 'variance': variance, 'variance_status': v_status, 'session_code': active_shift.session_code})
     
     if request.user.role == 'cashier':
         return redirect('sales:shift_manage')
