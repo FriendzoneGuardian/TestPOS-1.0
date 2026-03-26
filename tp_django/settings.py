@@ -159,3 +159,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── Phase 3.0: Business Logic Constants ──────────────────
+EMPLOYEE_CREDIT_LIMIT = 1500  # "The Rizz Limit" — hard cap on customer credit (₱)

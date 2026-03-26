@@ -58,6 +58,20 @@ class Shift(models.Model):
         return round((self.actual_cash or 0.0) - (self.expected_cash or 0.0), 2)
 
     @property
+    def variance_status(self):
+        """Phase 3.0: Returns Balanced / Shortage / Overage."""
+        v = self.variance
+        if v == 0:
+            return 'Balanced'
+        return 'Shortage' if v < 0 else 'Overage'
+
+    @property
+    def session_code(self):
+        """Phase 3.0: Formatted session ID — SESS-S{branch_id}-{date}-{seq:03d}."""
+        date_str = self.start_time.strftime('%Y%m%d') if self.start_time else '00000000'
+        return f'SESS-S{self.branch_id}-{date_str}-{self.pk:03d}'
+
+    @property
     def closing_cash(self):
         return self.actual_cash
 
