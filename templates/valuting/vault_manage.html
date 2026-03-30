@@ -86,6 +86,7 @@
                                     {{ t.transaction_type }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 font-mono font-bold {% if t.transaction_type == 'deposit' %}text-emerald-400{% else %}text-red-400{% endif %}">
                                 {% if t.transaction_type == 'deposit' %}+{% else %}-{% endif %}₱{{ t.amount|stringformat:".2f" }}
                             </td>
                             <td class="px-6 py-4 text-gray-300 text-xs">{{ t.reason }}</td>

@@ -39,9 +39,13 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--color-surface-900, #0f172a); }
+        ::-webkit-scrollbar-thumb { background: var(--color-surface-700, #334155); border-radius: 3px; }
+        
+        .overflow-x-auto::-webkit-scrollbar { height: 8px; }
+        .overflow-x-auto::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
+        .overflow-x-auto::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-primary-500) 60%, transparent); border-radius: 4px; }
 
         /* The Digital Brick - Lockdown Styles */
         .lock-blur {
@@ -86,9 +90,9 @@
     <div id="main-app-wrapper" class="flex min-h-screen relative z-10 {% if request.session.is_locked %}lock-blur{% endif %}">
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed top-0 left-0 z-[100] w-64 h-screen transition-transform -translate-x-full sm:translate-x-0">
-            <div class="h-full px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
-                <a href="/" class="flex items-center mb-8 px-2">
-                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3">
+            <div class="h-full flex flex-col px-4 py-6 overflow-y-auto bg-surface-900 border-r border-gray-800">
+                <a href="/" class="flex items-center mb-8 px-2 flex-shrink-0">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center mr-3">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
@@ -96,74 +100,90 @@
                     <span class="text-xl font-bold gradient-text">MoneyShot</span>
                 </a>
 
-                <nav class="space-y-1">
-                    {% if user.is_admin %}
-                    <a href="/admin/" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
-                        Django Admin (Sudo)
-                    </a>
-                    {% endif %}
+                <nav class="space-y-1 flex-1">
                     
                     {% if user.is_manager %}
-                    <a href="{% url 'core:manager_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'core:manager_dashboard' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                         Manager Dashboard
                     </a>
-                    <a href="{% url 'core:user_management' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'core:user_management' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         User Management
                     </a>
                     {% endif %}
 
                     {% if user.role == 'admin' or user.role == 'manager' or user.role == 'accounting' %}
-                    <a href="{% url 'inventory:dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'inventory:dashboard' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                         Inventory Management
                     </a>
                     {% endif %}
 
                     {% if user.is_manager or user.is_admin %}
-                    <a href="{% url 'inventory:analytics' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold ml-4">
-                        ↳ Inventory Analytics
+                    <a href="{% url 'inventory:analytics' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold ml-4 border-l-2 border-emerald-500/30 pl-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Inventory Analytics
                     </a>
                     {% endif %}
 
                     {% if user.is_accounting or user.is_admin %}
-                    <a href="{% url 'core:accounting_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400">
+                    <a href="{% url 'core:accounting_dashboard' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         Financial Forensics
                     </a>
-                    <a href="{% url 'sales:ledger_monitoring' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black">
-                        ↳ Ledger Monitoring
+                    <a href="{% url 'sales:ledger_monitoring' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 font-black ml-4 border-l-2 border-rose-500/30 pl-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Ledger Monitoring
                     </a>
                     {% endif %}
 
                     {% if user.role == 'cashier' %}
-                    <a href="{% url 'sales:shift_manage' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'sales:shift_manage' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Shift Management
                     </a>
                     {% endif %}
 
                     {% if user.role == 'cashier' or user.is_admin %}
-                    <a href="{% url 'sales:vault_manage' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-500 hover:text-emerald-400">
+                    <a href="{% url 'sales:vault_manage' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-500 hover:text-emerald-400">
+                        <svg class="w-5 h-5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         Vault Management
                     </a>
                     {% endif %}
 
                     {% if user.is_accounting or user.is_admin %}
-                    <a href="{% url 'sales:periodic_reports' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'sales:periodic_reports' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Periodic Reports
                     </a>
                     {% endif %}
 
                     {% if user.role|lower == 'cashier' %}
-                    <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium">
+                    <a href="{% url 'sales:terminal' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                         POS Terminal
                     </a>
                     {% endif %}
                     {% if user.role == 'admin' or user.role == 'manager' %}
-                    <a href="{% url 'sales:payroll_dashboard' %}" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold">
+                    <a href="{% url 'sales:payroll_dashboard' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-400 font-bold">
+                        <svg class="w-5 h-5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Payroll Forensics
                     </a>
                     {% endif %}
                 </nav>
 
-
+                {% if user.is_admin %}
+                <div class="mt-auto pt-4 border-t border-gray-800">
+                    <a href="/admin/" class="sidebar-link flex items-center justify-between px-4 py-3 rounded-xl bg-surface-800/50 hover:bg-surface-800 border border-gray-700/50 text-sm font-medium text-primary-400 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            Django Admin (Sudo)
+                        </div>
+                        <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </aside>
 

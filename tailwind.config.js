@@ -16,17 +16,30 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: 'var(--color-primary-50, #eef2ff)',
-          100: 'var(--color-primary-100, #e0e7ff)',
-          200: 'var(--color-primary-200, #c7d2fe)',
-          300: 'var(--color-primary-300, #a5b4fc)',
-          400: 'var(--color-primary-400, #818cf8)',
-          500: 'var(--color-primary-500, #6366f1)',
-          600: 'var(--color-primary-600, #4f46e5)',
-          700: 'var(--color-primary-700, #4338ca)',
-          800: 'var(--color-primary-800, #3730a3)',
-          900: 'var(--color-primary-900, #312e81)',
-          950: 'var(--color-primary-950, #1e1b4b)',
+          50: '#f7f8ev',
+          100: '#ecedc7',
+          200: '#dbe09b',
+          300: '#c4cb6a',
+          400: '#abb246',
+          500: '#949b33',
+          600: '#7d8025', // Main Logo Color
+          700: '#5c5f1c',
+          800: '#3f421f',
+          900: '#262914',
+          950: '#141609',
+        },
+        secondary: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+          950: '#1e1b4b',
         },
         white: 'var(--color-white, #ffffff)',
         gray: {
@@ -46,6 +59,11 @@ module.exports = {
           700: 'var(--color-surface-700, #1e293b)',
           800: 'var(--color-surface-800, #0f172a)',
           900: 'var(--color-surface-900, #020617)',
+        },
+        pos: {
+          'navy-dark': '#1a3a5c',
+          'navy-mid': '#2c4a6e',
+          'purple': '#6a1b9a',
         },
       },
       fontFamily: {

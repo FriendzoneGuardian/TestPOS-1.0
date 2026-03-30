@@ -563,7 +563,8 @@ def periodic_reports(request):
         branch=branch,
         order_date__gte=start_date,
         status='completed'
-    )
+    ).select_related('customer', 'user').prefetch_related('items', 'items__product').order_by('order_date')
+    
     total_revenue = orders.aggregate(total=Sum('total_amount'))['total'] or 0.0
     total_orders = orders.count()
     avg_order = orders.aggregate(avg=Avg('total_amount'))['avg'] or 0.0
@@ -585,6 +586,10 @@ def periodic_reports(request):
         status='voided'
     ).count()
 
+    for order in orders:
+        # compute per-order COGS logic for the ledger
+        order.cogs = sum(item.quantity * item.cost_at_time for item in order.items.all() if item.status == 'active')
+        
     return render(request, 'financials/periodic.html', {
         'period': period,
         'start_date': start_date,
@@ -596,4 +601,5 @@ def periodic_reports(request):
         'total_orders': total_orders,
         'avg_order': avg_order,
         'void_count': void_count,
+        'orders': orders,
     })
