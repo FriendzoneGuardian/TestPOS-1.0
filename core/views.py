@@ -25,36 +25,75 @@ def home(request):
 
 @login_required
 def manager_dashboard(request):
+    from datetime import timedelta
+    from sales.models import Shift
+    from inventory.models import BranchStock
+    from django.db.models import F
+
     # Admin and Manager have access
     if not request.user.is_manager():
         return redirect('core:home')
     today = timezone.localdate()
-    orders = Order.objects.filter(order_date__date=today, status='completed')
-    if request.user.role != 'admin' and request.user.branch:
+    orders = Order.objects.filter(status='completed')
+    if request.user.role != 'admin' and getattr(request.user, 'branch', None):
         orders = orders.filter(branch=request.user.branch)
-    elif request.user.branch:
+    elif getattr(request.user, 'branch', None):
         orders = orders.filter(branch=request.user.branch)
 
-    total_sales_today = orders.aggregate(total=Sum('total_amount'))['total'] or 0.0
-    transactions_today = orders.count()
-    recent_transactions = orders.select_related('user', 'branch').order_by('-order_date')[:8]
+    # 4 KPIs
+    orders_today = orders.filter(order_date__date=today)
+    total_sales_today = orders_today.aggregate(total=Sum('total_amount'))['total'] or 0.0
+    transactions_today = orders_today.count()
+    credit_outstanding = Customer.objects.aggregate(total=Sum('outstanding_balance'))['total'] or 0.0
 
-    from sales.models import Shift
-    recent_shifts = Shift.objects.filter(status='open')
-    if request.user.role != 'admin' and request.user.branch:
-        recent_shifts = recent_shifts.filter(branch=request.user.branch)
-    elif request.user.branch:
-        recent_shifts = recent_shifts.filter(branch=request.user.branch)
-    recent_shifts = recent_shifts.select_related('user', 'branch').order_by('-start_time')[:5]
+    # Low Stock Count
+    low_stock_qs = BranchStock.objects.filter(
+        product__is_active=True,
+        quantity__lte=F('product__reorder_level')
+    )
+    if request.user.role != 'admin' and getattr(request.user, 'branch', None):
+        low_stock_qs = low_stock_qs.filter(branch=request.user.branch)
+    low_stock_count = low_stock_qs.count()
+
+    # Low Stock Alerts Panel
+    low_stock_alerts = low_stock_qs.select_related('product', 'branch').order_by('quantity')[:10]
+
+    # Active Session (for current user or branch depending on design - let's fetch current user's active shift)
+    from sales.views import get_active_shift
+    active_shift = get_active_shift(request.user)
+
+    # Recent Transactions
+    recent_transactions = orders.select_related('user', 'branch', 'customer').order_by('-order_date')[:8]
+
+    # 7-day Chart.js data
+    chart_labels = []
+    chart_cash = []
+    chart_credit = []
+    
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        day_orders = orders.filter(order_date__date=d)
+        cash = day_orders.filter(payment_method='cash').aggregate(total=Sum('total_amount'))['total'] or 0.0
+        credit = day_orders.filter(payment_method='loan').aggregate(total=Sum('total_amount'))['total'] or 0.0
+        
+        chart_labels.append(d.strftime('%a'))  # e.g., 'Mon', 'Tue'
+        chart_cash.append(float(cash))
+        chart_credit.append(float(credit))
 
     context = {
         'total_sales_today': total_sales_today,
         'transactions_today': transactions_today,
+        'credit_outstanding': credit_outstanding,
+        'low_stock_count': low_stock_count,
+        'low_stock_alerts': low_stock_alerts,
+        'active_shift': active_shift,
         'recent_transactions': recent_transactions,
-        'recent_shifts': recent_shifts,
-        'branch_scope': request.user.branch.name if request.user.branch else 'All Branches',
+        'chart_labels': json.dumps(chart_labels),
+        'chart_cash': json.dumps(chart_cash),
+        'chart_credit': json.dumps(chart_credit),
+        'branch_scope': request.user.branch.name if getattr(request.user, 'branch', None) else 'All Branches',
     }
-    return render(request, 'core/dashboards/manager.html', context)
+    return render(request, 'dashboard/index.html', context)
 
 @login_required
 def accounting_dashboard(request):

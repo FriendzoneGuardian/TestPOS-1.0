@@ -127,20 +127,26 @@ def restock_product(request, pk):
 
     branch = get_object_or_404(Branch, id=branch_id)
     
+    if unit_cost <= 0:
+        messages.error(request, 'Unit Cost must be provided and greater than zero for new stock batches.')
+        return redirect('inventory:dashboard')
+    
     # Create the batch
     from .models import StockBatch
     StockBatch.objects.create(
         product=product,
         branch=branch,
         quantity=quantity,
-        unit_cost=unit_cost,  # Entry Aura
+        unit_cost=unit_cost,  # Required + Validated Phase 3.6
         status=status,
         expiry_date=expiry_date
     )
 
     # Update aggregate stock if status is 'good'
+    stock, _ = BranchStock.objects.get_or_create(branch=branch, product=product)
+    qty_before = stock.quantity
+    
     if status == 'good':
-        stock, _ = BranchStock.objects.get_or_create(branch=branch, product=product)
         stock.quantity += quantity
         stock.save()
 
@@ -151,8 +157,73 @@ def restock_product(request, pk):
         branch=branch,
         user=request.user,
         quantity_change=quantity,
+        qty_before=qty_before,
+        qty_after=stock.quantity,
+        log_type='transfer' if status == 'good' else 'adjust',  # Transfer/delivery in logic
         reason=f"Restock ({status}): {reason}"
     )
 
     messages.success(request, f'Added {quantity} units to {product.name} at {branch.name}.')
     return redirect('inventory:dashboard')
+
+@login_required
+@role_required(['admin', 'manager'])
+@transaction.atomic
+def adjust_stock(request, pk):
+    if request.method != 'POST':
+        return redirect('inventory:dashboard')
+        
+    product = get_object_or_404(Product, pk=pk)
+    try:
+        new_quantity = int(request.POST.get('new_quantity', 0))
+        branch_id = int(request.POST.get('branch_id'))
+    except (TypeError, ValueError):
+        messages.error(request, 'Invalid input for adjustment.')
+        return redirect('inventory:dashboard')
+        
+    reason = request.POST.get('reason', 'Manual Adjustment / Recount')
+    branch = get_object_or_404(Branch, id=branch_id)
+    
+    stock, _ = BranchStock.objects.get_or_create(branch=branch, product=product)
+    qty_before = stock.quantity
+    quantity_change = new_quantity - qty_before
+    
+    if quantity_change == 0:
+        messages.info(request, 'No change in quantity.')
+        return redirect('inventory:dashboard')
+        
+    stock.quantity = new_quantity
+    stock.save()
+    
+    from sales.models import StockAuditLog
+    StockAuditLog.objects.create(
+        product=product,
+        branch=branch,
+        user=request.user,
+        quantity_change=quantity_change,
+        qty_before=qty_before,
+        qty_after=new_quantity,
+        log_type='adjust',
+        reason=reason
+    )
+    
+    messages.success(request, f'Adjusted {product.name} stock to {new_quantity} at {branch.name}.')
+    return redirect('inventory:dashboard')
+
+@login_required
+@role_required(['admin', 'manager'])
+def product_history(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    branch_id = request.GET.get('branch_id')
+    
+    from sales.models import StockAuditLog
+    logs = StockAuditLog.objects.filter(product=product).select_related('user', 'branch', 'order')
+    if branch_id:
+        logs = logs.filter(branch_id=branch_id)
+        
+    logs = logs.order_by('-timestamp')[:100]
+    
+    return render(request, 'inventory/product_history.html', {
+        'product': product,
+        'logs': logs
+    })

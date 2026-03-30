@@ -516,10 +516,31 @@ def shift_manage(request):
     })
 
 @login_required
+@role_required(['admin', 'manager', 'accounting'])
+def goods_sold(request):
+    branch = resolve_branch(request.user)
+    
+    orders = Order.objects.filter(branch=branch, status='completed').select_related(
+        'customer', 'user'
+    ).prefetch_related(
+        'items', 'items__product'
+    ).order_by('-order_date')[:100]
+    
+    for order in orders:
+        cogs = sum(item.quantity * item.cost_at_time for item in order.items.all() if item.status == 'active')
+        order.cogs = cogs
+        order.gp = order.total_amount - cogs
+        order.margin = (order.gp / order.total_amount * 100) if order.total_amount > 0 else 0
+        
+    return render(request, 'sales/goods_sold.html', {
+        'orders': orders
+    })
+
+@login_required
 @role_required(['admin', 'accounting'])
 def periodic_reports(request):
     from datetime import timedelta
-    from django.db.models import Count, Avg
+    from django.db.models import Count, Avg, F
     branch = resolve_branch(request.user)
     period = request.GET.get('period', 'daily')
     now = timezone.now()
@@ -530,6 +551,8 @@ def periodic_reports(request):
         start_date = now - timedelta(days=15)
     elif period == 'monthly':
         start_date = now - timedelta(days=30)
+    elif period == 'quarterly':
+        start_date = now - timedelta(days=90)
     elif period == 'annual':
         start_date = now - timedelta(days=365)
     else:
@@ -544,6 +567,18 @@ def periodic_reports(request):
     total_revenue = orders.aggregate(total=Sum('total_amount'))['total'] or 0.0
     total_orders = orders.count()
     avg_order = orders.aggregate(avg=Avg('total_amount'))['avg'] or 0.0
+
+    # Calculate COGS (only from completed orders' active items)
+    total_cogs = OrderItem.objects.filter(
+        order__in=orders,
+        status='active'
+    ).annotate(
+        cogs=F('cost_at_time') * F('quantity')
+    ).aggregate(total_cogs=Sum('cogs'))['total_cogs'] or 0.0
+
+    gross_profit = total_revenue - total_cogs
+    profit_margin = (gross_profit / total_revenue * 100) if total_revenue > 0 else 0.0
+
     void_count = Order.objects.filter(
         branch=branch,
         order_date__gte=start_date,
@@ -554,8 +589,11 @@ def periodic_reports(request):
         'period': period,
         'start_date': start_date,
         'end_date': now,
-        'total_revenue': round(total_revenue, 2),
+        'total_revenue': total_revenue,
+        'total_cogs': total_cogs,
+        'gross_profit': gross_profit,
+        'profit_margin': profit_margin,
         'total_orders': total_orders,
-        'avg_order': round(avg_order, 2),
+        'avg_order': avg_order,
         'void_count': void_count,
     })

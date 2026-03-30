@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} History · FarmYield{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold text-white">{{ product.name }}</h1>
+        <p class="text-sm text-gray-400 mt-1">SKU: {{ product.sku }} | Inventory Audit Trail</p>
+    </div>
+    <a href="{% url 'inventory:dashboard' %}" class="px-4 py-2 border border-white/10 text-white rounded-lg hover:bg-white/5 transition-colors text-sm font-medium">
+        Back to Inventory
+    </a>
+</div>
+
+<div class="glass-card rounded-2xl border border-white/10 overflow-hidden">
+    <div class="p-6 border-b border-white/10 bg-surface-900/50 flex flex-wrap gap-4 items-center justify-between">
+        <h3 class="text-lg font-semibold text-white">Stock Movement History</h3>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-400">
+            <thead class="text-xs text-gray-300 uppercase bg-white/5 border-b border-white/10">
+                <tr>
+                    <th class="px-6 py-4 font-medium">Timestamp</th>
+                    <th class="px-6 py-4 font-medium">Branch</th>
+                    <th class="px-6 py-4 font-medium">User</th>
+                    <th class="px-6 py-4 font-medium">Type</th>
+                    <th class="px-6 py-4 font-medium text-right">Before</th>
+                    <th class="px-6 py-4 font-medium text-center">Change</th>
+                    <th class="px-6 py-4 font-medium text-right">After</th>
+                    <th class="px-6 py-4 font-medium max-w-[200px]">Reason / Details</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for log in logs %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td class="px-6 py-4">{{ log.branch.name|default:"Global" }}</td>
+                    <td class="px-6 py-4">{{ log.user.username|default:"System" }}</td>
+                    <td class="px-6 py-4">
+                        {% if log.log_type == 'sale' %}
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded uppercase tracking-wider">Sale</span>
+                        {% elif log.log_type == 'adjust' %}
+                            <span class="inline-flex items-center px-2 py-1 bg-amber-500/20 text-amber-400 text-xs font-semibold rounded uppercase tracking-wider">Adjust</span>
+                        {% elif log.log_type == 'void' %}
+                            <span class="inline-flex items-center px-2 py-1 bg-red-500/20 text-red-400 text-xs font-semibold rounded uppercase tracking-wider">Void</span>
+                        {% elif log.log_type == 'transfer' %}
+                            <span class="inline-flex items-center px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded uppercase tracking-wider">Transfer IN</span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2 py-1 bg-gray-500/20 text-gray-400 text-xs font-semibold rounded uppercase tracking-wider">{{ log.log_type }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-gray-300">{{ log.qty_before }}</td>
+                    <td class="px-6 py-4 text-center font-mono font-bold {% if log.quantity_change > 0 %}text-emerald-400{% elif log.quantity_change < 0 %}text-red-400{% else %}text-gray-400{% endif %}">
+                        {% if log.quantity_change > 0 %}+{% endif %}{{ log.quantity_change }}
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-white font-bold">{{ log.qty_after }}</td>
+                    <td class="px-6 py-4">
+                        <span class="text-xs truncate block max-w-[200px]" title="{{ log.reason }}">
+                            {% if log.order %}
+                                <a href="#" class="text-blue-400 hover:underline">Order #{{ log.order_id }}</a> - 
+                            {% endif %}
+                            {{ log.reason }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p>No audit logs found for this product.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -77,16 +77,43 @@ class Shift(models.Model):
         return self.actual_cash
 
 class StockAuditLog(models.Model):
+    LOG_TYPES = [
+        ('sale', 'Sale'),
+        ('adjust', 'Adjust'),
+        ('void', 'Void'),
+        ('transfer', 'Transfer'),
+        ('recount', 'Recount'),
+    ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_audits')
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='stock_audits')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='stock_audits')
     quantity_change = models.IntegerField()
+    qty_before = models.IntegerField(default=0)
+    qty_after = models.IntegerField(default=0)
+    log_type = models.CharField(max_length=20, choices=LOG_TYPES, default='adjust')
     reason = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_audits')
 
     def __str__(self):
         return f'{self.product.name}: {self.quantity_change}'
+
+class CreditLedger(models.Model):
+    STATUS_CHOICES = [
+        ('current', 'Current'),
+        ('due', 'Due'),
+        ('deducted', 'Deducted'),
+    ]
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='ledger_entries')
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.FloatField()
+    running_balance = models.FloatField(default=0.0)
+    due_date = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='current')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.customer.name} - {self.amount}'
 
 class OrderItem(models.Model):
     ITEM_STATUS = [

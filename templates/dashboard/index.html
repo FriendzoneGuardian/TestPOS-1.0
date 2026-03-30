@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load peso_filters %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6" id="dashboard-content">
+    
+    <!-- KPI Row -->
+    <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Sales -->
+        <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-gray-400">
+                <span class="text-sm font-medium">Today's Sales</span>
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div class="mt-4">
+                <h3 class="text-3xl font-bold text-white tracking-tight">{{ total_sales_today|peso }}</h3>
+            </div>
+        </div>
+
+        <!-- Credit Outstanding -->
+        <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-gray-400">
+                <span class="text-sm font-medium">Credit Outstanding</span>
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <div class="mt-4">
+                <h3 class="text-3xl font-bold text-white tracking-tight">{{ credit_outstanding|peso }}</h3>
+            </div>
+        </div>
+
+        <!-- Low Stock Count -->
+        <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-gray-400">
+                <span class="text-sm font-medium">Low Stock Items</span>
+                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <div class="mt-4">
+                <h3 class="text-3xl font-bold text-white tracking-tight">{{ low_stock_count }}</h3>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-gray-400">
+                <span class="text-sm font-medium">Daily Transactions</span>
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <div class="mt-4">
+                <h3 class="text-3xl font-bold text-white tracking-tight">{{ transactions_today }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="lg:col-span-3 space-y-6">
+        
+        {% if active_shift %}
+        <!-- Active Session Card -->
+        <div class="glass-card p-6 rounded-2xl border border-blue-500/30 bg-blue-900/10 flex items-center justify-between">
+            <div>
+                <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wider">Active Vault Session</h4>
+                <div class="mt-1 flex items-baseline gap-3">
+                    <span class="text-2xl font-bold text-white font-mono">{{ active_shift.session_code }}</span>
+                    <span class="text-sm text-gray-400">Cashier: {{ active_shift.user.username }}</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="text-xs text-gray-400 block">Opened</span>
+                <span class="text-sm font-medium text-white">{{ active_shift.start_time|timesince }} ago</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="glass-card p-6 rounded-2xl border border-red-500/30 bg-red-900/10 flex items-center justify-between">
+            <div>
+                <h4 class="text-sm font-semibold text-red-400 uppercase tracking-wider">No Active Session</h4>
+                <p class="mt-1 text-sm text-gray-300">POS operations are locked. A vault session must be opened to begin transactions.</p>
+            </div>
+            <a href="{% url 'sales:shift_manage' %}" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors">Start Session</a>
+        </div>
+        {% endif %}
+
+        <!-- 7-Day Chart -->
+        <div class="glass-card p-6 rounded-2xl border border-white/10">
+            <h3 class="text-lg font-semibold text-white mb-6">7-Day Revenue</h3>
+            <div class="relative h-72">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="glass-card rounded-2xl border border-white/10 overflow-hidden">
+            <div class="p-6 border-b border-white/10">
+                <h3 class="text-lg font-semibold text-white">Recent Transactions</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-400">
+                    <thead class="text-xs text-gray-300 uppercase bg-white/5 border-b border-white/10">
+                        <tr>
+                            <th class="px-6 py-4 font-medium">Order ID</th>
+                            <th class="px-6 py-4 font-medium">Time</th>
+                            <th class="px-6 py-4 font-medium">Customer</th>
+                            <th class="px-6 py-4 font-medium">Type</th>
+                            <th class="px-6 py-4 font-medium text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for pt in recent_transactions %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4 font-mono text-white">#{{ pt.id }}</td>
+                            <td class="px-6 py-4">{{ pt.order_date|date:"h:i A" }}</td>
+                            <td class="px-6 py-4">{{ pt.customer.name|default:"Walk-in" }}</td>
+                            <td class="px-6 py-4">
+                                {% if pt.payment_method == 'cash' %}
+                                    <span class="inline-flex items-center px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded">Cash</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2 py-1 bg-purple-500/20 text-purple-400 text-xs font-medium rounded">Credit</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right font-medium text-white">{{ pt.total_amount|peso }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No transactions today.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1 space-y-6">
+        <!-- Low Stock Alerts -->
+        <div class="glass-card rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full max-h-[600px]">
+            <div class="p-6 border-b border-white/10 shrink-0">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    Attention Needed
+                    {% if low_stock_count > 0 %}
+                    <span class="px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-xs">{{ low_stock_count }}</span>
+                    {% endif %}
+                </h3>
+            </div>
+            
+            <div class="p-4 overflow-y-auto grow space-y-3">
+                {% for alert in low_stock_alerts %}
+                <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <span class="font-medium text-white text-sm break-words line-clamp-2 pr-2 leading-tight" title="{{ alert.product.name }}">{{ alert.product.name }}</span>
+                        {% if alert.quantity <= 0 %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/20 shrink-0">OUT</span>
+                        {% else %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/20 shrink-0">LOW</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-500">{{ alert.branch.name|default:"Main Branch" }}</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-lg font-bold {% if alert.quantity <= 0 %}text-red-400{% else %}text-amber-400{% endif %}">{{ alert.quantity }}</span>
+                            <span class="text-xs text-gray-500">/ {{ alert.product.reorder_level }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-8 text-center text-gray-500 flex flex-col items-center gap-3">
+                    <svg class="w-8 h-8 text-green-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-sm">Stock levels look good!</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if low_stock_count > 10 %}
+            <div class="p-4 border-t border-white/10 shrink-0 bg-white/5">
+                <a href="{% url 'inventory:list' %}?filter=low" class="text-sm text-blue-400 hover:text-blue-300 font-medium block text-center">View all {{ low_stock_count }} alerts &rarr;</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    // Inject data from Django context
+    const labels = {{ chart_labels|safe }};
+    const cashData = {{ chart_cash|safe }};
+    const creditData = {{ chart_credit|safe }};
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Cash Sales',
+                    data: cashData,
+                    backgroundColor: '#1565c0',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Credit Sales',
+                    data: creditData,
+                    backgroundColor: '#6a1b9a',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                },
+                y: {
+                    stacked: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        callback: function(value) { return '₱' + value; }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: 'rgba(255, 255, 255, 0.7)' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                label += '₱' + context.parsed.y.toLocaleString('en-PH', {minimumFractionDigits: 2});
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // v3.3: Dashboard AJAX 60s auto-refresh polling
+    setInterval(function() {
+        console.log('🔄 Polling for updates...');
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.getElementById('dashboard-content');
+            if(newContent) {
+                document.getElementById('dashboard-content').innerHTML = newContent.innerHTML;
+            }
+        });
+    }, 60000);
+});
+</script>
+{% endblock %}

@@ -16,6 +16,7 @@ urlpatterns = [
     path('vault/', views.vault_manage, name='vault_manage'),
     path('vault/transaction/', views.vault_transaction, name='vault_transaction'),
     path('periodic-reports/', views.periodic_reports, name='periodic_reports'),
+    path('goods-sold/', views.goods_sold, name='goods_sold'),
     path('ledger-monitoring/', views_ledger.ledger_monitoring, name='ledger_monitoring'),
     path('payroll/', views_payroll.payroll_dashboard, name='payroll_dashboard'),
     path('payroll/settle/<int:user_id>/', views_payroll.settle_internal_debt, name='settle_internal_debt'),

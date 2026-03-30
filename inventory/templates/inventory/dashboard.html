@@ -118,17 +118,23 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-gray-500/10 text-gray-500 border border-gray-500/20 uppercase tracking-tighter">Inactive</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right space-x-4">
+                    <td class="px-6 py-4 text-right space-x-2">
                         {% if user.role == 'admin' or user.role == 'manager' %}
-                        <button onclick="openRestockModal({{ product.id }}, '{{ product.name|escapejs }}')" class="text-emerald-400 hover:text-emerald-300 transition-colors" title="Restock">
-                            <i class="fas fa-plus-circle"></i> Restock
+                        <button onclick="openRestockModal({{ product.id }}, '{{ product.name|escapejs }}')" class="text-emerald-400 hover:text-emerald-300 transition-colors tooltip-btn" title="Restock">
+                            <i class="fas fa-plus-circle"></i> In
                         </button>
-                        <a href="{% url 'inventory:edit_product' product.pk %}" class="text-primary-400 hover:text-primary-300 transition-colors" title="Edit">
-                            <i class="fas fa-edit"></i> Edit
+                        <button onclick="openAdjustModal({{ product.id }}, '{{ product.name|escapejs }}', {{ product.total_stock }})" class="text-amber-400 hover:text-amber-300 transition-colors tooltip-btn px-2" title="Adjust / Recount">
+                            <i class="fas fa-sliders-h"></i> Adj
+                        </button>
+                        <a href="{% url 'inventory:product_history' product.pk %}" class="text-blue-400 hover:text-blue-300 transition-colors tooltip-btn px-2" title="History">
+                            <i class="fas fa-history"></i> Log
+                        </a>
+                        <a href="{% url 'inventory:edit_product' product.pk %}" class="text-primary-400 hover:text-primary-300 transition-colors tooltip-btn" title="Edit">
+                            <i class="fas fa-edit"></i>
                         </a>
                         {% endif %}
                         {% if user.role == 'admin' %}
-                        <a href="{% url 'inventory:delete_product' product.pk %}" class="text-red-400 hover:text-red-300 transition-colors" title="Delete" onclick="return confirm('Are you sure you want to delete this product?');">
+                        <a href="{% url 'inventory:delete_product' product.pk %}" class="text-red-400 hover:text-red-300 transition-colors tooltip-btn px-2" title="Delete" onclick="return confirm('Are you sure you want to delete this product?');">
                             <i class="fas fa-trash"></i>
                         </a>
                         {% endif %}
@@ -161,7 +167,7 @@
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Branch</label>
                     <select name="branch_id" required class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500">
                         {% for branch in branches %}
-                        <option value="{{ branch.id }}">{{ branch.name }}</option>
+                        <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -171,7 +177,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Unit Cost (₱)</label>
-                    <input type="number" name="unit_cost" step="0.01" required min="0" placeholder="0.00" class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500">
+                    <input type="number" name="unit_cost" step="0.01" required min="0.01" placeholder="0.00" class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-emerald-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Status / Quality</label>
@@ -194,7 +200,55 @@
             </div>
             <div class="flex gap-3 pt-4">
                 <button type="button" onclick="closeRestockModal()" class="flex-1 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-300 text-sm font-semibold">Cancel</button>
-                <button type="submit" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/20 transition-all font-black uppercase tracking-widest uppercase tracking-widest">Confirm Restock</button>
+                <button type="submit" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/20 transition-all uppercase tracking-widest">Confirm Restock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Adjust Modal -->
+<div id="adjust-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+    <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-amber-500/20 shadow-2xl">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-xl font-black text-white uppercase tracking-tight text-amber-500">Inventory Adjustment</h2>
+                <p id="adjust-product-name" class="text-gray-400 text-sm">Product Name</p>
+            </div>
+            <button onclick="closeAdjustModal()" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <form id="adjust-form" method="POST" action="">
+            {% csrf_token %}
+            <div class="space-y-3">
+                <div class="p-3 bg-white/5 rounded-xl border border-white/10 mb-4 flex justify-between items-center">
+                    <span class="text-xs uppercase tracking-widest text-gray-400 font-bold">Current Stock Level</span>
+                    <span id="adjust-current-stock" class="font-mono font-bold text-lg text-white">0</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Branch</label>
+                    <select name="branch_id" required class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-amber-500">
+                        {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">New Exact Quantity</label>
+                    <input type="number" name="new_quantity" required min="0" class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-amber-500/50 text-white text-lg font-bold font-mono focus:ring-2 focus:ring-amber-500 text-center">
+                    <p class="text-[10px] text-gray-500 mt-1 uppercase">Enter the actual physical count. The system will calculate the variance automatically.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Adjustment Reason</label>
+                    <select name="reason" class="w-full px-3 py-2 rounded-xl bg-surface-800 border border-gray-700 text-gray-200 text-sm focus:ring-2 focus:ring-amber-500 mb-2">
+                        <option value="Physical Recount Verification">Physical Recount Verification</option>
+                        <option value="Theft or Loss">Theft or Loss</option>
+                        <option value="Damage/Spoilage">Damage/Spoilage</option>
+                        <option value="Correction of Entry Error">Correction of Entry Error</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeAdjustModal()" class="flex-1 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-300 text-sm font-semibold">Cancel</button>
+                <button type="submit" class="flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold shadow-lg shadow-amber-500/20 transition-all uppercase tracking-widest">Execute Adjust</button>
             </div>
         </form>
     </div>
@@ -202,21 +256,28 @@
 
 <script>
     function openRestockModal(productId, productName) {
-        const modal = document.getElementById('restock-modal');
-        const form = document.getElementById('restock-form');
-        const nameText = document.getElementById('restock-product-name');
-        
-        nameText.textContent = productName;
-        form.action = `/inventory/restock/${productId}/`;
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        document.getElementById('restock-product-name').textContent = productName;
+        document.getElementById('restock-form').action = `/inventory/restock/${productId}/`;
+        document.getElementById('restock-modal').classList.remove('hidden');
+        document.getElementById('restock-modal').classList.add('flex');
     }
 
     function closeRestockModal() {
-        const modal = document.getElementById('restock-modal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        document.getElementById('restock-modal').classList.add('hidden');
+        document.getElementById('restock-modal').classList.remove('flex');
+    }
+
+    function openAdjustModal(productId, productName, currentStock) {
+        document.getElementById('adjust-product-name').textContent = productName;
+        document.getElementById('adjust-current-stock').textContent = currentStock;
+        document.getElementById('adjust-form').action = `/inventory/adjust/${productId}/`;
+        document.getElementById('adjust-modal').classList.remove('hidden');
+        document.getElementById('adjust-modal').classList.add('flex');
+    }
+
+    function closeAdjustModal() {
+        document.getElementById('adjust-modal').classList.add('hidden');
+        document.getElementById('adjust-modal').classList.remove('flex');
     }
 </script>
 {% endblock %}
