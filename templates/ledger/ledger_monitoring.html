@@ -2,9 +2,15 @@
 
 {% block content %}
 <div class="px-4 sm:px-6 py-6 sm:py-8">
-    <div class="mb-6 sm:mb-8 text-center sm:text-left">
-        <h1 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
-        <p class="font-medium tracking-wide opacity-80 card-value text-sm sm:text-base mt-1 sm:mt-0">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs ml-1">Debt Aging</span></p>
+    <div class="mb-6 sm:mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center">
+        <div>
+            <h1 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase card-value">Ledger <span class="text-rose-500">Monitoring</span></h1>
+            <p class="font-medium tracking-wide opacity-80 card-value text-sm sm:text-base mt-1 sm:mt-0">Customer Liability & <span class="text-rose-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs ml-1">Debt Aging</span></p>
+        </div>
+        <button onclick="window.print()" class="mt-4 sm:mt-0 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-lg font-bold uppercase tracking-widest text-xs transition-colors print:hidden flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Print / Export PDF
+        </button>
     </div>
 
     <!-- Aging Buckets -->
@@ -93,15 +99,36 @@
 
     /* Implicit Dark Mode Targeting for The MoneyShot app styling */
     body[data-theme="dark"] .glass-card,
-    .dark .glass-card,
+    body[data-theme="midnight"] .glass-card,
+    .dark .glass-card {
+        background: rgba(23, 23, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        box-shadow: none;
+    }
+    body[data-theme="dark"] .card-value,
+    body[data-theme="midnight"] .card-value,
+    .dark .card-value { color: #ffffff; }
+
     @media (prefers-color-scheme: dark) {
-        .glass-card {
+        body:not([data-theme="light"]):not([data-theme="dawn"]) .glass-card {
             background: rgba(23, 23, 23, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.05);
             color: #ffffff;
             box-shadow: none;
         }
-        .card-value { color: #ffffff; }
+        body:not([data-theme="light"]):not([data-theme="dawn"]) .card-value { color: #ffffff; }
+    }
+    
+    @media print {
+        body * { visibility: hidden; }
+        .px-4.sm\:px-6.py-6.sm\:py-8, .px-4.sm\:px-6.py-6.sm\:py-8 * { visibility: visible; }
+        .px-4.sm\:px-6.py-6.sm\:py-8 { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; border: none; }
+        .glass-card { background: transparent !important; border: none !important; box-shadow: none !important; color: black !important; padding: 0.5rem !important; page-break-inside: avoid; }
+        .card-value { color: black !important; }
+        .grid { display: block !important; }
+        .space-y-4 { margin-bottom: 2rem !important; }
+        .bg-surface-800 { background: white !important; }
     }
 </style>
 {% endblock %}

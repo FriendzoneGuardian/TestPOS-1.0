@@ -18,10 +18,13 @@
         * { font-family: 'Inter', sans-serif; }
         
         .glass-card {
-            background-color: color-mix(in srgb, var(--color-surface-800, #1e293b) 60%, transparent);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--color-primary-500);
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05); /* Inner-glow 1px equivalent requested by Master */
+            background-color: color-mix(in srgb, var(--color-surface-800, #1e293b) 50%, transparent);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.37),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
         }
         .gradient-text {
             background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 50%, #a78bfa 100%);
@@ -189,11 +192,17 @@
 
         <div class="flex-1 sm:ml-64 flex flex-col">
             <!-- Top Navbar for Old POS Style -->
-            <header class="w-full h-16 bg-surface-900 border-b border-gray-800 flex items-center justify-end px-4 sm:px-6 sticky top-0 z-[90]">
-                <div class="flex items-center space-x-4">
+            <header class="w-full h-16 border-b border-white/5 flex items-center justify-end px-4 sm:px-6 sticky top-0 z-[90] transition-all duration-300" 
+                    style="background: linear-gradient(90deg, rgba(45,90,39,0.85) 0%, 
+                    {% if user.role == 'admin' %}rgba(220,38,38,0.5){% elif user.role == 'manager' %}rgba(5,150,105,0.5){% elif user.role == 'accounting' %}rgba(217,119,6,0.5){% else %}rgba(37,99,235,0.5){% endif %} 100%); 
+                    backdrop-filter: blur(20px);">
+                
+                <!-- Navbar Actions Box -->
+                <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-md border border-white/10 p-1.5 rounded-2xl shadow-lg">
+                    <div class="flex items-center space-x-1 pr-2 border-r border-white/10">
                     <!-- Inventory Alerts (Bell) -->
                     {% if user.role == 'admin' or user.role == 'manager' or user.role == 'accounting' %}
-                    <div class="relative flex items-center pr-4 border-r border-gray-700">
+                    <div class="relative flex items-center">
                         <button id="alertsMenuButton" data-dropdown-toggle="alertsMenuDropdown" class="p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors relative" title="Inventory Alerts">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                             {% if low_stock_count > 0 %}
@@ -213,12 +222,12 @@
                                 {% for alert in low_stock_alerts %}
                                 <li class="px-4 py-3 hover:bg-surface-700/50 border-b border-gray-700 last:border-0 transition-colors">
                                     <div class="flex justify-between items-start mb-1">
-                                        <span class="font-medium text-gray-100">{{ alert.product_name }}</span>
+                                        <span class="font-medium text-gray-100">{{ alert.product.name }}</span>
                                         <span class="text-xs text-red-400 bg-red-500/10 px-1.5 rounded">{{ alert.quantity }} left</span>
                                     </div>
                                     <div class="flex justify-between text-xs text-gray-400">
-                                        <span>Reorder at: {{ alert.reorder_level }}</span>
-                                        <span>{{ alert.branch_name }}</span>
+                                        <span>Reorder at: {{ alert.product.reorder_level }}</span>
+                                        <span>{{ alert.branch.name|default:"Main Branch" }}</span>
                                     </div>
                                 </li>
                                 {% empty %}
@@ -235,8 +244,8 @@
                     {% endif %}
 
                     <!-- BBQ Stick (Burger Menu) -->
-                    <div class="relative flex items-center pr-4 border-r border-gray-700">
-                        <button id="bbqMenuButton" data-dropdown-toggle="bbqMenuDropdown" class="p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" title="Settings Menu">
+                    <div class="relative flex items-center">
+                        <button id="bbqMenuButton" data-dropdown-toggle="bbqMenuDropdown" class="p-2 rounded-xl text-gray-200 hover:bg-white/10 transition-all" title="Settings Menu">
                             <!-- Burger Icon -->
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
@@ -263,18 +272,16 @@
                     </div>
                     
                     <!-- User Info -->
-                    <div class="text-right hidden sm:block">
-                        <p class="text-sm font-semibold text-gray-200 leading-tight">{{ user.username }}</p>
-                        <p class="text-xs text-gray-400 capitalize">{{ user.role }}</p>
+                    <div class="text-right hidden sm:block px-3 py-1 bg-white/5 rounded-xl border border-white/5">
+                        <p class="text-[10px] font-black text-white uppercase tracking-tighter leading-tight">{{ user.username }}</p>
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{{ user.role }}</p>
                     </div>
                     
                     <!-- Logout -->
-                    <form action="{% url 'core:logout' %}" method="post" class="m-0 flex items-center">
+                    <form action="{% url 'core:logout' %}" method="post" class="m-0 flex items-center pl-1 border-l border-white/10">
                         {% csrf_token %}
-                        <button type="submit" class="p-2 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors" title="Logout">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
+                        <button type="submit" class="p-2 flex items-center justify-center rounded-xl hover:bg-red-500/20 text-gray-200 hover:text-red-400 transition-all font-bold" title="Logout">
+                            <i class="fas fa-power-off text-sm"></i>
                         </button>
                     </form>
                 </div>

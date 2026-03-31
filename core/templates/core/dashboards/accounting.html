@@ -3,42 +3,48 @@
 {% block title %}Accounting Dashboard - TheMoneyShot{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-bold text-amber-500 mb-1">Financial Forensics</h1>
-        <p class="text-gray-400 text-sm">Financial Auditing and Reporting Context. Read-only access.</p>
+        <h1 class="text-3xl font-black uppercase tracking-tighter text-white">Financial <span class="text-amber-500">Forensics</span></h1>
+        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-1">Financial Auditing and Reporting Context. Read-only access.</p>
     </div>
 </div>
 
-<div class="grid grid-cols-4 gap-6 mb-10">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
     <!-- Row 1: Audit Stats -->
-    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card border-amber-500/50 rounded-2xl p-5 fade-in">
-        <div class="flex items-center justify-between mb-2 text-amber-400">
-            <h3 class="text-[10px] font-black uppercase tracking-widest">Total Revenue</h3>
-            <i class="fas fa-hand-holding-usd text-lg"></i>
+    <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-amber-500/40 transition-colors group shadow-xl flex flex-col justify-between fade-in">
+        <div class="flex items-center justify-between mb-2 text-gray-500 group-hover:text-amber-400 transition-colors">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">Total Revenue</h3>
+            <div class="w-10 h-10 rounded-xl bg-surface-800 flex items-center justify-center border border-white/5 group-hover:bg-amber-500/20 group-hover:border-amber-500/30 transition-all">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
         </div>
-        <p class="text-2xl font-black text-white tracking-tighter">₱{{ total_revenue|stringformat:".2f" }}</p>
+        <p class="text-3xl font-black text-white tracking-tighter">₱{{ total_revenue|stringformat:".2f" }}</p>
     </div>
     
-    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card border-red-500/50 rounded-2xl p-5 fade-in">
-        <div class="flex items-center justify-between mb-2 text-red-400">
-            <h3 class="text-[10px] font-black uppercase tracking-widest">Active Credits</h3>
-            <i class="fas fa-user-clock text-lg"></i>
+    <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-red-500/40 transition-colors group shadow-xl flex flex-col justify-between fade-in">
+        <div class="flex items-center justify-between mb-2 text-gray-500 group-hover:text-red-400 transition-colors">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">Active Credits</h3>
+            <div class="w-10 h-10 rounded-xl bg-surface-800 flex items-center justify-center border border-white/5 group-hover:bg-red-500/20 group-hover:border-red-500/30 transition-all">
+                <i class="fas fa-user-clock"></i>
+            </div>
         </div>
-        <p class="text-2xl font-black text-white tracking-tighter">₱{{ active_loans|stringformat:".2f" }}</p>
+        <p class="text-3xl font-black text-white tracking-tighter">₱{{ active_loans|stringformat:".2f" }}</p>
     </div>
     
-    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card border-orange-500/50 rounded-2xl p-5 fade-in">
-        <div class="flex items-center justify-between mb-2 text-orange-400">
-            <h3 class="text-[10px] font-black uppercase tracking-widest">Today's Voids</h3>
-            <i class="fas fa-trash-alt text-lg"></i>
+    <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-orange-500/40 transition-colors group shadow-xl flex flex-col justify-between fade-in">
+        <div class="flex items-center justify-between mb-2 text-gray-500 group-hover:text-orange-400 transition-colors">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">Today's Voids</h3>
+            <div class="w-10 h-10 rounded-xl bg-surface-800 flex items-center justify-center border border-white/5 group-hover:bg-orange-500/20 group-hover:border-orange-500/30 transition-all">
+                <i class="fas fa-trash-alt"></i>
+            </div>
         </div>
-        <p class="text-2xl font-black text-white tracking-tighter">{{ total_voids_today }} <span class="text-xs text-gray-500">Items</span></p>
+        <p class="text-3xl font-black text-white tracking-tighter">{{ total_voids_today }} <span class="text-[10px] uppercase text-gray-500">Items</span></p>
     </div>
 
     <!-- Quick Ops placeholder or blank card to maintain grid -->
-    <div class="col-span-4 md:col-span-2 xl:col-span-1 glass-card border-gray-800/50 rounded-2xl p-5 fade-in flex items-center justify-center opacity-50">
-        <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest font-medium">Reserved for Analytics</span>
+    <div class="glass-card rounded-2xl p-5 border-gray-800/50 flex flex-col items-center justify-center opacity-30 fade-in shadow-inner">
+        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Reserved for Analytics</span>
     </div>
 
     <!-- Row 2: Audit Trail (Full Width) -->

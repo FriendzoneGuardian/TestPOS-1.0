@@ -146,8 +146,8 @@ def accounting_dashboard(request):
 
 @login_required
 def user_management(request):
-    # Only Admin and Manager
-    if not request.user.is_manager():
+    # Only Admin
+    if not request.user.is_admin():
         return redirect('core:home')
     
     users = User.objects.select_related('branch').all().order_by('role', 'username')
@@ -164,7 +164,7 @@ def user_management(request):
 @login_required
 @require_POST
 def user_save(request, user_id=None):
-    if not request.user.is_manager():
+    if not request.user.is_admin():
         return JsonResponse({'success': False, 'message': 'Permission denied.'}, status=403)
         
     # Only Admin can create Admin users or edit Admin users
@@ -187,6 +187,19 @@ def user_save(request, user_id=None):
     else:
         errors = {field: [error for error in field_errors] for field, field_errors in form.errors.items()}
         return JsonResponse({'success': False, 'message': 'Validation failed.', 'errors': errors}, status=400)
+
+@login_required
+@require_POST
+def user_delete(request, user_id):
+    if not request.user.is_admin():
+        return JsonResponse({'success': False, 'message': 'Permission denied.'}, status=403)
+    
+    if user_id == request.user.id:
+        return JsonResponse({'success': False, 'message': 'Cannot delete yourself.'}, status=400)
+        
+    user_obj = get_object_or_404(User, id=user_id)
+    user_obj.delete()
+    return JsonResponse({'success': True, 'message': 'User deleted successfully.'})
 
 @login_required
 @require_POST

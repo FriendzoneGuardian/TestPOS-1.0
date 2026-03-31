@@ -3,14 +3,16 @@
 {% block title %}User Management - TheVelvetRope{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex justify-between items-end">
     <div>
-        <h1 class="text-3xl font-bold gradient-text mb-1">The Velvet Rope (User Management)</h1>
-        <p class="text-gray-400 text-sm">Control access, assign roles, and manage branch assignments.</p>
+        <h1 class="text-3xl font-black uppercase tracking-tighter text-white">The Velvet Rope <span class="text-primary-500">(Users)</span></h1>
+        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-1">Control access, assign roles, and manage branch assignments.</p>
     </div>
-    <button onclick="openUserModal()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-primary-500/30">
-        + Add New Employee
+    {% if user.is_admin %}
+    <button onclick="openUserModal()" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors shadow-lg shadow-primary-500/20 flex items-center gap-2">
+        <i class="fas fa-plus"></i> Add New Employee
     </button>
+    {% endif %}
 </div>
 
 <div class="glass-card rounded-xl overflow-hidden fade-in">
@@ -27,12 +29,15 @@
             </thead>
             <tbody>
                 {% for target_user in users %}
-                <tr class="border-b border-gray-700 hover:bg-surface-800/50 transition-colors">
+                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
                     <td class="px-6 py-4 font-medium text-gray-200 flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-primary-900/50 text-primary-400 flex items-center justify-center mr-3 font-bold border border-primary-500/30 uppercase">
+                        <div class="w-9 h-9 rounded-xl bg-surface-950 flex items-center justify-center mr-3 font-black border border-white/5 group-hover:border-primary-500/40 text-primary-400 transition-all uppercase">
                             {{ target_user.username|make_list|first }}
                         </div>
-                        {{ target_user.username }} {% if target_user == user %}(You){% endif %}
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-white tracking-tight">{{ target_user.username }}</span>
+                            {% if target_user == user %}<span class="text-[9px] text-primary-500 font-black uppercase tracking-widest">Master Session</span>{% endif %}
+                        </div>
                     </td>
                     <td class="px-6 py-4">
                         {% if target_user.role == 'admin' %}
@@ -57,8 +62,8 @@
                             </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right space-x-3">
-                        <button type="button" class="text-primary-400 hover:text-primary-300 font-medium edit-btn"
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button type="button" class="text-gray-400 hover:text-primary-400 transition-colors edit-btn"
                                 data-id="{{ target_user.id }}"
                                 data-username="{{ target_user.username }}"
                                 data-role="{{ target_user.role }}"
@@ -66,8 +71,13 @@
                                 data-active="{{ target_user.is_active|yesno:'true,false' }}"
                                 data-active-account="{{ target_user.is_active_account|yesno:'true,false' }}"
                                 data-terminal-pin="{{ target_user.terminal_pin|default:'0000' }}">
-                            Edit
+                            <i class="fas fa-edit"></i>
                         </button>
+                        {% if user.is_admin and target_user != user %}
+                        <button type="button" onclick="deleteUser({{ target_user.id }}, '{{ target_user.username|escapejs }}')" class="text-gray-600 hover:text-red-400 transition-colors">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
@@ -267,6 +277,27 @@
         } finally {
             btn.disabled = false;
             btn.innerText = 'Save User';
+        }
+    }
+    async function deleteUser(id, name) {
+        if (!confirm(`Are you absolutely sure you want to delete ${name}? This action cannot be undone.`)) return;
+        
+        try {
+            const response = await fetch(`{% url 'core:user_delete' 0 %}`.replace('0', id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                showToast('Terminated', 'User has been purged from the registry.', 'success');
+                location.reload();
+            } else {
+                showToast('Termination Failed', data.message || 'System error.', 'error');
+            }
+        } catch (err) {
+            showToast('Network Error', 'Purge failed. Connection unstable.', 'error');
         }
     }
 </script>

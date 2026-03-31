@@ -18,6 +18,7 @@ urlpatterns = [
     path('users/', views.user_management, name='user_management'),
     path('users/save/', views.user_save, name='user_save'),
     path('users/save/<int:user_id>/', views.user_save, name='user_save_id'),
+    path('users/delete/<int:user_id>/', views.user_delete, name='user_delete'),
     
     # Security (The Cold Shoulder)
     path('lock-session/', views.lock_session, name='lock_session'),

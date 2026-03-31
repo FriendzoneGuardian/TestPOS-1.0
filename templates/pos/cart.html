@@ -1,0 +1,62 @@
+<div class="w-full lg:w-96 glass-card rounded-[2.5rem] p-6 flex flex-col border-primary-500/20 shadow-2xl relative overflow-hidden hidden lg:flex flex-shrink-0 sticky top-0 h-full" id="pos-cart-panel">
+    <div class="absolute inset-0 bg-primary-500/5 pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col h-full">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-[10px] font-black text-gray-400 flex items-center uppercase tracking-[0.3em]">
+                <i class="fas fa-shopping-cart mr-2 text-primary-500 text-sm"></i>
+                Active Registry
+            </h2>
+            {% if current_shift %}
+            <button onclick="openEndDayReport()" class="text-[9px] font-black text-red-400 hover:text-red-300 uppercase tracking-widest transition-colors">Terminate</button>
+            {% endif %}
+        </div>
+
+        <div id="cart-items" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-1 custom-scrollbar">
+            <div id="cart-empty" class="h-full flex flex-col items-center justify-center text-center py-12 opacity-30">
+                <i class="fas fa-ghost text-5xl mb-4 text-gray-700"></i>
+                <p class="text-xs font-black uppercase tracking-widest text-gray-500">Registry Empty</p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800/50 pt-6 space-y-6">
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Subtotal</span>
+                    <span class="text-sm font-bold text-gray-400" id="cart-subtotal">₱0.00</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Total Due</span>
+                    <span id="cart-total" class="text-4xl font-black text-white tracking-tighter">₱0.00</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2 p-1.5 bg-surface-950/50 rounded-2xl border border-gray-800/50">
+                <button onclick="setPayment('cash')" id="pay-cash"
+                    class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-500/20">
+                    Cash
+                </button>
+                <button onclick="setPayment('loan')" id="pay-loan"
+                    class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-all">
+                    In-House
+                </button>
+            </div>
+
+            <div id="customer-select-wrap" class="hidden">
+                <select id="customer-select"
+                    class="w-full px-4 py-4 rounded-2xl bg-surface-900 border border-gray-800 text-white text-xs font-bold focus:ring-2 focus:ring-amber-500 transition-all">
+                    <option value="">Choose Account Holder...</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button onclick="checkout()" id="checkout-btn"
+                class="w-full py-6 rounded-[2rem] bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-black uppercase tracking-[0.4em] text-xs transition-all shadow-2xl shadow-primary-500/20 disabled:opacity-20 disabled:grayscale disabled:cursor-not-allowed"
+                disabled>
+                Finalize Sale
+            </button>
+        </div>
+    </div>
+</div>
