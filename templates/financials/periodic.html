@@ -74,61 +74,61 @@
 </div>
 
 <!-- A4 Document Preview Table -->
-<div class="bg-gray-200 dark:bg-surface-800/80 p-8 rounded shadow-inner overflow-x-auto flex justify-center mb-8 hidden-print w-full border border-black/10">
+<div class="glass-card rounded-2xl p-8 shadow-inner overflow-x-auto flex justify-center mb-8 hidden-print w-full border border-white/10">
     <!-- Paper Sheet -->
-    <div class="bg-white text-black shadow-2xl p-10 w-full min-w-[210mm] max-w-[210mm] min-h-[297mm] printable-a4 mx-auto shrink-0" style="color: black !important;">
+    <div class="bg-surface-900 shadow-2xl p-10 w-full min-w-[210mm] max-w-[210mm] min-h-[297mm] printable-a4 mx-auto shrink-0 border border-white/10">
         <!-- Header -->
-        <div class="border-b-2 border-black pb-4 mb-6 flex justify-between items-end">
+        <div class="border-b-2 border-gray-600 pb-4 mb-6 flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-black uppercase tracking-tighter text-black">Financial Ledger</h1>
-                <p class="text-sm font-medium text-gray-600 mt-1">Generated: {% now "F j, Y, g:i A" %}</p>
+                <h1 class="text-3xl font-black uppercase tracking-tighter text-white doc-text">Financial Ledger</h1>
+                <p class="text-sm font-medium text-gray-400 mt-1">Generated: {% now "F j, Y, g:i A" %}</p>
             </div>
             <div class="text-right">
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Period Focus</p>
-                <p class="font-bold uppercase text-sm text-black">{{ period }}</p>
+                <p class="font-bold uppercase text-sm text-white doc-text">{{ period }}</p>
                 <p class="text-xs text-gray-500">{{ start_date|date:"m/d/Y" }} - {{ end_date|date:"m/d/Y" }}</p>
             </div>
         </div>
 
         <!-- Metric Summary on Paper -->
-        <div class="grid grid-cols-4 gap-4 mb-8 pb-6 border-b border-gray-300">
+        <div class="grid grid-cols-4 gap-4 mb-8 pb-6 border-b border-gray-600">
             <div>
                 <p class="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Revenue</p>
-                <p class="text-lg font-black text-black">{{ total_revenue|peso }}</p>
+                <p class="text-lg font-black text-white doc-text">{{ total_revenue|peso }}</p>
             </div>
             <div>
                 <p class="text-[10px] uppercase font-bold text-gray-500 tracking-widest">COGS</p>
-                <p class="text-lg font-black text-red-600">{{ total_cogs|peso }}</p>
+                <p class="text-lg font-black text-red-500">{{ total_cogs|peso }}</p>
             </div>
             <div>
                 <p class="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Gross Prft</p>
-                <p class="text-lg font-black text-green-700">{{ gross_profit|peso }}</p>
+                <p class="text-lg font-black text-emerald-400">{{ gross_profit|peso }}</p>
             </div>
             <div>
                 <p class="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Margin</p>
-                <p class="text-lg font-black text-black">{{ profit_margin|floatformat:1 }}%</p>
+                <p class="text-lg font-black text-white doc-text">{{ profit_margin|floatformat:1 }}%</p>
             </div>
         </div>
 
         <!-- Ledger Table -->
-        <table class="w-full text-sm text-left text-black">
+        <table class="w-full text-sm text-left text-gray-300">
             <thead>
-                <tr class="border-b-2 border-black text-xs uppercase tracking-widest font-black text-black">
+                <tr class="border-b-2 border-gray-600 text-xs uppercase tracking-widest font-black text-gray-400">
                     <th class="py-2">Date/Time</th>
                     <th class="py-2">Ord#</th>
                     <th class="py-2">Method</th>
-                    <th class="py-2 text-right text-red-700">COGS</th>
-                    <th class="py-2 text-right text-black">Revenue</th>
+                    <th class="py-2 text-right text-red-500">COGS</th>
+                    <th class="py-2 text-right text-white doc-text">Revenue</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200 text-black">
+            <tbody class="divide-y divide-gray-800 text-gray-300">
                 {% for o in orders %}
-                <tr class="{% if forloop.counter|divisibleby:2 %}bg-gray-50{% else %}bg-white{% endif %}">
-                    <td class="py-2 font-medium text-black">{{ o.order_date|date:"M d, h:i A" }}</td>
-                    <td class="py-2 font-mono text-xs font-bold text-black">#{{ o.id }}</td>
-                    <td class="py-2 text-xs font-bold uppercase text-black">{{ o.payment_method }}</td>
-                    <td class="py-2 text-right font-mono text-red-700">{{ o.cogs|peso }}</td>
-                    <td class="py-2 text-right font-mono font-bold text-black">{{ o.total_amount|peso }}</td>
+                <tr class="{% if forloop.counter|divisibleby:2 %}bg-surface-900/50{% else %}bg-transparent{% endif %} print-row">
+                    <td class="py-2 font-medium text-gray-300">{{ o.order_date|date:"M d, h:i A" }}</td>
+                    <td class="py-2 font-mono text-xs font-bold text-white doc-text">#{{ o.id }}</td>
+                    <td class="py-2 text-xs font-bold uppercase text-gray-400">{{ o.payment_method }}</td>
+                    <td class="py-2 text-right font-mono text-red-500">{{ o.cogs|peso }}</td>
+                    <td class="py-2 text-right font-mono font-bold text-white doc-text">{{ o.total_amount|peso }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -139,40 +139,40 @@
         </table>
 
         <!-- Signature Block -->
-        <div class="mt-16 flex justify-between px-8 text-black">
+        <div class="mt-16 flex justify-between px-8 text-white doc-text">
             <div class="text-center w-48">
-                <div class="border-b border-black h-8 mb-2"></div>
-                <p class="text-xs uppercase font-bold tracking-widest text-black">Prepared By</p>
-                <p class="text-xs text-gray-600 font-bold uppercase">{{ user.username }}</p>
+                <div class="border-b border-gray-600 h-8 mb-2"></div>
+                <p class="text-xs uppercase font-bold tracking-widest text-gray-400">Prepared By</p>
+                <p class="text-xs text-gray-300 font-bold uppercase">{{ user.username }}</p>
             </div>
             <div class="text-center w-48">
-                <div class="border-b border-black h-8 mb-2"></div>
-                <p class="text-xs uppercase font-bold tracking-widest text-black">Verified By</p>
+                <div class="border-b border-gray-600 h-8 mb-2"></div>
+                <p class="text-xs uppercase font-bold tracking-widest text-gray-400">Verified By</p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    /* Force all unstyled elements inside the document to stay black even if Dark Mode is active */
-    .printable-a4 * {
-        color: inherit;
-    }
-    .printable-a4 .text-red-600 { color: #dc2626 !important; }
-    .printable-a4 .text-red-700 { color: #b91c1c !important; }
-    .printable-a4 .text-green-700 { color: #15803d !important; }
-    .printable-a4 .text-gray-500 { color: #6b7280 !important; }
-    .printable-a4 .text-gray-600 { color: #4b5563 !important; }
-
     @media print {
-        body * { visibility: hidden; }
+        body * { visibility: hidden; color: black; }
         .printable-a4, .printable-a4 * { visibility: visible; }
         .printable-a4 {
             position: absolute; left: 0; top: 0;
             width: 100%; box-shadow: none; padding: 0 !important; margin: 0 !important; border: none;
             background-color: white !important; color: black !important;
         }
-        .hidden-print { background: transparent !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
+        .printable-a4 .doc-text { color: black !important; }
+        .printable-a4 .text-white { color: black !important; }
+        .printable-a4 .text-gray-300, .printable-a4 .text-gray-400 { color: #374151 !important; }
+        .printable-a4 .text-gray-500 { color: #6b7280 !important; }
+        .printable-a4 .border-gray-600 { border-color: black !important; }
+        .printable-a4 .print-row { background-color: transparent !important; }
+        .printable-a4 .divide-gray-800 > :not([hidden]) ~ :not([hidden]) { border-color: #ddd !important; }
+        .hidden-print { background: transparent !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
+        
+        .printable-a4 .text-red-500 { color: #b91c1c !important; }
+        .printable-a4 .text-emerald-400 { color: #15803d !important; }
     }
 </style>
 {% endblock %}

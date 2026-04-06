@@ -86,49 +86,16 @@
 </div>
 
 <style>
-    /* Light Mode Basics */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 1.5rem;
-        color: #111827;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .card-value { color: #111827; }
-
-    /* Implicit Dark Mode Targeting for The MoneyShot app styling */
-    body[data-theme="dark"] .glass-card,
-    body[data-theme="midnight"] .glass-card,
-    .dark .glass-card {
-        background: rgba(23, 23, 23, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        color: #ffffff;
-        box-shadow: none;
-    }
-    body[data-theme="dark"] .card-value,
-    body[data-theme="midnight"] .card-value,
-    .dark .card-value { color: #ffffff; }
-
-    @media (prefers-color-scheme: dark) {
-        body:not([data-theme="light"]):not([data-theme="dawn"]) .glass-card {
-            background: rgba(23, 23, 23, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            box-shadow: none;
-        }
-        body:not([data-theme="light"]):not([data-theme="dawn"]) .card-value { color: #ffffff; }
-    }
-    
     @media print {
-        body * { visibility: hidden; }
-        .px-4.sm\:px-6.py-6.sm\:py-8, .px-4.sm\:px-6.py-6.sm\:py-8 * { visibility: visible; }
-        .px-4.sm\:px-6.py-6.sm\:py-8 { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; border: none; }
-        .glass-card { background: transparent !important; border: none !important; box-shadow: none !important; color: black !important; padding: 0.5rem !important; page-break-inside: avoid; }
+        body * { visibility: hidden; color: black !important; }
+        .px-4.sm\:px-6.py-6.sm\:py-8, .px-4.sm\:px-6.py-6.sm\:py-8 * { visibility: visible; color: black !important; }
+        .px-4.sm\:px-6.py-6.sm\:py-8 { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; border: none; background: white !important; }
+        .glass-card { background: transparent !important; border: 1px solid #ddd !important; box-shadow: none !important; color: black !important; padding: 1rem !important; margin-bottom: 0.5rem !important; page-break-inside: avoid; }
         .card-value { color: black !important; }
         .grid { display: block !important; }
         .space-y-4 { margin-bottom: 2rem !important; }
-        .bg-surface-800 { background: white !important; }
+        .text-rose-500, .text-amber-500, .text-emerald-500, .text-gray-500 { color: black !important; }
+        .opacity-70, .opacity-80 { opacity: 1 !important; }
     }
 </style>
 {% endblock %}

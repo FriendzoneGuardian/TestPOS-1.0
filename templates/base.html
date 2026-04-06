@@ -556,29 +556,31 @@
         <div class="glass-card p-6 rounded-2xl max-w-md w-full mx-4 space-y-4 border-red-500/20 shadow-2xl shadow-red-500/10 scale-in relative z-20">
             <div class="flex items-start justify-between">
                 <div>
-                    <h2 class="text-xl font-black text-white uppercase tracking-tight">Low Stock Alert</h2>
-                    <p class="text-gray-400 text-sm">Critical items need attention.</p>
+                    <h2 class="text-2xl font-black text-rose-500 uppercase tracking-tighter">Low Stock Alert</h2>
+                    <p class="text-rose-200 text-[10px] font-bold uppercase tracking-widest mt-1">Critical items need immediate attention.</p>
                 </div>
-                <button id="low-stock-close" class="text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button id="low-stock-close" class="text-rose-400 hover:text-white transition-colors bg-rose-500/10 hover:bg-rose-500/30 p-2 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             <ul class="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {% for alert in low_stock_alerts %}
-                <li class="flex items-center justify-between bg-surface-900 border border-gray-800 rounded-xl px-4 py-3">
-                    <div>
-                        <div class="text-sm font-semibold text-gray-100">{{ alert.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ alert.branch_name }} · Reorder at {{ alert.reorder_level }}</div>
+                <li class="flex items-center justify-between bg-surface-950 border border-white/10 rounded-xl px-4 py-3 hover:bg-surface-800 transition-colors">
+                    <div class="flex-1 pr-3">
+                        <div class="text-sm font-black text-white uppercase tracking-tight line-clamp-1">{{ alert.product_name }}</div>
+                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{{ alert.branch_name|default:"Main Branch" }} · Reorder: {{ alert.reorder_level }}</div>
                     </div>
-                    <span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">{{ alert.quantity }} left</span>
+                    <span class="text-xs font-black text-white bg-rose-600 px-3 py-1.5 rounded-xl shadow-lg shadow-rose-600/30 uppercase tracking-widest shrink-0">{{ alert.quantity }} Left</span>
                 </li>
                 {% empty %}
-                <li class="text-sm text-gray-500 text-center py-4">All stock levels are nominal.</li>
+                <li class="text-xs font-black uppercase tracking-widest text-emerald-500 text-center py-6 bg-surface-950 rounded-xl border border-emerald-500/20">All stock levels are optimal.</li>
                 {% endfor %}
             </ul>
-            <div class="flex gap-3">
-                <button id="low-stock-dismiss" class="flex-1 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-400 text-sm font-bold border border-gray-700/50 transition-all">Later</button>
-                <a href="{% url 'inventory:dashboard' %}" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-sm font-bold text-center transition-all shadow-lg shadow-red-500/20">Manage Stock</a>
+            <div class="flex gap-3 pt-2">
+                <button id="low-stock-dismiss" class="flex-1 py-3.5 rounded-xl bg-surface-800 hover:bg-surface-700 text-gray-400 hover:text-white text-[10px] uppercase font-black tracking-widest border border-white/10 transition-all">Dismiss</button>
+                <a href="{% url 'inventory:dashboard' %}" class="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-[10px] uppercase font-black tracking-widest text-center transition-all shadow-xl shadow-rose-600/20 flex items-center justify-center gap-2">
+                    <i class="fas fa-boxes"></i> Manage Stock
+                </a>
             </div>
         </div>
     </div>
